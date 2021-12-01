@@ -1,0 +1,47 @@
+---
+title: '01'
+author: "A. Ginolhac"
+date: "2021-12-01"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+## 
+
+
+```{r}
+d01 <- read_table("input/01", col_names = "depth")
+```
+
+
+### Part 1
+
+```{r}
+d01 |> 
+  mutate(diff = lag(depth) - depth,
+         increase = diff < 0) |> 
+  count(increase)
+```
+
+- answer is 1154
+
+### Part 2
+
+```{r}
+library(slider)
+d01 |> 
+  mutate(rs = slide_sum(depth, before = 0L, after = 2L),
+         diff = lag(rs) - rs,
+         increase = diff < 0) |> 
+  count(increase)
+```
+
+- answer is 1127
+
+
+
+
