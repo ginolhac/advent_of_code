@@ -15,6 +15,17 @@ library(tidyverse)
 
 ```{r}
 d02 <- read_table("input/02", col_names = c("direction", "value"))
+
+
+# d02 <- tribble(
+#   ~ direction, ~ value,
+#   "forward", 5,
+#   "down", 5,
+#   "forward", 8,
+#   "up", 3,
+#   "down", 8,
+#   "forward", 2,
+# )
 ```
 
 
@@ -34,31 +45,28 @@ d02 |>
 
 ### Part 2
 
-
-```{r}
-d02 |> 
-  mutate(value0 = lag(value, default = 0),
-         d = if_else(direction == "up", -value0, value0))
-         aim = if_else(direction == "forward", cumsum(d)))
-```
-
-
 ```{r}
 aim <- 0
+depth <- 0
 fw <- 0
-message("direct\tvalue\taim\tfw")
+message("aim\tfw\tdepth")
 for (i in seq_along(d02$direction)) {
 #for (i in 1:20) {
   val <- d02$value[i]
   if (d02$direction[i] == "forward") {
-    aim <- val * aim
+    depth <- depth + (val * aim)
     fw <- fw + val
-  } else if (d02$direction[i] == "down") aim <- aim + val
-  else aim <- aim - val
+  } else if (d02$direction[i] == "down") {
+    aim <- aim + val
+  }
+  else {
+    aim <- aim - val
+  }
   
-  #message(paste(d02$direction[i], val, aim, fw, sep = "\t"))
+  #message(paste(d02$direction[i], val, aim, fw, depth, sep = "\t"))
 }
-message(paste(aim, fw, sep = "\t"))
-4.4937803037537e+244*1965
+message(paste(aim, fw, depth, sep = "\t"))
+1965*1071386
 ```
 
+- answer is 2105273490
