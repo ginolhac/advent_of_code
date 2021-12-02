@@ -1,0 +1,64 @@
+---
+title: '02'
+author: "A. Ginolhac"
+date: "2021-12-02"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+##
+
+
+```{r}
+d02 <- read_table("input/02", col_names = c("direction", "value"))
+```
+
+
+### Part 1
+
+```{r}
+d02 |>
+  group_by(direction) |> 
+  summarise(sum = sum(value)) |> 
+  pivot_wider(names_from = direction,
+              values_from = sum) |> 
+  mutate(depth = down - up,
+         solution = depth * forward)
+```
+
+- Answer is 2322630
+
+### Part 2
+
+
+```{r}
+d02 |> 
+  mutate(value0 = lag(value, default = 0),
+         d = if_else(direction == "up", -value0, value0))
+         aim = if_else(direction == "forward", cumsum(d)))
+```
+
+
+```{r}
+aim <- 0
+fw <- 0
+message("direct\tvalue\taim\tfw")
+for (i in seq_along(d02$direction)) {
+#for (i in 1:20) {
+  val <- d02$value[i]
+  if (d02$direction[i] == "forward") {
+    aim <- val * aim
+    fw <- fw + val
+  } else if (d02$direction[i] == "down") aim <- aim + val
+  else aim <- aim - val
+  
+  #message(paste(d02$direction[i], val, aim, fw, sep = "\t"))
+}
+message(paste(aim, fw, sep = "\t"))
+4.4937803037537e+244*1965
+```
+
