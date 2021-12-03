@@ -1,0 +1,71 @@
+---
+title: '03'
+author: "A. Ginolhac"
+date: "2021-12-03"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+## Data
+
+
+```{r}
+d03_test <- tribble(
+  ~ rates,
+   "00100",
+   "11110",
+   "10110",
+   "10111",
+   "10101",
+   "01111",
+   "00111",
+   "11100",
+   "10000",
+   "11001",
+   "00010",
+   "01010"
+  )
+
+
+d03 <- read_table("input/03", col_names = "rates")
+
+```
+
+
+## Part 1
+
+
+gamma:
+
+```{r}
+lg <- str_length(d03$rates[1])
+
+d03 |> 
+  separate(rates, letters[1:lg], sep = 1:lg, 
+           convert = TRUE) |> 
+  map_dbl(sum) |> 
+  map_int(~ .x > nrow(d03) / 2) |> 
+  paste0(collapse = "") |> 
+  base::strtoi(base = 2) -> gamma
+gamma
+```
+
+espsilon:
+
+```{r}
+d03 |> 
+  separate(rates, letters[1:lg], sep = 1:lg,
+           convert = TRUE) |> 
+  map_dbl(sum) |> 
+  map_int(~ .x < nrow(d03) / 2) |> 
+  paste0(collapse = "") |> 
+  base::strtoi(base = 2) -> epsilon
+epsilon
+```
+
+answer: `r epsilon * gamma`
+
