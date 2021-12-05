@@ -54,7 +54,7 @@ d03 |>
 gamma
 ```
 
-espsilon:
+epsilon:
 
 ```{r}
 d03 |> 
@@ -68,4 +68,91 @@ epsilon
 ```
 
 answer: `r epsilon * gamma`
+
+### Part 2
+
+```{r}
+lg <- str_length(d03_test$rates[1])
+
+most_common <- function(vec, type = c("CO2", "O2")) {
+  type = match.arg(type)
+  if (length(vec) == 2L) {
+    if (type == "CO2") {
+      return(0L)
+    } else return(1L) # O2
+  }
+  mc <- as.integer(sum(vec) > length(vec) / 2L)
+  message(mc, length(vec))
+  mc
+}
+
+# interesting but not serial
+d03_test |> 
+  separate(rates, letters[1:lg], sep = 1:lg,
+           convert = TRUE) |> 
+  filter(if_all(everything(), ~ .x == most_common(.x, "O2"))) |> 
+  glue::glue_collapse() |> 
+  strtoi(base = 2L)
+```
+
+
+- Oxygen
+
+```{r}
+lg <- str_length(d03_test$rates[1])
+d03_test |> 
+  separate(rates, letters[1:lg], sep = 1:lg,
+           convert = TRUE) -> tt
+type <- "O2"
+for (i in seq_len(lg)) {
+  print(tt)
+  input <- tt[[i]]
+  if (length(input) == 2L) {
+    if (type == "CO2") {
+      tt <<- tt[input == 0L, ]
+    } else {
+      tt <<- tt[input == 1L, ] # O2
+    }
+    break
+  }
+  mc <- as.integer(sum(input) > length(input) / 2L)
+  tt <<- tt[input == mc, ]
+}
+tt |> 
+  glue::glue_collapse() |> 
+  strtoi(base = 2L)
+```
+
+
+- CO2
+
+```{r}
+lg <- str_length(d03_test$rates[1])
+d03_test |> 
+  separate(rates, letters[1:lg], sep = 1:lg,
+           convert = TRUE) -> tt
+type <- "CO2"
+for (i in seq_len(lg)) {
+  print(tt)
+  input <- tt[[i]]
+  if (length(input) == 2L) {
+    if (type == "CO2") {
+      tt <<- tt[input == 0L, ]
+    } else {
+      tt <<- tt[input == 1L, ] # O2
+    }
+    break
+  }
+  mc <- as.integer(sum(input) < length(input) / 2L)
+  tt <<- tt[input == mc, ]
+}
+tt |> 
+  glue::glue_collapse() |> 
+  strtoi(base = 2L)
+```
+
+
+```{r}
+787 * 3586
+```
 
