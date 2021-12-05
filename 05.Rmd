@@ -26,19 +26,37 @@ library(tidyverse)
   read_tsv(col_names = "a") |> 
   # extract idea thanks to David Robinson
   extract(a, into = c("x1", "y1", "x2", "y2"),
-          regex = "(\\d)+,(\\d)+ -> (\\d)+,(\\d)+",
+          regex = "(\\d+),(\\d+) -> (\\d+),(\\d+)",
           convert = TRUE) -> d05_test
 
 
 read_tsv("input/05", col_names = "a") |> 
   extract(a, into = c("x1", "y1", "x2", "y2"),
-          regex = "(\\d)+,(\\d)+ -> (\\d)+,(\\d)+",
+          regex = "(\\d+),(\\d+) -> (\\d+),(\\d+)",
           convert = TRUE) -> d05
 d05 |> 
   ggplot(aes(x = x1, xend = x2,
              y = y1, yend = y2)) +
-  geom_segment() +
-  scale_x_continuous(breaks = 0:10) +
-  scale_y_continuous(breaks = 0:10)
+  geom_segment(alpha = 0.2) +
+  theme_void()
 ```
 
+
+### Part 1
+
+```{r}
+d05 |>
+  # only verticals or horizontals
+  # comment for part 2
+  filter(x1 == x2 | y1 == y2) |> 
+  # iteration idea from David Robinson
+  mutate(x = map2(x1, x2, seq),
+         y = map2(y1, y2, seq)) |> 
+  unnest(c(x, y)) |> 
+  count(x, y) |> 
+  count(n) |> 
+  filter(n >= 2) |> 
+  summarise(sum(nn))
+```
+
+- answer is 6311 for part1, 19929 for part 2
