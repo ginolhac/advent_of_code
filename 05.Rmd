@@ -1,0 +1,44 @@
+---
+title: '05'
+author: "A. Ginolhac"
+date: "2021-12-05"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+## Data
+
+```{r}
+"0,9 -> 5,9
+8,0 -> 0,8
+9,4 -> 3,4
+2,2 -> 2,1
+7,0 -> 7,4
+6,4 -> 2,0
+0,9 -> 2,9
+3,4 -> 1,4
+0,0 -> 8,8
+5,5 -> 8,2" |> 
+  read_tsv(col_names = "a") |> 
+  # extract idea thanks to David Robinson
+  extract(a, into = c("x1", "y1", "x2", "y2"),
+          regex = "(\\d)+,(\\d)+ -> (\\d)+,(\\d)+",
+          convert = TRUE) -> d05_test
+
+
+read_tsv("input/05", col_names = "a") |> 
+  extract(a, into = c("x1", "y1", "x2", "y2"),
+          regex = "(\\d)+,(\\d)+ -> (\\d)+,(\\d)+",
+          convert = TRUE) -> d05
+d05 |> 
+  ggplot(aes(x = x1, xend = x2,
+             y = y1, yend = y2)) +
+  geom_segment() +
+  scale_x_continuous(breaks = 0:10) +
+  scale_y_continuous(breaks = 0:10)
+```
+
