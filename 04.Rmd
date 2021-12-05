@@ -1,0 +1,24 @@
+---
+title: '04'
+author: "A. Ginolhac"
+date: "2021-12-05"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+## Data
+
+```{r}
+read_lines("input/04_test", n_max = 1L) |> 
+  str_split(",") |> 
+  pluck(1) -> tirage
+
+read_table("input/04_test", skip = 1L, col_names = paste0("X", 1:5)) |> 
+  mutate(board = ceiling(row_number() / 5)) |> 
+  group_split(board, .keep = FALSE)
+```
+
