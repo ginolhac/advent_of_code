@@ -15,10 +15,54 @@ library(tidyverse)
 ```{r}
 read_lines("input/04_test", n_max = 1L) |> 
   str_split(",") |> 
-  pluck(1) -> tirage
+  pluck(1) |> 
+  as.integer() -> tirage
 
 read_table("input/04_test", skip = 1L, col_names = paste0("X", 1:5)) |> 
-  mutate(board = ceiling(row_number() / 5)) |> 
-  group_split(board, .keep = FALSE)
+  mutate(board = ceiling(row_number() / 5),
+         Y = rep(1:5, max(board))) |> 
+  #group_split(board, .keep = FALSE)
+  pivot_longer(cols = starts_with("X"),
+               names_to = "X",
+               names_pattern = "X(\\d)",
+               names_transform = list(X = as.integer),
+               values_to = "number") |> 
+  mutate(marked = FALSE) -> bingos
+```
+
+
+```{r}
+is_winning <- function(.data, col) {
+  .data |> 
+    group_by(board, {{ col }}) |> 
+    summarise(sum = sum(marked), .groups = "drop") |> 
+    filter(sum == 5L)
+}
+
+
+compute_score <- function(.data, wb) {
+  .data |> 
+    filter(board == wb, !marked) |> 
+    summarise(sum(number)) |> 
+    pull()
+}
+
+
+for (x in tirage) {
+  message("tirage ", x)
+  bingos <<- mutate(bingos, 
+                    marked = if_else(number == x & marked == FALSE, TRUE, marked))
+  winx <- is_winning(bingos, X)
+  winy <- is_winning(bingos, Y)
+  if (nrow(winx) > 0 | nrow(winy) > 0) {
+    if (nrow(winx) > 0) {
+      score <- compute_score(bingos, winx$board)
+    } else {
+      score <- compute_score(bingos, winy$board)
+    }
+    message("score ", score, ", number: ", x, " *: ", score * x)
+    break
+  }
+}
 ```
 
