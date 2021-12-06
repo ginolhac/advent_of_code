@@ -13,12 +13,13 @@ library(tidyverse)
 ## Data
 
 ```{r}
-read_lines("input/04_test", n_max = 1L) |> 
+puzzle <- "input/04_test"
+read_lines(puzzle, n_max = 1L) |> 
   str_split(",") |> 
   pluck(1) |> 
   as.integer() -> tirage
 
-read_table("input/04_test", skip = 1L, col_names = paste0("X", 1:5)) |> 
+read_table(puzzle, skip = 1L, col_names = paste0("X", 1:5)) |> 
   mutate(board = ceiling(row_number() / 5),
          Y = rep(1:5, max(board))) |> 
   #group_split(board, .keep = FALSE)
@@ -27,18 +28,21 @@ read_table("input/04_test", skip = 1L, col_names = paste0("X", 1:5)) |>
                names_pattern = "X(\\d)",
                names_transform = list(X = as.integer),
                values_to = "number") |> 
-  mutate(marked = FALSE) -> bingos
+  # keep track of number marked and winning boards
+  mutate(marked = FALSE,
+         won = FALSE) -> bingos
 ```
 
 
 ```{r}
 is_winning <- function(.data, col) {
   .data |> 
+    filter(!won) |> 
     group_by(board, {{ col }}) |> 
     summarise(sum = sum(marked), .groups = "drop") |> 
-    filter(sum == 5L)
+    filter(sum == 5L) -> win
+  win
 }
-
 
 compute_score <- function(.data, wb) {
   .data |> 
@@ -54,15 +58,23 @@ for (x in tirage) {
                     marked = if_else(number == x & marked == FALSE, TRUE, marked))
   winx <- is_winning(bingos, X)
   winy <- is_winning(bingos, Y)
-  if (nrow(winx) > 0 | nrow(winy) > 0) {
-    if (nrow(winx) > 0) {
+  if (nrow(winx) == 1L | nrow(winy) == 1L) {
+    if (nrow(winx) == 1L) {
+      print(winx)
       score <- compute_score(bingos, winx$board)
+      bingos <<- mutate(bingos, 
+                        won = if_else(board == winx$board[1] & won == FALSE, TRUE, won))
     } else {
+      print(winy)
+      print(head(bingos))
       score <- compute_score(bingos, winy$board)
+      bingos <<- mutate(bingos, 
+                        won = if_else(board == winy$board[1] & won == FALSE, TRUE, won))
     }
-    message("score ", score, ", number: ", x, " *: ", score * x)
-    break
-  }
+    message("board ", winx$board[1], winy$board[1], " ",
+            " score ", score, ", number: ", x, " *: ", score * x)
+    #break
+  } 
 }
 ```
 
