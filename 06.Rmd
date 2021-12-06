@@ -1,0 +1,60 @@
+---
+title: '06'
+author: "A. Ginolhac"
+date: "2021-12-06"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+## Data
+
+
+```{r}
+test <- list(c(3L, 4L, 3L, 1L, 2L))
+input <- read_lines("input/06") |> 
+  str_split(",") |>
+  pluck(1) |> 
+  as.integer() |> 
+    list()
+```
+
+
+## Part 1
+
+
+```{r}
+input <- test
+
+simul <- function(vec) {
+  out <- vector(mode = "integer", length = length(vec))
+  new <- 0L
+  for (i in seq_along(vec)) {
+    if (vec[i] == 0L) {
+      out[i] <- 6L
+      new <- new + 1L
+    } else {
+      out[i] <- vec[i] - 1L
+    }
+  }
+  # add the new fishes
+  for (x in seq_len(new)) {
+   out[length(vec) + x] <- 8L
+  }
+  out
+}
+# test
+map(input, simul) |> 
+  map(simul) 
+
+# simulation
+for (days in seq_len(256L)) {
+  input <<- map(input, simul)
+  #message("days ", days, input)
+}
+print(length(input[[1]]))
+```
+
