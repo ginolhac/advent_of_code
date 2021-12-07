@@ -1,0 +1,56 @@
+---
+title: '07'
+author: "A. Ginolhac"
+date: "2021-12-07"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+## Data
+
+```{r}
+test <- c(16L, 1L, 2L, 0L, 4L, 2L, 7L, 1L, 2L, 14L)
+input <- read_lines("input/07") |> 
+  str_split(",") |>
+  pluck(1) |> 
+  as.integer()
+```
+
+
+## Part 1
+
+```{r}
+#input <- test
+
+
+tibble(data = list(input),
+       range = list(seq(min(input), max(input)))) |> 
+  unnest(range) |> 
+  rowwise() |> 
+  mutate(fuel_cost = sum(abs(data - range))) |> 
+  ungroup() |> 
+  slice_min(fuel_cost)
+
+```
+
+## Part 2
+
+```{r}
+#input <- test
+
+
+tibble(data = list(input),
+       range = list(seq(min(input), max(input)))) |> 
+  unnest(range) |> 
+  rowwise() |>
+  # Thanks Cyrille MdC for the geometric formula!
+  mutate(fuel_cost = sum((abs(data - range) + 1) * (abs(data - range) / 2))) |> 
+  ungroup() |> 
+  slice_min(fuel_cost)
+
+```
+

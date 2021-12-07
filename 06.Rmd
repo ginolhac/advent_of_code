@@ -58,3 +58,23 @@ for (days in seq_len(256L)) {
 print(length(input[[1]]))
 ```
 
+
+### Part 2
+
+Above approach is too greedy for more than 80 days.
+
+Fishes need to be counted at each step per age category, not individually
+
+```{r}
+age_count <- vector(mode = "integer", length = 9L) # R not 0 based
+
+for (day in seq_len(3L)) {
+  # intialisation
+  if (day == 1L)
+  for (x in test) {
+    age_count[x + 1] <- age_count[x + 1] + 1
+  }
+}
+print(age_count)
+```
+
