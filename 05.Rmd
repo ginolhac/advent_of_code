@@ -39,6 +39,7 @@ d05 |>
              y = y1, yend = y2)) +
   geom_segment(alpha = 0.2) +
   theme_void()
+ggsave("d05.png")
 ```
 
 

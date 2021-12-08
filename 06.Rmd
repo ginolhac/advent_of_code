@@ -14,6 +14,8 @@ library(tidyverse)
 
 
 ```{r}
+
+
 test <- list(c(3L, 4L, 3L, 1L, 2L))
 input <- read_lines("input/06") |> 
   str_split(",") |>
@@ -68,12 +70,21 @@ Fishes need to be counted at each step per age category, not individually
 ```{r}
 age_count <- vector(mode = "integer", length = 9L) # R not 0 based
 
-for (day in seq_len(3L)) {
+for (day in seq_len(80L)) {
   # intialisation
   if (day == 1L)
-  for (x in test) {
+  for (x in test[[1]]) {
     age_count[x + 1] <- age_count[x + 1] + 1
+  } else {
+    new <- age_count[1]
+    age_count <- lead(age_count)
+    # fish arrives to zero so
+    # 1. create a number 8
+    age_count[9] <- new
+    # 2. convert to a 6
+    age_count[7] <- new
   }
+  message("day", day, " fishes: ", age_count)
 }
 print(age_count)
 ```
