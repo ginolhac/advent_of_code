@@ -1,0 +1,30 @@
+---
+title: '09'
+author: "A. Ginolhac"
+date: "2021-12-09"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+## Data
+
+
+```{r}
+read_lines("input/09") |> 
+  str_split(pattern = '') |>
+  map(as.integer) |> 
+  enframe(name = "Y") |>
+  unnest_longer(value) |> 
+  group_by(Y) |> 
+  mutate(X = row_number()) |> 
+  ggplot(aes(X, Y, fill = value)) +
+  geom_raster() +
+  scale_fill_viridis_c(option = "A", direction = -1L) +
+  theme_void()
+ggsave("d09.png", width = 5, height = 5)
+  
+```
