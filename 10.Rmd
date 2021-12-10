@@ -1,0 +1,32 @@
+---
+title: '10'
+author: "A. Ginolhac"
+date: "2021-12-10"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+## Data
+
+
+```{r}
+input <- read_lines("input/10")
+head(input, 3) -> inp
+inp %>% 
+  str_split(pattern = '') %>% 
+  map(table)
+```
+
+- only closing / opening
+
+```{r}
+input %>% 
+  map(str_replace_all, "[\\(\\[\\{\\<]", "O") %>% 
+  map(str_replace_all, "[\\)\\]\\}\\>]", "C") %>% 
+  map(str_count, c("O", "C"))
+```
+
