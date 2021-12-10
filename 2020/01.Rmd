@@ -1,0 +1,19 @@
+---
+title: '01'
+author: "A. Ginolhac"
+date: "2021-12-01"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+## 
+
+
+```{r}
+d01 <- read_table("input/01", col_names = "expenses")
+mutate(d01, odd = expenses %% 2)
+```
