@@ -63,4 +63,35 @@ sum(map_dbl(input, parse_closing))
 ```
 
 
+```{r}
+# get incomplete lines
+incomplete <- read_lines("input/10")[if_else(map_dbl(input, parse_closing) == 0, TRUE, FALSE)] %>% 
+  str_split('')
+
+second_scores <- c("(" = 1, "[" = 2, "{" = 3, "<" = 4)
+
+correct_closing <- function(line) {
+  stak <- c()
+  for (ch in line) {
+    #print(ch)
+    if (ch %in% c("(", "[", "{", "<")) {
+      stak <- c(ch, stak)
+    } else {
+      # closing characters
+      expected <- coresp[stak[1L]]
+      if (expected != ch) {
+
+      } else {
+        stak <- stak[-1L]
+      }
+    }
+  }
+  return(map_dbl(stak, ~ second_scores[.x]))
+}
+
+map(incomplete, correct_closing) %>% 
+  map_dbl(~ reduce(.x, .init = 0, ~ .x * 5 + .y)) %>% 
+  median()
+
+```
 
