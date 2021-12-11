@@ -1,0 +1,16 @@
+---
+title: '11'
+author: "A. Ginolhac"
+date: "2021-12-11"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+## Data
+
+
+see D. Robinson adjacent function [here](https://twitter.com/drob/status/1469037082777726986?s=20)
