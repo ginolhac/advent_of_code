@@ -1,0 +1,57 @@
+---
+title: '02'
+author: "A. Ginolhac"
+date: "2021-12-11"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+## Data
+
+```{r}
+input <- read_delim("input/02", delim = ':', 
+                    col_names = c("policy", "pwd"),
+                    trim_ws = TRUE) %>% 
+  separate(policy, into = c("min", "max", "ch"), sep = "[- ]", convert = TRUE)
+```
+
+Could work is contiguous `ch`
+
+```{r}
+input %>% 
+  #slice_head(n = 5) %>% 
+  mutate(pat = glue::glue(.open = '[', .close = ']', "[ch]{[min],[max]}"),
+         valid = str_detect(string = pwd, pattern = pat)) %>% 
+  count(valid)
+```
+
+## Part 1
+
+```{r}
+input %>% 
+  rowwise() %>% 
+  mutate(found = str_count(pwd, ch),
+         valid = between(found, min, max)) %>% 
+  count(valid)
+```
+
+
+## Part 2
+
+```{r paged.print=FALSE}
+input %>%
+  #slice_head(n = 40) %>%
+  rowwise() %>% 
+  mutate(passwd = map(pwd, str_split, '')[[1]],
+         first = passwd[min] == ch,
+         second = passwd[max] == ch,
+         valid = first + second) %>% 
+  count(valid) %>% 
+  # one of the 2 is TRUE
+  filter(valid == 1L)
+```
+
