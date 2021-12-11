@@ -10,10 +10,49 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 ```
 
-## 
+## Data
+
 
 
 ```{r}
-d01 <- read_table("input/01", col_names = "expenses")
-mutate(d01, odd = expenses %% 2)
+d01 <- read_lines("input/01") %>% 
+  as.numeric()
 ```
+
+
+```{r}
+stop = FALSE
+for (i in d01) {
+  for (j in d01) {
+    if ((i + j) == 2020) {
+      message("2020: ", i, " ", j)
+      stop <- TRUE
+      break
+    }
+  }
+  if (stop) break
+}
+1353 * 667
+```
+
+
+Part 2
+
+```{r}
+stop <- FALSE
+for (i in d01) {
+  for (j in d01) {
+    for (k in d01) {
+      if ((i + j + k) == 2020) {
+        message("2020: ", i, " ", j, " ", k)
+        stop <- TRUE
+        break
+      }
+    }
+    if (stop) break
+  }
+  if (stop) break
+}
+143 * 407 * 1470
+```
+
