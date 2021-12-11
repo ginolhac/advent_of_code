@@ -14,8 +14,10 @@ library(tidyverse)
 
 
 ```{r}
-input <- read_lines("input/10")
-head(input, 3) -> inp
+input <- read_lines("input/10") %>% 
+  str_split(pattern = '')
+head(input, 3) %>% 
+  str_split(pattern = '') -> inp
 inp %>% 
   str_split(pattern = '') %>% 
   map(table)
@@ -29,4 +31,36 @@ input %>%
   map(str_replace_all, "[\\)\\]\\}\\>]", "C") %>% 
   map(str_count, c("O", "C"))
 ```
+
+stack
+
+```{r}
+coresp <- c("(" = ")", "[" = "]", "{" = "}", "<" = ">")
+scores <- c(")" = 3, "]" = 57, "}" = 1197, ">" = 25137)
+
+
+parse_closing <- function(line) {
+  stak <- c()
+  for (ch in line) {
+    #print(ch)
+    if (ch %in% c("(", "[", "{", "<")) {
+      stak <- c(ch, stak)
+    } else {
+      # closing characters
+      expected <- coresp[stak[1L]]
+      if (expected != ch) {
+        #message("stop! ", "found ", ch, " expected ", expected)
+        return(scores[ch])
+      } else {
+        stak <- stak[-1L]
+      }
+    }
+  }
+  return(0)
+}
+
+sum(map_dbl(input, parse_closing))
+```
+
+
 
