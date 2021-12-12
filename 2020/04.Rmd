@@ -1,0 +1,38 @@
+---
+title: '04'
+author: "A. Ginolhac"
+date: "2021-12-12"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+## Data
+
+```{r}
+read_tsv("input/04", skip_empty_rows = FALSE, 
+         col_names = "pass", show_col_types = FALSE) %>% 
+  separate_rows(pass, sep = " ") %>% 
+  mutate(x = is.na(pass),
+         id = accumulate(x, ~ ifelse(.y, .x + 1, .x))) %>% 
+  drop_na(pass) %>% 
+  select(-x) %>% 
+  separate(pass, into = c("key", "value")) -> input
+```
+
+## Part 1
+
+```{r paged.print=FALSE}
+input %>% 
+  mutate(mandatory = str_detect(key, "byr|iyr|eyr|hgt|hcl|ecl|pid|cid")) %>% 
+  group_by(id) %>% 
+  summarise(key_present = sum(mandatory)) %>% 
+  # must have the 7 mandatory fields
+  filter(key_present >= 7)
+# good answer in this range
+# 239 - 269
+```
+
