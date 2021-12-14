@@ -1,0 +1,48 @@
+---
+title: '14'
+author: "A. Ginolhac"
+date: "2021-12-14"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+## Data
+
+
+```{r}
+polymer <- read_lines("input/14", n_max = 1L)
+rules <- read_delim("input/14", delim = " -> ", show_col_types = FALSE,
+                    col_names = c("pair", "insert"), skip = 1L) %>%
+  deframe()
+```
+
+
+```{r}
+polymer <- read_lines("input/14", n_max = 1L)
+for (step in seq_len(10L)) {
+  message("step", step)
+  out <- ""
+  for (i in seq_len(str_length(polymer) - 1L)) {
+    #print(i)
+    motif <- str_sub(polymer, i, i + 1L)
+    #message(motif, " insertion ", rules[motif])
+    
+    out <- str_c(out, 
+                 str_sub(polymer, i, i),
+                 rules[motif])
+    #message(out)
+  }
+  # miss last character
+  polymer <- str_c(out, str_sub(polymer, -1L))
+}
+str_length(polymer)
+paste(c("B",  "C", "H",  "N"), str_count(polymer, c("B", "C", "H", "N")))
+
+counts <- str_count(polymer, c("B", "C", "H", "N"))
+max(counts) - min(counts)
+```
+
