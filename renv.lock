@@ -1,6 +1,6 @@
 {
   "R": {
-    "Version": "4.1.2",
+    "Version": "4.1.0",
     "Repositories": [
       {
         "Name": "CRAN",
@@ -50,6 +50,18 @@
       "Source": "Repository",
       "Repository": "CRAN",
       "Hash": "dab19adae4440ae55aa8a9d238b246bb"
+    },
+    "adventdrob": {
+      "Package": "adventdrob",
+      "Version": "0.0.1",
+      "Source": "GitHub",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteUsername": "dgrtwo",
+      "RemoteRepo": "adventdrob",
+      "RemoteRef": "main",
+      "RemoteSha": "db9dfb198cebfe1bd578fdbb0135a4925f0e3977",
+      "Hash": "7a4df00f294d1337e601cc215fa8a73b"
     },
     "askpass": {
       "Package": "askpass",

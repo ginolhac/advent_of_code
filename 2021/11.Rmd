@@ -14,3 +14,64 @@ library(tidyverse)
 
 
 see D. Robinson adjacent function [here](https://twitter.com/drob/status/1469037082777726986?s=20)
+
+Using his package [`adventdrob`](https://github.com/dgrtwo/adventdrob) and own [solution](https://twitter.com/drob/status/1469766453771522056?s=20)
+
+```{r}
+library(adventdrob) # renv::install("dgrtwo/adventdrob")
+x <- read_tsv("input/11", col_names = "x", show_col_types = FALSE) |> 
+  grid_tidy(x)
+```
+### Testing adjacent_nest
+
+```{r}
+adjacent_nest(x) 
+```
+
+
+### Testing adjacent_join
+
+See [issue](https://github.com/dgrtwo/adventdrob/issues/1)
+
+```{r}
+adventdrob:::adjacent_join(x, diagonal = TRUE) 
+```
+
+### Main loop by David Rovinson
+
+
+```{r}
+
+part1 <- 0
+
+x_anim <- list()
+
+for (i in seq_len(100)) { # 100 for part1
+  x <- x |> 
+    mutate(value = value + 1,
+           flash = value > 9,
+           has_flashed = flash)
+  while (any(x$flash)) {
+    # Keep counts for part1
+    part1 <- part1 + sum(x$flash)
+    x <- x |> 
+      adventdrob:::adjacent_join(diagonal = TRUE) |> 
+      group_by(row, col, value, flash, has_flashed) |> 
+      summarise(value = first(value) + sum(flash2), .groups = "drop") |> 
+      mutate(flash = value > 9 & !has_flashed) |> 
+      mutate(has_flashed = flash | has_flashed)
+    
+    # Part 2
+    if (all(x$has_flashed | x$flash)) {
+      stop(paste0("All flashed at step ", i))
+    }
+  }
+  x <- x |> 
+    mutate(value = if_else(has_flashed, 0, value))
+  
+  append(x_anim, i = x)
+}
+  
+part1
+```
+
