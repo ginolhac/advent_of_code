@@ -17,3 +17,7 @@ fish_ages <- scan("input/06", what = integer(), sep = ",")
 - Day07: David Robinson great [stat tricks](https://twitter.com/drob/status/1468247388238327822?s=20)
 
 - Day09: ![](d09.png)
+
+- Day11: **David Robinson** [solution](https://twitter.com/drob/status/1469766453771522056?s=20)
+
+![](2021/octo_flash.gif)

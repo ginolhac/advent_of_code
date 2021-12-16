@@ -84,11 +84,15 @@ x_anim
 
 ```{r}
 library(gganimate)
-greys <- RColorBrewer::brewer.pal(n = 9, "Greys")
-pal <- c("gold", greys)
+library(paletteer)
+
+blues <- paletteer_d("colorBlindness::LightBlue2DarkBlue10Steps", n = 9)
+
+pal <- c("gold", blues)
 
 x_anim |> 
-  filter(step < 10) |> 
+  select(-contains("flash")) |>
+  filter(step < 51) |> 
   ggplot(aes(x = row, y = col, group = step, colour = factor(value))) +
   geom_point(shape = 15, size = 18) +
   theme_void() +
@@ -96,7 +100,7 @@ x_anim |>
   #facet_wrap(~ step) +
   scale_colour_manual(values = pal, guide = "none") +
   labs(title = "Step {closest_state}")  -> octo_flash
-anim <- animate(octo_flash, n = 100)
+anim <- animate(octo_flash, n = 300)
 anim
 #anim_save(animation = anim, filename =  "octo_flash.gif")
 ```
