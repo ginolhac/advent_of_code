@@ -10,7 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 ```
 
-## Data
+## Plot
 
 
 ```{r}
@@ -26,5 +26,30 @@ read_lines("input/09") |>
   scale_fill_viridis_c(option = "A", direction = -1L) +
   theme_void()
 ggsave("d09.png", width = 5, height = 5)
-  
 ```
+### Adjacent using David Robinson
+
+Diagonal is off
+
+```{r}
+library(adventdrob) # renv::install("dgrtwo/adventdrob")
+x <- read_tsv("input/09", col_names = "x", show_col_types = FALSE) |> 
+  grid_tidy(x) %>% 
+  adventdrob:::adjacent_join(diagonal = FALSE)
+x
+```
+Part 1
+
+```{r}
+x %>% 
+  group_by(row, col, value) %>% 
+  summarise(low = all(value < value2), .groups = "drop") %>% 
+  filter(low) %>%
+  mutate(risks = value + 1) %>% 
+  summarise(sum(risks))
+```
+- 545
+
+### Part 2
+
+Solution from David [here](https://twitter.com/drob/status/1469037082777726986)

@@ -84,6 +84,7 @@ x_anim
 
 ```{r}
 library(gganimate)
+library(gifski)
 library(paletteer)
 
 blues <- paletteer_d("colorBlindness::LightBlue2DarkBlue10Steps", n = 9)
