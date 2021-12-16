@@ -97,10 +97,11 @@ x_anim |>
   geom_point(shape = 15, size = 18) +
   theme_void() +
   transition_states(step, state_length = 4, transition_length = 2) +
-  #facet_wrap(~ step) +
+  exit_fade() +
+  enter_fade() +
   scale_colour_manual(values = pal, guide = "none") +
   labs(title = "Step {closest_state}")  -> octo_flash
-anim <- animate(octo_flash, n = 300)
+anim <- animate(octo_flash, n = 400)
 anim
 #anim_save(animation = anim, filename =  "octo_flash.gif")
 ```
