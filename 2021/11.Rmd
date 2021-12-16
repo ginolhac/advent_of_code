@@ -44,9 +44,11 @@ adventdrob:::adjacent_join(x, diagonal = TRUE)
 
 part1 <- 0
 
-x_anim <- list()
+x_anim <- tribble(
+  ~row, ~col, ~value, ~flash, ~has_flashed, ~step
+)
 
-for (i in seq_len(100)) { # 100 for part1
+for (i in seq_len(100)) { # 100 for part1 1000 for Part 2
   x <- x |> 
     mutate(value = value + 1,
            flash = value > 9,
@@ -66,12 +68,36 @@ for (i in seq_len(100)) { # 100 for part1
       stop(paste0("All flashed at step ", i))
     }
   }
+  # re-initialize Octopuses
   x <- x |> 
     mutate(value = if_else(has_flashed, 0, value))
   
-  append(x_anim, i = x)
+  x_anim <- bind_rows(x_anim, mutate(x, step = i))
 }
   
 part1
+
+x_anim
+```
+
+### Animation
+
+```{r}
+library(gganimate)
+greys <- RColorBrewer::brewer.pal(n = 9, "Greys")
+pal <- c("gold", greys)
+
+x_anim |> 
+  filter(step < 10) |> 
+  ggplot(aes(x = row, y = col, group = step, colour = factor(value))) +
+  geom_point(shape = 15, size = 18) +
+  theme_void() +
+  transition_states(step, state_length = 4, transition_length = 2) +
+  #facet_wrap(~ step) +
+  scale_colour_manual(values = pal, guide = "none") +
+  labs(title = "Step {closest_state}")  -> octo_flash
+anim <- animate(octo_flash, n = 100)
+anim
+#anim_save(animation = anim, filename =  "octo_flash.gif")
 ```
 
