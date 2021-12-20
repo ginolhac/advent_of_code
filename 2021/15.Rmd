@@ -1,0 +1,61 @@
+---
+title: '15'
+author: "A. Ginolhac"
+date: "2021-12-20"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(tidygraph)
+library(adventdrob)
+```
+
+## Data
+
+
+```{r}
+input <- read_tsv("input/15", col_names = "x", col_types = "c", show_col_types = FALSE)
+```
+
+
+Solution from [David Robinson](https://twitter.com/drob/status/1471110669923667968/photo/1)
+
+```{r}
+grid_tidy(input, x)
+```
+
+
+```{r}
+input |> 
+  grid_graph(x, directed = TRUE, mutual = TRUE) |> 
+  activate("edges") |> 
+  # Add edge weights based on the destination
+  mutate(weight = .N()$value[to]) -> chitons
+
+# Distance from top-left (node1) to bottom right (node gorder(g))
+igraph::distances(chitons, v = 1, to = igraph::gorder(chitons), mode = "out")
+# 790
+igraph::get.shortest.paths(chitons, 1, to = igraph::gorder(chitons))[[1]]
+```
+
+- Part2
+
+```{r}
+m <- grid_matrix(input, x)
+wide <- do.call(cbind, map(0:4, ~ (m + . - 1) %% 9 + 1))
+full <- do.call(rbind, map(0:4, ~ (wide + . - 1) %% 9 + 1))
+
+part2 <- tibble(x = apply(full, 1, paste, collapse = ""))
+
+part2 |> 
+  grid_graph(x, directed = TRUE, mutual = TRUE) |> 
+  activate("edges") |> 
+  # Add edge weights based on the destination
+  mutate(weight = .N()$value[to]) -> chitons2
+
+# Distance from top-left (node1) to bottom right (node gorder(g))
+igraph::distances(chitons2, v = 1, to = igraph::gorder(chitons2), mode = "out")
+```
+

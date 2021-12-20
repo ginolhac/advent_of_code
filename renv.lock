@@ -364,6 +364,13 @@
       "Repository": "CRAN",
       "Hash": "99df65cfef20e525ed38c3d2577f7190"
     },
+    "igraph": {
+      "Package": "igraph",
+      "Version": "1.2.10",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "755b0a569115bb54c91997136ece64a8"
+    },
     "isoband": {
       "Package": "isoband",
       "Version": "0.2.5",
@@ -664,6 +671,13 @@
       "Source": "Repository",
       "Repository": "CRAN",
       "Hash": "8a8f02d1934dfd6431c671361510dd0b"
+    },
+    "tidygraph": {
+      "Package": "tidygraph",
+      "Version": "1.2.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "5375980d0787633ca62c265b28bedb41"
     },
     "tidyr": {
       "Package": "tidyr",
