@@ -1,0 +1,46 @@
+---
+title: '12'
+author: "A. Ginolhac"
+date: "2021-12-20"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+## Data
+
+Solution from [David Robinson](https://twitter.com/drob/status/1470424568275820548?s=20)
+
+```{r}
+input <- read_tsv("input/13", col_names = "x", col_types = "c", show_col_types = FALSE)
+
+coordinates <- input |> 
+  filter(str_detect(x, ',')) |> 
+  separate(x, into = c("x", "y"), convert = TRUE)
+
+folds <- input |> 
+  filter(str_detect(x, "fold along")) |> 
+  extract(x, c("axis", "val"), "fold along (.)=(.*)", convert = TRUE)
+```
+
+```{r}
+for (fold_i in seq_len(nrow(folds))) {  # to 1 for Part1
+  f <- folds[fold_i, ]
+  coordinates <- coordinates |> 
+    mutate(x = ifelse(f$axis == "x" & x > f$val, 2 * f$val - x, x),
+           y = ifelse(f$axis == "y" & y > f$val, 2 * f$val - y, y)) |> 
+    distinct(x, y)
+}
+coordinates
+```
+
+```{r}
+ggplot(coordinates, aes(x, -y)) +
+  geom_tile(fill = "gold3") +
+  theme_void()
+ggsave("d13_code.png", height = 2)
+```
+
