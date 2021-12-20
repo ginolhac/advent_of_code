@@ -60,8 +60,8 @@
       "RemoteUsername": "dgrtwo",
       "RemoteRepo": "adventdrob",
       "RemoteRef": "main",
-      "RemoteSha": "db9dfb198cebfe1bd578fdbb0135a4925f0e3977",
-      "Hash": "7a4df00f294d1337e601cc215fa8a73b"
+      "RemoteSha": "15af05769a8b379a80a35c7be1190e949d107bd4",
+      "Hash": "75eefd3e3c20e33fae789d7ce8f0d625"
     },
     "askpass": {
       "Package": "askpass",
@@ -286,6 +286,13 @@
       "Source": "Repository",
       "Repository": "CRAN",
       "Hash": "d7566c471c7b17e095dd023b9ef155ad"
+    },
+    "gifski": {
+      "Package": "gifski",
+      "Version": "1.4.3-1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "73d7566604b51f704a2f33b2efef470c"
     },
     "glue": {
       "Package": "glue",

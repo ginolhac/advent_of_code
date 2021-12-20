@@ -35,7 +35,7 @@ Diagonal is off
 library(adventdrob) # renv::install("dgrtwo/adventdrob")
 x <- read_tsv("input/09", col_names = "x", show_col_types = FALSE) |> 
   grid_tidy(x) %>% 
-  adventdrob:::adjacent_join(diagonal = FALSE)
+  adjacent_join(diagonal = FALSE)
 x
 ```
 Part 1
