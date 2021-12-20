@@ -11,3 +11,56 @@ library(tidyverse)
 ```
 
 ## Data
+
+```{r}
+d <- read_tsv("input/12", col_names = "x") |> 
+  separate(x, into = c("from", "to"))
+```
+
+### Solution from David Robinson posted [here](https://twitter.com/drob/status/1470154240349937665?s=20)
+
+
+```{r}
+bind_rows(
+  d,
+  rename(d, from = to, to = from)
+) |> 
+  group_by(from) |> 
+  summarise(connections = list(to)) |> 
+  deframe() -> connections
+```
+
+```{r}
+bfs <- function(node, visited_small = NULL, part1 = TRUE) {
+  # base case
+  if (node == "end") {
+    return(list(node))
+  }
+  # start is the one node that can never be revisited
+  if (node == "start" && "start" %in% visited_small) {
+    return(NULL)
+  }
+  
+  if (str_to_upper(node) != node) {
+    visited_small <- c(visited_small, node)
+  }
+  
+  possible_next <- connections[[node]]
+  
+  # part1, don't revisit any small nodes, part 2 can do so once
+  if (part1 || any(duplicated(visited_small))) {
+    possible_next <- setdiff(possible_next, visited_small)
+  }
+  
+  map(possible_next, bfs, visited_small = visited_small, part1 = part1) |> 
+    do.call(c, .) |> 
+    map(~ c(node, .))
+}
+
+length(bfs("start", part1 = TRUE))
+length(bfs("start", part1 = FALSE))
+
+```
+
+
+
