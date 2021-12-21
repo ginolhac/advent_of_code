@@ -1,0 +1,68 @@
+---
+title: '14'
+author: "A. Ginolhac"
+date: "2021-12-14"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+
+```{r}
+deter_dice <- function(start) {
+  reduce(seq(start, start + 2), `+`)
+}
+
+deter_dice(1)
+
+circle <- rep(1:10, 100000)
+
+board <- function(start, roll) {
+  circle[start + roll]
+}
+
+board(8, 15)
+```
+
+Player 1 starting position: 6
+Player 2 starting position: 10
+
+```{r}
+score1 <- 0
+score2 <- 0
+start_dice <- 1
+start_one <- 6
+start_two <- 10
+counter <- 0
+
+while (score1 <= 1100 | score2 <= 1100) {
+  if (counter %% 2 == 0) {
+    # Player1
+    message("score1: ", score1, " pos: ", start_one, " dice: ", 
+            deter_dice(start_dice), " board: ",
+            board(start_one, deter_dice(start_dice)))
+    start_one <- board(start_one, deter_dice(start_dice))
+    score1 <- score1 + start_one
+    counter <- counter + 1
+    if (score1 >= 1000) break
+    
+  } else {
+    # Player 2
+    message("score2: ", score2, " pos: ", start_two, " dice: ", 
+            deter_dice(start_dice), " board: ",
+            board(start_two, deter_dice(start_dice)))
+    start_two <- board(start_two, deter_dice(start_dice))
+    score2 <- score2 + start_two
+    counter <- counter + 1
+    if (score2 >= 1000) break
+  }
+  start_dice <- start_dice + 3
+}
+counter * 3
+
+926 * 916
+```
+
