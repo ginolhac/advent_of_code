@@ -23,3 +23,5 @@ fish_ages <- scan("input/06", what = integer(), sep = ",")
 ![](2021/octo_flash.gif)
 
 - Day13: ![](2021/d13_code.png)
+
+- Day15: ![](2021/d15_path.png)
