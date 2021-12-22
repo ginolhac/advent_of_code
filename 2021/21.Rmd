@@ -38,7 +38,7 @@ start_one <- 6
 start_two <- 10
 counter <- 0
 
-while (score1 <= 1100 | score2 <= 1100) {
+while (TRUE) {
   if (counter %% 2 == 0) {
     # Player1
     message("score1: ", score1, " pos: ", start_one, " dice: ", 
@@ -63,6 +63,26 @@ while (score1 <= 1100 | score2 <= 1100) {
 }
 counter * 3
 
-926 * 916
 ```
 
+- Using David Robinson [solution](https://twitter.com/drob/status/1473332179132461061?s=20)
+
+```{r}
+starting_position <- c(6, 10)
+
+crossing(turn = 1:1000,
+         player = 1:2,
+         within_turn = 1:3) |> 
+  mutate(roll = rep(1:100, 60)) |> 
+  group_by(turn, player) |> 
+  summarise(roll = sum(roll)) |> 
+  group_by(player) |> 
+  mutate(position = (starting_position[1] + cumsum(roll) - 1) %% 10 + 1,
+         score = cumsum(position)) |> 
+  ungroup() |> 
+  #mutate(cumsum(score >= 1000))
+  filter(cumsum(score >= 1000) == 0) |> 
+  summarise(answer = last(score) * (n() + 1) * 3)
+```
+
+incorrect
