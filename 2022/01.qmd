@@ -1,0 +1,37 @@
+---
+title: "01"
+format: html
+---
+
+
+```{r}
+#| label: setup
+#| include: false
+library(tidyverse)
+```
+
+Part One
+
+```{r}
+start <- 1
+tibble(a = read_lines("input/01") |> as.numeric()) |> 
+  mutate(id = map_dbl(a, \(x) {
+    if (is.na(x)) {
+      start <<- start + 1
+    }
+    start
+    })) |> 
+  group_by(id) |> 
+  summarise(total_cal = sum(a, na.rm = TRUE)) |> 
+  arrange(desc(total_cal)) -> carying_elfes
+carying_elfes
+```
+
+- Part Two
+
+```{r}
+carying_elfes |> 
+  slice_max(order_by = total_cal, n = 3L) |> 
+  summarise(total_three = sum(total_cal))
+```
+
