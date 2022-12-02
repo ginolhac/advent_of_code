@@ -1,0 +1,66 @@
+---
+title: "02"
+format: html
+---
+
+
+```{r}
+#| label: setup
+#| include: false
+library(tidyverse)
+```
+
+Part One
+
+```{r}
+read_table("input/02", 
+           col_names = c("opponent", "player"),
+           show_col_types = FALSE) -> rps # Rock Paper Scissors
+
+#tibble(opponent = c("A", "B", "C"),
+#       player = c("Y", "X", "Z")) |> 
+rps |> 
+  mutate(player_score = recode(player, 
+                               X = 1, # Rock
+                               Y = 2, # Paper
+                               Z = 3), # Scissors
+         round_score = case_when(
+           opponent == "A" & player == "X" ~ 3, 
+           opponent == "A" & player == "Y" ~ 6,
+           opponent == "A" & player == "Z" ~ 0,
+           opponent == "B" & player == "X" ~ 0,
+           opponent == "B" & player == "Y" ~ 3,
+           opponent == "B" & player == "Z" ~ 6,
+           opponent == "C" & player == "X" ~ 6,
+           opponent == "C" & player == "Y" ~ 0,
+           opponent == "C" & player == "Z" ~ 3),
+         total = player_score + round_score) |> 
+  pull(total) |> 
+  sum()
+```
+
+- Part Two
+
+```{r}
+tibble(opponent = c("A", "B", "C"),
+       player = c("Y", "X", "Z")) |> 
+rps |> 
+  mutate(round_score = recode(player, 
+                               X = 0, # loose
+                               Y = 3, # draw
+                              Z = 6), # win
+         player_score = case_when(
+           opponent == "A" & player == "X" ~ 3, # Scissors (loose)
+           opponent == "A" & player == "Y" ~ 1, # Rock (draw)
+           opponent == "A" & player == "Z" ~ 2, # Paper (win)
+           opponent == "B" & player == "X" ~ 1, # Rock
+           opponent == "B" & player == "Y" ~ 2, # Paper
+           opponent == "B" & player == "Z" ~ 3, # Scissors
+           opponent == "C" & player == "X" ~ 2,
+           opponent == "C" & player == "Y" ~ 3, # Scissors 
+           opponent == "C" & player == "Z" ~ 1),# Rock
+         total = player_score + round_score) |> 
+  pull(total) |> 
+  sum()
+```
+
