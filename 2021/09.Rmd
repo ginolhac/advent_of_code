@@ -45,11 +45,35 @@ x %>%
   group_by(row, col, value) %>% 
   summarise(low = all(value < value2), .groups = "drop") %>% 
   filter(low) %>%
-  mutate(risks = value + 1) %>% 
-  summarise(sum(risks))
+  mutate(risks = value + 1) -> low_points
+low_points %>% 
+  summarise(sum(risks)) 
 ```
 - 545
 
 ### Part 2
 
 Solution from David [here](https://twitter.com/drob/status/1469037082777726986)
+
+```{r}
+frontier <- low_points %>% 
+  mutate(bassin = paste(row, col)) %>% 
+  select(bassin, row, col, value)
+bassins <- frontier
+
+while (nrow(frontier) > 0) {
+  frontier <- frontier %>% 
+    adventdrob:::adjacent_join(XXX) %>% 
+    filter(value2 > value, value2 < 9) %>% 
+    select(bassin, row = row2, col = col2, value = value2) %>% 
+    distinct(bassin, row, col, .keep_all = TRUE) %>% 
+    anti_join(bassins, by = c(row = "col"))
+
+  bassins <- bind_rows(bassins, frontier)
+}
+
+count(bassins, bassin, sort = TRUE) %>% 
+  slice_head(n = 3) %>% 
+  summarise(prod(n))
+```
+

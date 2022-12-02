@@ -48,7 +48,8 @@ x_anim <- tribble(
   ~row, ~col, ~value, ~flash, ~has_flashed, ~step
 )
 
-for (i in seq_len(100)) { # 100 for part1 1000 for Part 2
+for (i in seq_len(1000)) { # 100 for part1 1000 for Part 2
+  if (i %% 100 == 0) message("step: ", i)
   x <- x |> 
     mutate(value = value + 1,
            flash = value > 9,
@@ -105,5 +106,10 @@ x_anim |>
 anim <- animate(octo_flash, n = 400)
 anim
 #anim_save(animation = anim, filename =  "octo_flash.gif")
+```
+
+### Part 2 from D. Robinson
+
+```{r}
 ```
 
