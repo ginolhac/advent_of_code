@@ -1,0 +1,45 @@
+---
+title: "03"
+format: html
+---
+
+
+```{r}
+#| label: setup
+#| include: false
+library(tidyverse)
+```
+
+Part One
+
+```{r}
+common_letter <- function(a, b) {
+  pos_common <- str_detect(a, str_split(b, "")[[1]])
+  common <- str_split(b, "")[[1]][pos_common]
+  stopifnot(length(unique(common)) == 1L)
+  unique(common)
+}
+
+
+read_table("input/03", 
+           col_names = c("content"),
+           show_col_types = FALSE) |> 
+  mutate(lg = str_length(content),
+         first = str_sub(content, end = lg / 2),
+         second = str_sub(content, start = lg / 2 + 1, end = lg),
+         common = map2_chr(first, second, common_letter))
+```
+
+```{r}
+b = "thQPtLNsQhvbHLLpSS"
+a = "lflZfgnSnlmmlgGfjG"
+
+common_letter <- function(a, b) {
+  pos_common <- str_detect(a, str_split(b, "")[[1]])
+  common <- str_split(b, "")[[1]][pos_common]
+  stopifnot(length(unique(common)) == 1L)
+  unique(common)
+}
+common_letter(a, b)
+```
+
