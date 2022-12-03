@@ -20,26 +20,37 @@ common_letter <- function(a, b) {
   unique(common)
 }
 
+priorities <- set_names(1:52, nm = c(letters, LETTERS))
 
 read_table("input/03", 
            col_names = c("content"),
            show_col_types = FALSE) |> 
   mutate(lg = str_length(content),
          first = str_sub(content, end = lg / 2),
-         second = str_sub(content, start = lg / 2 + 1, end = lg),
-         common = map2_chr(first, second, common_letter))
+         second = str_sub(content, start = lg / 2 + 1, end = lg)) -> rucksacks
+rucksacks |> 
+  mutate(common = map2_chr(first, second, common_letter),
+         prio  = priorities[common]) |> 
+  summarise(sum = sum(prio))
 ```
+
+- Part Two
 
 ```{r}
-b = "thQPtLNsQhvbHLLpSS"
-a = "lflZfgnSnlmmlgGfjG"
-
-common_letter <- function(a, b) {
-  pos_common <- str_detect(a, str_split(b, "")[[1]])
-  common <- str_split(b, "")[[1]][pos_common]
-  stopifnot(length(unique(common)) == 1L)
-  unique(common)
+find_multiple_common_letter <- function(vec) {
+  pos_common <- map_int(names(priorities),
+                        \(x) str_detect(vec, x) |> sum())
+  names(priorities)[which.max(pos_common)]
 }
-common_letter(a, b)
+
+rucksacks |> 
+  mutate(id = rep(seq_len(n() / 3), each = 3)) |> 
+  nest_by(id) |> 
+  mutate(common = find_multiple_common_letter(data$content)) |> 
+  mutate(common = priorities[common]) |> 
+  ungroup() |> 
+  summarise(sum(common))
+
 ```
+
 
