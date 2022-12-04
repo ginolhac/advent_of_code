@@ -1,0 +1,58 @@
+---
+title: "03"
+format: html
+---
+
+
+```{r}
+#| label: setup
+#| include: false
+library(tidyverse)
+```
+
+- Part One
+
+If we were to parse strings as expressions and evaluate
+
+```{r}
+read_csv("input/04", col_names = c("first", "second"),
+         show_col_types = FALSE) |> 
+  mutate(across(.fns = \(x) str_replace(x, "-", ":"))) |> 
+  rowwise() |> 
+  mutate(f = list(rlang::parse_expr(first) |> eval()))
+```
+Using bedtools strategy
+
+```{r}
+library(tidygenomics)
+read_csv("input/04", col_names = c("first", "second"),
+         show_col_types = FALSE) |> 
+  select(first) |> 
+  separate(first, into = c("start", "end"), convert = TRUE) |>
+  mutate(chr = 1, .before = 1L, 
+         id = row_number()) -> elf_one
+read_csv("input/04", col_names = c("first", "second"),
+         show_col_types = FALSE) |> 
+  select(second) |> 
+  separate(second, into = c("start", "end"), convert = TRUE) |>
+  mutate(chr = 1, .before = 1L,
+         id = row_number()) -> elf_two
+
+genome_intersect(elf_two, elf_one, 
+                 by = c("chr", "start", "end"),
+                 mode = "both") |> 
+  filter(id.x == id.y) |> 
+  left_join(elf_one, by = c(id.x = "id"), suffix = c("_inter", "_one")) |> 
+  left_join(elf_two, by = c(id.y = "id")) |> 
+  mutate(lg_inter = end_inter - start_inter,
+         lg_one = end_one - start_one,
+         lg_two = end - start) |> 
+  filter(lg_inter == lg_one | lg_inter == lg_two)
+```
+
+
+- Part Two
+
+
+
+
