@@ -46,13 +46,19 @@ genome_intersect(elf_two, elf_one,
   left_join(elf_two, by = c(id.y = "id")) |> 
   mutate(lg_inter = end_inter - start_inter,
          lg_one = end_one - start_one,
-         lg_two = end - start) |> 
+         lg_two = end - start) -> range_intersect
+range_intersect |> 
   filter(lg_inter == lg_one | lg_inter == lg_two)
 ```
 
 
 - Part Two
 
+genome_interest does the job
+
+```{r}
+range_intersect
+```
 
 
 
