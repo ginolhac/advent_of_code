@@ -42,8 +42,8 @@ rps |>
 - Part Two
 
 ```{r}
-tibble(opponent = c("A", "B", "C"),
-       player = c("Y", "X", "Z")) |> 
+# tibble(opponent = c("A", "B", "C"),
+#        player = c("Y", "X", "Z")) |> 
 rps |> 
   mutate(round_score = recode(player, 
                                X = 0, # loose
