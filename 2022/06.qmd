@@ -1,0 +1,73 @@
+---
+title: "06"
+format: html
+---
+
+
+```{r}
+#| label: setup
+#| include: false
+library(tidyverse)
+```
+
+- Part One
+
+
+
+```{r}
+#read_lines("input/06") |> 
+  "mjqjpqmgbljsphdztnvjfqwrcgsmlb" |> 
+  str_split("") |> 
+  pluck(1) |> 
+  rle() -> signal_rle
+```
+
+
+Create groups based on changed in the `rle` sequences
+
+```{r}
+create_ruptur_groups <- function(x) {
+  counter <- 1L
+  vec_group <- vector(mode = "integer", length = length(x))
+  shifted <- lag(x, default = 1L)
+  for (i in seq_along(x)) {
+    if (x[i] != shifted[i]) counter <- counter + 1L
+    vec_group[i] <- counter
+  }
+  vec_group
+}
+
+```
+
+
+
+```{r}
+unclass(signal_rle) |> 
+  as_tibble() |> 
+  uncount(weights = lengths, .remove = FALSE) |> 
+  mutate(unrepeated  = if_else(lengths == 1L, 1L, 0L),
+         id = create_ruptur_groups(unrepeated)) |> 
+  group_by(id) |> 
+  mutate(sum_unrepeated = cumsum(unrepeated))
+```
+
+
+
+- Part Two
+
+```{r}
+create_ruptur_groups <- function(x) {
+  counter <- 1L
+  vec_group <- vector(mode = "integer", length = length(x))
+  shifted <- lag(x, default = 1L)
+  for (i in seq_along(x)) {
+    if (x[i] != shifted[i]) counter <- counter + 1L
+    vec_group[i] <- counter
+  }
+  vec_group
+}
+create_ruptur_groups(test)
+
+```
+
+

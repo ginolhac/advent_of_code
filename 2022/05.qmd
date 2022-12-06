@@ -1,5 +1,5 @@
 ---
-title: "04"
+title: "05"
 format: html
 ---
 
@@ -40,6 +40,8 @@ read_table("input/05", skip = 9, col_names = FALSE, show_col_types = FALSE) |>
 ```
 
 
+Using `tail()` / `head()` would have been so much easier: https://github.com/alexenge/advent-of-code-2022#day-5-supply-stacks-building_construction
+
 ```{r}
 move_stacks <- function(part) {
   for (i in seq_len(nrow(motions))) {
@@ -57,11 +59,9 @@ move_stacks <- function(part) {
     # Destination gets pilled up
     # rev for part 1
     if (part == 1) {
-      #message(paste("Part", part))
       stacks[[motions$to[i]]] <- c(rev(stacks[[motions$from[i]]][(1 + dif):(dif + motions$crate[i])]), # reverse order of origin 
                                    from_crate)
     } else {
-      #message("Part Two")
       stacks[[motions$to[i]]] <- c(stacks[[motions$from[i]]][(1 + dif):(dif + motions$crate[i])],
                                    from_crate)
     }
