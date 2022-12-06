@@ -15,12 +15,37 @@ library(tidyverse)
 
 
 ```{r}
-#read_lines("input/06") |> 
-  "mjqjpqmgbljsphdztnvjfqwrcgsmlb" |> 
+read_lines("input/06") |> 
+  #"bvwbjplbgvbhsrlpgdmjqwftvncz" |> 
   str_split("") |> 
-  pluck(1) |> 
-  rle() -> signal_rle
+  pluck(1) -> signal
 ```
+
+
+```{r}
+for (i in 4:length(signal)) {
+  trigger <- any(duplicated(signal[(i - 3):i]))
+  if (!trigger) {
+    message(paste(i))
+    break
+  }
+  #print(signal[(i - 3):i])
+}
+```
+
+- Part Two
+
+```{r}
+for (i in 14:length(signal)) {
+  trigger <- any(duplicated(signal[(i - 13):i]))
+  if (!trigger) {
+    message(paste(i))
+    break
+  }
+}
+```
+
+
 
 
 Create groups based on changed in the `rle` sequences
