@@ -2,6 +2,10 @@
 ## Advent Of Code
 
 
+### 2022
+
+- Day06: un-relevant but useful function to create groups based on state changes using `rle`
+
 ### 2021
 
 - Day02: Kara Woo used [R6 class](https://twitter.com/kara_woo/status/1468303906316775424?s=20)

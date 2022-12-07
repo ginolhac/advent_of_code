@@ -96,3 +96,32 @@ create_ruptur_groups(test)
 ```
 
 
+
+```{r}
+library(dplyr)
+tribble(
+  ~ locality, ~ temp,
+  "Rabat",  6.0,
+  "Rabat",  8.5,
+  "Rabat",  NaN,
+  "Rabat",  8.0,
+  "Rabat",  5.5,
+  "Rabat",  NaN,
+  "Rabat",  3.0,
+  "Rabat",  NaN,
+  "Rabat",  7.0,
+  "Rabat",  NaN,
+  "Rabat",  6.5,
+  "Rabat",  7.0,
+  "Rabat",  NaN,
+  "Diaocounda",  9.0,
+  "SaréKeita", 10.5,
+  "SaréKeita",  8.4,
+  "SaréKeita",  11.2) -> temp
+temp |> 
+  group_by(locality) |> 
+  summarise(moyenne = mean(temp, na.rm = TRUE))
+```
+
+
+
