@@ -4,7 +4,8 @@
 
 ### 2022
 
-- Day06: un-relevant but useful function to create groups based on state changes using `rle`
+- Day06: irrelevant but useful function to create groups based on state changes using `rle`
+- Day07, fail but need to try `R6` and also understand the `igraph` solution
 
 ### 2021
 
