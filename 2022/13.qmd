@@ -1,0 +1,64 @@
+---
+title: "13"
+format: html
+---
+
+```{r}
+#| label: setup
+#| include: false
+library(tidyverse)
+library(jsonlite)
+```
+
+- Part One
+
+thanks to David Eccles for the [tip](https://genomic.social/@gringene/109505051303981987) to use `jsonlite`!
+
+```{r}
+'[1,1,3,1,1]
+[1,1,5,1,1]
+
+[[1],[2,3,4]]
+[[1],4]
+
+[9]
+[[8,7,6]]
+
+[[4,4],4,4]
+[[4,4],4,4,4]
+
+[7,7,7,7]
+[7,7,7]
+
+[]
+[3]
+
+[[[]]]
+[[]]
+
+[1,[2,[3,[4,[5,6,7]]]],8,9]
+[1,[2,[3,[4,[5,6,0]]]],8,9]' |> read_lines() -> input
+
+tibble(first = input[seq(1, length(input), 3L)],
+       second = input[seq(2, length(input), 3L)]) |> 
+  mutate(f = map(first, fromJSON),
+         s = map(second, fromJSON)) -> lt
+lt |> 
+  mutate(cmp = map2(f, s, ~ .x - .y))
+```
+
+```{r}
+compare_paired_lists <- function(x, y) {
+  if (is.atomic(x) & is.atomic(y)) {
+    # 2 vectors, right order ?
+    all((x - y) <= 0)
+  } else {
+    # it's a list
+    message(paste("first", x, "second", y, "\n"))
+    map2_lgl(x, y, compare_paired_lists)
+  }
+}
+compare_paired_lists(lt$f[[4]], lt$s[[4]])
+```
+
+
