@@ -1,0 +1,41 @@
+---
+format: html
+---
+
+
+
+```{r}
+#| label: setup
+#| include: false
+library(tidyverse)
+```
+
+- Part 1
+
+```{r}
+input <- read_lines("input/01")
+input |> 
+  str_split("") |> 
+  map(\(x) str_subset(x, "\\d") |> paste0(collapse = "")) |> 
+  str_extract_all("^\\d|\\d$") |> 
+  map(paste0, collapse = "") |> 
+  # double digits of length 1
+  map(\(x) ifelse(str_length(x) == 1, paste0(x, x), x)) |> 
+  map_int(\(x) as.numeric(x) |> sum()) |> 
+  sum()
+
+```
+
+- David Robinson solution
+
+```{r}
+library(adventdrob)
+tibble(x = input) |> 
+  extract(x, c("first"), "(\\d)", remove = FALSE) |> 
+  extract(x, c("last"), ".*(\\d)", remove = FALSE) |> 
+  unite("number", c("first", "last"), sep = "") |> 
+  summarise(sum = sum(as.numeric(number)))
+  
+```
+
+
