@@ -10,7 +10,7 @@ format: html
 library(tidyverse)
 ```
 
-- Part 1
+## Part 1
 
 ```{r}
 input <- read_lines("input/01")
@@ -28,6 +28,8 @@ input |>
 
 - David Robinson solution
 
+https://fosstodon.org/@drob/111503540291480537
+
 ```{r}
 library(adventdrob)
 tibble(x = input) |> 
@@ -38,4 +40,22 @@ tibble(x = input) |>
   
 ```
 
+## Part 2
+
+
+```{r}
+tibble(x = input) |> 
+  mutate(input2 = str_replace_all(x, set_names(as.character(0:9), nm =  xfun::numbers_to_words(0:9)))) |> 
+  extract(x, "first", "(\\d|one|two|three|four|five|six|seven|eight|nine)", remove = FALSE) |> 
+  extract(x, "last", ".*(\\d|one|two|three|four|five|six|seven|eight|nine)", remove = FALSE)  |> 
+  mutate(mf = str_replace_all(first, set_names(as.character(0:9), nm =  xfun::numbers_to_words(0:9))),
+         ml = str_replace_all(last, set_names(as.character(0:9), nm =  xfun::numbers_to_words(0:9)))) |> 
+  unite("number", c("mf", "ml"), sep = "") |> 
+  summarise(sum = sum(as.numeric(number), na.rm = TRUE))
+```
+
+`str_replace_all()` is not dealing with overlapping words:
+here `two` came first, messing up with the the `eight`
+
+qeightwobrfvcssthreeeight3167       7     eight qeigh2brfvcss383167            7     2      8     7     FALSE
 
