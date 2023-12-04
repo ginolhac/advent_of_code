@@ -1,0 +1,91 @@
+---
+format: html
+---
+
+```{r}
+#| label: setup
+#| include: false
+library(tidyverse)
+library(adventdrob)
+```
+
+## Part 1
+
+
+Using **David Robinson** great helper package [adventdrob](https://github.com/dgrtwo/adventdrob)
+
+Symbols found for `value2`: `"*" "=" "$" "@" "+" "/" "-" "#" "%" "&"`
+
+```{r}
+#| label: part1
+
+test1 <- 
+"467..114..
+...*......
+..35..633.
+......#...
+617*......
+.....+.58.
+..592.....
+......755.
+...$.*....
+.664.598..
+"
+# consecutive_id(row, value == ".")) does not deal with numbers separated by symbols
+pb <- "..528........%..........91*192.......=.....................=.#.............%..852*156...."
+
+tibble(x = read_lines("input/03")) |> 
+  grid_tidy(var = x) |> 
+  adjacent_join(diagonal = TRUE) |> 
+  mutate(is_symbol = str_detect(value2, "[0-9\\.]", negate = TRUE)) |> 
+  arrange(row, col) |> 
+  select(-row2, -col2, -value2) |> 
+  # must be identify numbers
+  mutate(id = consecutive_id(row, str_detect(value, "\\d"))) |> 
+  filter(str_detect(value, "\\d")) |> 
+  nest(.by = id) |> 
+  # reconstruct the integers
+  mutate(number = map_int(data, \(x) distinct(x, value, col) |> 
+                        pull(value) |> paste0(collapse = "") |> 
+                          as.numeric())) |> 
+  mutate(engine_part = map_lgl(data, \(x) if_else(sum(x$is_symbol) > 0, TRUE, FALSE))) |>
+  filter(engine_part) |> 
+  summarise(sum(number))
+```
+
+David Robinson
+
+```{r}
+g <- tibble(x = read_lines("input/03")) |> 
+  grid_tidy(var = x) |>
+  mutate(is_digit = str_detect(value, "\\d")) |> 
+  group_by(row) |> 
+  mutate(number_id = paste0(row, ".", cumsum(is_digit != lag(is_digit, default = FALSE)))) |>
+  group_by(number_id) |>
+  mutate(part_number = as.numeric(paste0(value, collapse = ""))) |> 
+  ungroup()
+g |> 
+  filter(!is.na(part_number)) |> 
+  adjacent_join(g, diagonal = TRUE) |>
+  filter(value2 != ".", !is_digit2) |>
+  arrange(row, col) |> 
+  distinct(number_id, .keep_all = TRUE) |> 
+  summarise(sum(part_number))
+```
+
+
+Problem in parsing: `..91*192.......=.....................=.#.............%..852*156..`
+
+AG           DR
+752	        752			
+291	        291			
+ 47	         47			
+390	        390			
+128	        128			
+528	        528			
+91192	       91			
+852156	    192			
+322	        852	
+
+
+
