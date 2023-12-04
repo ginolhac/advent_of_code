@@ -12,7 +12,6 @@ library(tidyverse)
 
 ```{r}
 tibble(x = read_lines("input/02")) |>
-  #head(10) |>
   mutate(game_id = str_extract(x, pattern = "(\\d+):", group = 1),
          content = str_extract(x, pattern = ": (.*)", group = 1) |> 
            str_split(pattern = ";")) |> 
@@ -22,11 +21,23 @@ tibble(x = read_lines("input/02")) |>
   mutate(nb = str_extract(content, "\\d+") |> as.numeric(),
          colour = str_extract(content, "[a-z]+")) |> 
   select(game_id, bag_id, colour, nb) |>
-  #summarise(sum = sum(nb), .by = c(id, colour)) |> 
   pivot_wider(id_cols = ends_with("id"), names_from = colour, values_from = nb,
-              values_fill = 0L) |> 
+              values_fill = 0L) -> bags
+bags |> 
   mutate(possible = red <= 12 & green <= 13 & blue <= 14) |> 
   filter(sum(possible) == max(bag_id), .by = game_id) |> 
   distinct(game_id) |>
   summarise(sum(as.numeric(game_id)))
 ```
+
+
+## Part 2
+
+```{r}
+bags |> 
+  summarise(across(green:blue, \(x) max(x)), .by = game_id) |> 
+  mutate(prod = green * red * blue) |> 
+  summarise(sum(prod))
+```
+
+ 
