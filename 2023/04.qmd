@@ -14,15 +14,15 @@ library(tidyverse)
 ```{r}
 #| label: part1
 
-test1 <-
+test <- read_lines(
 "Card 1: 41 48 83 86 17 | 83 86  6 31 17  9 48 53
 Card 2: 13 32 20 16 61 | 61 30 68 82 17 32 24 19
 Card 3:  1 21 53 59 44 | 69 82 63 72 16 21 14  1
 Card 4: 41 92 73 84 69 | 59 84 76 51 58  5 54 83
 Card 5: 87 83 26 28 32 | 88 30 70 12 93 22 82 36
-Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11"
+Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11")
 
-tibble(x = read_lines("input/04")) |> 
+tibble(x = test) |> #read_lines("input/04")) |> 
   mutate(card_id = str_extract(x, pattern = "(\\d+):", group = 1),
          winning = str_extract(x, pattern = ": ([\\d\\s]*)", group = 1) |> 
            map( \(win) str_split_1(win, " ") |> as.numeric()),
@@ -33,9 +33,36 @@ tibble(x = read_lines("input/04")) |>
            if (xx == 0L) return(0L)
            reduce(seq_len(xx), ~ .x *2)
          })
-  ) |> 
-  summarise(sum(score))
+  ) -> cards
+summarise(cards, total = sum(score))
   
 ```
 
 ## Part 2
+
+```{r}
+cards |> 
+  select(-x, -score)
+```
+
+```{r}
+scratchcards <- vector(mode = "integer", length = nrow(cards))
+
+scores <- c(4, 2, 2, 1, 0, 0)
+for (idx in seq_along(scores)) {
+    if (scores[idx] == 0L) {
+      break
+    }
+    else {
+      message(scores, " cards:", idx, " wins:", scores[idx])
+      message("scratchcards ", scratchcards)
+      end <- min(idx + scores[idx], length(scratchcards))
+      for (i in seq(idx + 1, end)) {
+        message(i, " ", scores[i])
+        scores[i] <- scores[i] + 1L
+        scratchcards[i] <- scratchcards[i] + 1L
+      }
+    }
+}
+```
+
