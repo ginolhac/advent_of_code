@@ -1,0 +1,47 @@
+---
+format: html
+---
+
+```{r}
+#| label: setup
+#| include: false
+library(tidyverse)
+```
+
+## Part 1
+
+
+```{r}
+#| label: part1
+
+test1 <-
+"Card 1: 41 48 83 86 17 | 83 86  6 31 17  9 48 53
+Card 2: 13 32 20 16 61 | 61 30 68 82 17 32 24 19
+Card 3:  1 21 53 59 44 | 69 82 63 72 16 21 14  1
+Card 4: 41 92 73 84 69 | 59 84 76 51 58  5 54 83
+Card 5: 87 83 26 28 32 | 88 30 70 12 93 22 82 36
+Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11"
+
+tibble(x = read_lines("input/04")) |> 
+  mutate(card_id = str_extract(x, pattern = "(\\d+):", group = 1),
+         winning = str_extract(x, pattern = ": ([\\d\\s]*)", group = 1) |> 
+           map( \(win) str_split_1(win, " ") |> as.numeric()),
+         own = str_extract(x, pattern = "\\| ([\\d\\s]*)", group = 1) |> 
+           map( \(o) str_split_1(o, " ") |> as.numeric())) |> 
+  mutate(wins = map2_int(winning, own, \(w, o) intersect(w, o) |> na.omit() |> length()),
+         score = map_int(wins, \(xx) {
+           if (xx == 0L) return(0L)
+           reduce(seq_len(xx), ~ .x *2)
+         })
+  ) |> 
+  summarise(sum(score))
+  
+```
+
+
+
+
+str_extract(x, pattern = "\\| ([\\d\\s]*)", group = 1) |> str_trim(side = "both")) |> View()
+
+separate_rows(winning, sep = " ", convert = TRUE) |> 
+  separate_rows(own, sep = " ", convert = TRUE) -> tt
