@@ -19,18 +19,6 @@ Symbols found for `value2`: `"*" "=" "$" "@" "+" "/" "-" "#" "%" "&"`
 ```{r}
 #| label: part1
 
-test1 <- 
-"467..114..
-...*......
-..35..633.
-......#...
-617*......
-.....+.58.
-..592.....
-......755.
-...$.*....
-.664.598..
-"
 # consecutive_id(row, value == ".")) does not deal with numbers separated by symbols
 pb <- "..528........%..........91*192.......=.....................=.#.............%..852*156...."
 
@@ -88,4 +76,42 @@ AG           DR
 322	        852	
 
 
+## Part 2
+
+```{r}
+#| label: part2
+
+test <- 
+"467..114..
+...*......
+..35..633.
+......#...
+617*......
+.....+.58.
+..592.....
+......755.
+...$.*....
+.664.598..
+"
+
+tibble(x = read_lines("input/03")) |> 
+  grid_tidy(var = x) |> 
+  adjacent_join(diagonal = TRUE) |> 
+  arrange(row, col) |> 
+  # must identify numbers
+  mutate(id = consecutive_id(row, str_detect(value, "\\d"))) |> 
+  filter(str_detect(value, "\\d")) |> 
+  nest(.by = id) |> 
+  # reconstruct the integers
+  mutate(number = map_int(data, \(x) distinct(x, value, col) |> 
+                        pull(value) |> paste0(collapse = "") |> 
+                          as.numeric())) |> 
+  unnest(data) |> 
+  filter(value2 == "*") |> 
+  distinct(id, number, row2, col2, value2) |> 
+  mutate(adj_number = n(), .by = c(row2, col2)) |> 
+  filter(adj_number == 2L) |> 
+  summarise(prod = prod(number), .by = c(row2, col2)) |> 
+  summarise(total = sum(prod))
+```
 
