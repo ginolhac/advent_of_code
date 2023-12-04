@@ -38,10 +38,4 @@ tibble(x = read_lines("input/04")) |>
   
 ```
 
-
-
-
-str_extract(x, pattern = "\\| ([\\d\\s]*)", group = 1) |> str_trim(side = "both")) |> View()
-
-separate_rows(winning, sep = " ", convert = TRUE) |> 
-  separate_rows(own, sep = " ", convert = TRUE) -> tt
+## Part 2
