@@ -6,11 +6,13 @@ format: html
 #| label: setup
 #| include: false
 library(tidyverse)
+library(IRanges)
 ```
 
 ## Part 1
 
 ```{r}
+#| label: readin-input
 read_lines(
 "seeds: 79 14 55 13
 
@@ -45,17 +47,21 @@ temperature-to-humidity map:
 humidity-to-location map:
 60 56 37
 56 93 4") -> test
-test
+input <- read_lines("input/05")
 ```
 
 ```{r}
-seeds <- str_subset(test, "^seeds") |> 
-  str_extract(pattern = "seeds: ([\\d\\s]*)", group = 1) |> 
-  str_split_1(" ") |> as.numeric()
+soil <- IRanges(start = c(98, 50), width = c(2, 48), shift = c(98 - 50, 50 - 52))
+soil
 
-fertilizer_types <- str_subset(test, "map") |> 
-  str_extract("\\w+\\-to\\-\\w+")
+findOverlaps(IRanges(start = c(14, 79), width = rep.int(1, 2)), soil) |> 
+  queryLength()
+```
 
+
+
+```{r}
+#| label: helpers
 parse_map <- function(.data, type) {
   paste0(.data, collapse = "\n") |> 
     str_extract(pattern = paste0(type, " map:\n([\\d\\s]*)"), group = 1) |> 
@@ -70,10 +76,38 @@ parse_map <- function(.data, type) {
     })
 }
 
+find_correspondences <- function(query, intervals) {
+  for (rg in intervals) {
+    if (query %in% as.numeric(names(rg))) {
+      return(rg[as.character(query)])
+    }
+  }
+  query
+}
+```
+
+```{r}
+#| label: part1
+seeds <- str_subset(input, "^seeds") |> 
+  str_extract(pattern = "seeds: ([\\d\\s]*)", group = 1) |> 
+  str_split_1(" ") |> as.numeric()
+
+fertilizer_types <- str_subset(input, "map") |> 
+  str_extract("\\w+\\-to\\-\\w+")
+
 fertilizer_types |> 
   set_names() |> 
-  map(\(x) parse_map(test, x)) -> garden_map
+  map(\(x) parse_map(input, x)) -> garden_map
 
+seeds |> 
+  map_int(\(x) find_correspondences(x, garden_map$`seed-to-soil`), ) |> 
+  map_int(\(x) find_correspondences(x, garden_map$`soil-to-fertilizer`)) |> 
+  map_int(\(x) find_correspondences(x, garden_map$`fertilizer-to-water`)) |> 
+  map_int(\(x) find_correspondences(x, garden_map$`water-to-light`)) |> 
+  map_int(\(x) find_correspondences(x, garden_map$`light-to-temperature`)) |> 
+  map_int(\(x) find_correspondences(x, garden_map$`temperature-to-humidity`)) |> 
+  map_int(\(x) find_correspondences(x, garden_map$`humidity-to-location`))
+  
 
 ```
 
