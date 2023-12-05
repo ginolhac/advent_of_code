@@ -53,21 +53,26 @@ seeds <- str_subset(test, "^seeds") |>
   str_extract(pattern = "seeds: ([\\d\\s]*)", group = 1) |> 
   str_split_1(" ") |> as.numeric()
 
+fertilizer_types <- str_subset(test, "map") |> 
+  str_extract("\\w+\\-to\\-\\w+")
+
 parse_map <- function(.data, type) {
   paste0(.data, collapse = "\n") |> 
     str_extract(pattern = paste0(type, " map:\n([\\d\\s]*)"), group = 1) |> 
     str_split_1("\n") |> 
     str_subset("\\d+") |> 
-    map(\(x) str_split_1(x, " ") |> as.numeric())
+    map(\(x) {
+      rp <- str_split_1(x, " ") |> as.numeric()
+      # create the correspondences with a named vector
+      # index is the from, value is the destiantion
+      set_names(seq(rp[1], (rp[1] + rp[3] - 1L)), 
+                nm = seq(rp[2], (rp[2] + rp[3] - 1L)))
+    })
 }
-
-fertilizer_types <- str_subset(test, "map") |> 
-  str_extract("\\w+\\-to\\-\\w+")
 
 fertilizer_types |> 
   set_names() |> 
-  map(\(x) parse_map(test, x))
-
+  map(\(x) parse_map(test, x)) -> garden_map
 
 
 ```
