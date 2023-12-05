@@ -22,7 +22,7 @@ Card 4: 41 92 73 84 69 | 59 84 76 51 58  5 54 83
 Card 5: 87 83 26 28 32 | 88 30 70 12 93 22 82 36
 Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11")
 
-tibble(x = test) |> #read_lines("input/04")) |> 
+tibble(x = read_lines("input/04")) |> 
   mutate(card_id = str_extract(x, pattern = "(\\d+):", group = 1),
          winning = str_extract(x, pattern = ": ([\\d\\s]*)", group = 1) |> 
            map( \(win) str_split_1(win, " ") |> as.numeric()),
@@ -41,28 +41,43 @@ summarise(cards, total = sum(score))
 ## Part 2
 
 ```{r}
-cards |> 
-  select(-x, -score)
-```
+# keep track of copies
+stack <- vector(mode = "integer", length = nrow(cards))
 
-```{r}
-scratchcards <- vector(mode = "integer", length = nrow(cards))
+#scores <- c(4, 2, 2, 1, 0, 0)
+scores <- cards$wins
 
-scores <- c(4, 2, 2, 1, 0, 0)
 for (idx in seq_along(scores)) {
-    if (scores[idx] == 0L) {
-      break
+  if (scores[idx] == 0L) {
+    # don't create copy, just add the original
+     stack[idx] <- stack[idx] + 1L
+  }
+  else {
+    #message("cards:", idx, " wins:", scores[idx])
+    #message("scratchcards ", scratchcards, " stack:", stack)
+    end <- min(idx + scores[idx], length(stack))
+    # add the original card
+    stack[idx] <- stack[idx] + 1L
+    # create copies
+    for (copy in seq(idx + 1, end)) {
+      stack[copy] <- stack[copy] + 1L
+      #message("copy: ", copy, " ", stack[copy])
     }
-    else {
-      message(scores, " cards:", idx, " wins:", scores[idx])
-      message("scratchcards ", scratchcards)
-      end <- min(idx + scores[idx], length(scratchcards))
-      for (i in seq(idx + 1, end)) {
-        message(i, " ", scores[i])
-        scores[i] <- scores[i] + 1L
-        scratchcards[i] <- scratchcards[i] + 1L
+    # add stack for copies
+    if (stack[idx] > 1L) {
+      for (new in seq_len(stack[idx] - 1L)) {
+       # message("new: ", new, " stack(new): ", stack[idx])
+        for (i in seq(idx + 1, end)) {
+          #message("i: ", i, " stack: ", stack[i])
+          stack[i] <- stack[i] + 1L
+        }
       }
-    }
+    } #else message("stack empty, card: ", idx)
+  }
+  #message("end (idx: ", idx, ") stack is: ", stack, "\n-------------------")
+  if(idx %% 20 == 0) message("Treating card: ", idx)
 }
+
+sum(stack)
 ```
 
