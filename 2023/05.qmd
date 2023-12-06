@@ -46,19 +46,9 @@ temperature-to-humidity map:
 
 humidity-to-location map:
 60 56 37
-56 93 4") -> test
+56 93 4") -> input
 input <- read_lines("input/05")
 ```
-
-```{r}
-soil <- IRanges(start = c(98, 50), width = c(2, 48), shift = c(98 - 50, 50 - 52))
-soil
-
-findOverlaps(IRanges(start = c(14, 79), width = rep.int(1, 2)), soil) |> 
-  queryLength()
-```
-
-
 
 ```{r}
 #| label: helpers
@@ -78,7 +68,7 @@ parse_map <- function(.data, type) {
 
 find_correspondences <- function(query, intervals) {
   for (rg in intervals) {
-    if (query %in% as.numeric(names(rg))) {
+    if (query >= as.numeric(names(rg)[1]) & query <= as.numeric(names(rg)[length(rg)])) {
       return(rg[as.character(query)])
     }
   }
@@ -99,17 +89,27 @@ fertilizer_types |>
   set_names() |> 
   map(\(x) parse_map(input, x)) -> garden_map
 
-seeds |> 
-  map_int(\(x) find_correspondences(x, garden_map$`seed-to-soil`), ) |> 
-  map_int(\(x) find_correspondences(x, garden_map$`soil-to-fertilizer`)) |> 
-  map_int(\(x) find_correspondences(x, garden_map$`fertilizer-to-water`)) |> 
-  map_int(\(x) find_correspondences(x, garden_map$`water-to-light`)) |> 
-  map_int(\(x) find_correspondences(x, garden_map$`light-to-temperature`)) |> 
-  map_int(\(x) find_correspondences(x, garden_map$`temperature-to-humidity`)) |> 
-  map_int(\(x) find_correspondences(x, garden_map$`humidity-to-location`))
+seeds[2] |> 
+  map_dbl(\(x) find_correspondences(x, garden_map$`seed-to-soil`), .progress = "soil") |> 
+  map_dbl(\(x) find_correspondences(x, garden_map$`soil-to-fertilizer`), .progress = "fertilizer") |> 
+  map_dbl(\(x) find_correspondences(x, garden_map$`fertilizer-to-water`), .progress = "water") |> 
+  map_dbl(\(x) find_correspondences(x, garden_map$`water-to-light`)) |> 
+  map_dbl(\(x) find_correspondences(x, garden_map$`light-to-temperature`)) |> 
+  map_dbl(\(x) find_correspondences(x, garden_map$`temperature-to-humidity`)) |> 
+  map_dbl(\(x) find_correspondences(x, garden_map$`humidity-to-location`))
   
 
 ```
+si --exclusive -t 1:00:00
+module load tools/Singularity
+singularity shell docker://rocker/tidyverse:4.3.2
 
 
 
+```{r}
+soil <- IRanges(start = c(98, 50), width = c(2, 48), shift = c(98 - 50, 50 - 52))
+soil
+
+findOverlaps(IRanges(start = c(14, 79), width = rep.int(1, 2)), soil) |> 
+  queryLength()
+```
