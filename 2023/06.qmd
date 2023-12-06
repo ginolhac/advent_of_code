@@ -27,6 +27,21 @@ tibble(
   summarise(n = sum(distance > to_beat), .by = race) |> 
   summarise(prod(n))
 
-
-
 ```
+
+## Part 2
+
+Time:        44     80     65     72
+Distance:   208   1581   1050   1102
+
+```{r}
+
+tibble(
+  duration = 44806572,
+  to_beat = 208158110501102) |> 
+  mutate(wait = map(duration, \(x) 0:x)) |> 
+  unnest(wait) |>
+  mutate(distance = wait * (duration - wait)) |> 
+  summarise(n = sum(distance > to_beat))
+```
+
