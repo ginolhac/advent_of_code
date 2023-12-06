@@ -58,18 +58,16 @@ parse_map <- function(.data, type) {
     str_split_1("\n") |> 
     str_subset("\\d+") |> 
     map(\(x) {
-      rp <- str_split_1(x, " ") |> as.numeric()
-      # create the correspondences with a named vector
-      # index is the from, value is the destiantion
-      set_names(seq(rp[1], (rp[1] + rp[3] - 1L)), 
-                nm = seq(rp[2], (rp[2] + rp[3] - 1L)))
+      str_split_1(x, " ") |> 
+        as.numeric()
+      # 1 is destination, 2 is origin and 3 is the length
     })
 }
 
 find_correspondences <- function(query, intervals) {
   for (rg in intervals) {
-    if (query >= as.numeric(names(rg)[1]) & query <= as.numeric(names(rg)[length(rg)])) {
-      return(rg[as.character(query)])
+    if (query >= rg[2] & query <= (rg[2] + rg[3] - 1L)) {
+      return(query + rg[1] - rg[2])
     }
   }
   query
@@ -89,20 +87,17 @@ fertilizer_types |>
   set_names() |> 
   map(\(x) parse_map(input, x)) -> garden_map
 
-seeds[2] |> 
+seeds |> 
   map_dbl(\(x) find_correspondences(x, garden_map$`seed-to-soil`), .progress = "soil") |> 
   map_dbl(\(x) find_correspondences(x, garden_map$`soil-to-fertilizer`), .progress = "fertilizer") |> 
   map_dbl(\(x) find_correspondences(x, garden_map$`fertilizer-to-water`), .progress = "water") |> 
-  map_dbl(\(x) find_correspondences(x, garden_map$`water-to-light`)) |> 
-  map_dbl(\(x) find_correspondences(x, garden_map$`light-to-temperature`)) |> 
-  map_dbl(\(x) find_correspondences(x, garden_map$`temperature-to-humidity`)) |> 
-  map_dbl(\(x) find_correspondences(x, garden_map$`humidity-to-location`))
-  
+  map_dbl(\(x) find_correspondences(x, garden_map$`water-to-light`), .progress = "light") |> 
+  map_dbl(\(x) find_correspondences(x, garden_map$`light-to-temperature`), .progress = "temperature") |> 
+  map_dbl(\(x) find_correspondences(x, garden_map$`temperature-to-humidity`), .progress = "humidity") |> 
+  map_dbl(\(x) find_correspondences(x, garden_map$`humidity-to-location`), .progress = "location") -> locations
 
+min(locations)
 ```
-si --exclusive -t 1:00:00
-module load tools/Singularity
-singularity shell docker://rocker/tidyverse:4.3.2
 
 
 
