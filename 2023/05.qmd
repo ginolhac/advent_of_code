@@ -101,8 +101,38 @@ min(locations)
 ## Part 2
 
 ```{r}
+tibble(lg = seeds[seq(2, 20, 2)]) |> 
+  summarise(sum(lg))
+```
+
+2,104,769,314 numbers to treat
+
+
+```{r}
 #| label: part2
+library(GenomicRanges)
+
+soil <- IRanges(start = c(98, 50), width = c(2, 48), shift = c(98 - 50, 50 - 52))
+soil
+
+seed_ir <- IRanges(start = c(79, 55), width = c(14, 13)) |> 
+  # we don't need to test everything, reduce the problem
+  IRanges::reduce()
+
+
+
+subtract(seed_ir, soil)
+
 
 ```
 
 takes too long, to be done in a more efficient language
+
+soil: 7 intervals: 45 min
+fertilizer: 46 intervals: 3h
+water: 49 intervals: 
+light: 23 intervals: 
+temperature: 46 intervals: 
+humidity: 16 intervals: 
+location: 24 intervals: 
+
