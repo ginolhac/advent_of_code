@@ -112,37 +112,56 @@ tibble(lg = seeds[seq(2, 20, 2)]) |>
 #| label: part2
 library(GenomicRanges)
 
-soil <- GRanges(seqnames = "aoc",
-                ranges = IRanges(start = c(98, 50), width = c(2, 48), 
-                                 shift = c(98 - 50, 50 - 52)))
-soil
+garden_map |> 
+  map(\(x)  {
+    map(x, \(rg) {
+      GRanges(seqnames = "aoc",
+              IRanges(start = rg[2], width = rg[3], shift = rg[1] - rg[2]))
+    }) |> as("GRangesList") |> 
+      do.call(c, args = _)
+  }) -> garden_gr
+
+
 
 seed_ir <-  GRanges(seqnames = "aoc",
-                    IRanges(start = c(79, 45), width = c(14, 13))) |> 
+                    #IRanges(start = c(79, 55), width = c(14, 13))) |> 
+                    IRanges(start = c(82), width = c(2))) |> 
   # we don't need to test everything, reduce the problem
   IRanges::reduce()
 
 
-# return parts that are not in the soil intervals
-no_shift <- setdiff(seed_ir, soil)
-# part that needs shifting
-to_shit <- setdiff(seed_ir, no_shift)
-# which interval for shifting
-ov <- findOverlaps(seed_ir, soil, type = "any")
-map(seq_along(ov), \(x) {
-  message("query ", queryHits(ov)[x], " goes on soil ", subjectHits(ov)[x], " shift with ", soil$shift[subjectHits(ov)[x]])
-  shift(to_shit[queryHits(ov)[x]], soil$shift[subjectHits(ov)[x]])
-})  |> 
+find_shift_gr <- function(query, subject) {
+  # return parts that are not in the soil intervals
+  no_shift <- setdiff(query, subject)
+  # part that needs shifting
+  to_shit <- setdiff(query, no_shift)
+  # which interval for shifting
+  ov <- findOverlaps(query, subject, type = "any")
+  map(seq_along(ov), \(x) {
+    #message("query ", queryHits(ov)[x], " goes on soil ", subjectHits(ov)[x], " shift with ", soil$shift[subjectHits(ov)[x]])
+    shift(to_shit[queryHits(ov)[x]], subject$shift[subjectHits(ov)[x]])
+  })  -> shifted
+  if(length(no_shift) == 0L) {
+    return(shifted[[1]])
+  }
   # add interval that didn't need shifting
-  append(no_shift) |> 
-  # must convert to Listobject before concatenation 
-  # https://support.bioconductor.org/p/113168/#113169
-  as("GRangesList") |> 
-  do.call(c, args = _) |> 
-  reduce() |> 
-  as_tibble(
-    
-  )
+  append(shifted, no_shift) |> 
+    # must convert to Listobject before concatenation 
+    # https://support.bioconductor.org/p/113168/#113169
+    as("GRangesList") |> 
+    do.call(c, args = _) |> 
+    reduce()
+}
+
+
+find_shift_gr(seed_ir, garden_gr$`seed-to-soil`) |> 
+  find_shift_gr(garden_gr$`soil-to-fertilizer`) |> 
+  find_shift_gr(garden_gr$`fertilizer-to-water`) |> 
+  find_shift_gr(garden_gr$`water-to-light`) |> 
+  find_shift_gr(garden_gr$`light-to-temperature`) |> 
+  find_shift_gr(garden_gr$`temperature-to-humidity`) |> 
+  find_shift_gr(garden_gr$`humidity-to-location`)
+  
 ```
 
 takes too long, to be done in a more efficient language
@@ -166,3 +185,8 @@ location: 24 intervals:
  226221606				
   87808390				
   66592398
+  
+  soil <- GRanges(seqnames = "aoc",
+                ranges = IRanges(start = c(98, 50), width = c(2, 48), 
+                                 shift = c(98 - 50, 50 - 52)))
+soil
