@@ -99,12 +99,11 @@ seeds |>
 min(locations)
 ```
 
-
+## Part 2
 
 ```{r}
-soil <- IRanges(start = c(98, 50), width = c(2, 48), shift = c(98 - 50, 50 - 52))
-soil
+#| label: part2
 
-findOverlaps(IRanges(start = c(14, 79), width = rep.int(1, 2)), soil) |> 
-  queryLength()
 ```
+
+takes too long, to be done in a more efficient language
