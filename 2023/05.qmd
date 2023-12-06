@@ -112,27 +112,57 @@ tibble(lg = seeds[seq(2, 20, 2)]) |>
 #| label: part2
 library(GenomicRanges)
 
-soil <- IRanges(start = c(98, 50), width = c(2, 48), shift = c(98 - 50, 50 - 52))
+soil <- GRanges(seqnames = "aoc",
+                ranges = IRanges(start = c(98, 50), width = c(2, 48), 
+                                 shift = c(98 - 50, 50 - 52)))
 soil
 
-seed_ir <- IRanges(start = c(79, 55), width = c(14, 13)) |> 
+seed_ir <-  GRanges(seqnames = "aoc",
+                    IRanges(start = c(79, 45), width = c(14, 13))) |> 
   # we don't need to test everything, reduce the problem
   IRanges::reduce()
 
 
-
-subtract(seed_ir, soil)
-
-
+# return parts that are not in the soil intervals
+no_shift <- setdiff(seed_ir, soil)
+# part that needs shifting
+to_shit <- setdiff(seed_ir, no_shift)
+# which interval for shifting
+ov <- findOverlaps(seed_ir, soil, type = "any")
+map(seq_along(ov), \(x) {
+  message("query ", queryHits(ov)[x], " goes on soil ", subjectHits(ov)[x], " shift with ", soil$shift[subjectHits(ov)[x]])
+  shift(to_shit[queryHits(ov)[x]], soil$shift[subjectHits(ov)[x]])
+})  |> 
+  # add interval that didn't need shifting
+  append(no_shift) |> 
+  # must convert to Listobject before concatenation 
+  # https://support.bioconductor.org/p/113168/#113169
+  as("GRangesList") |> 
+  do.call(c, args = _) |> 
+  reduce() |> 
+  as_tibble(
+    
+  )
 ```
 
 takes too long, to be done in a more efficient language
 
 soil: 7 intervals: 45 min
 fertilizer: 46 intervals: 3h
-water: 49 intervals: 
+water: 49 intervals: 2h
 light: 23 intervals: 
 temperature: 46 intervals: 
 humidity: 16 intervals: 
 location: 24 intervals: 
 
+
+ 312415190				
+ 106131293				
+  30365957				
+1183890307				
+  13162298				
+  74991378				
+   3190497				
+ 226221606				
+  87808390				
+  66592398
