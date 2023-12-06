@@ -1,0 +1,32 @@
+---
+format: html
+---
+
+```{r}
+#| label: setup
+#| include: false
+library(tidyverse)
+```
+
+## Part 1
+
+```{r}
+#| label: part1
+
+tibble(
+  race = 1:3,
+  duration = c(7, 15, 30),
+  to_beat = c(9, 40, 200)) -> test
+tibble(
+  race = 1:4,  
+  duration = c(44, 80, 65, 72),
+  to_beat = c(208, 1581, 1050, 1102)) |> 
+  mutate(wait = map(duration, \(x) 0:x)) |> 
+  unnest(wait) |>
+  mutate(distance = wait * (duration - wait)) |> 
+  summarise(n = sum(distance > to_beat), .by = race) |> 
+  summarise(prod(n))
+
+
+
+```

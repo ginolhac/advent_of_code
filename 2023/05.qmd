@@ -6,7 +6,6 @@ format: html
 #| label: setup
 #| include: false
 library(tidyverse)
-library(IRanges)
 ```
 
 ## Part 1
