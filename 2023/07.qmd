@@ -60,32 +60,32 @@ scoring <- function(counts) {
   # Five of a kind
   if (any(counts %in% 5)) {
     message("Five ", names(counts)[which(counts %in% 5)])
-    return(25 * as.numeric(names(counts)[which(counts %in% 5)]))
+    return(50)
   }
   # Four of a kind
   if (any(counts %in% 4)) {
     message("Four ", names(counts)[which(counts %in% 4)])
-    return(100 + as.numeric(names(counts)[which(counts %in% 4)]))
+    return(40)
   }
   # Full house
   if (any(counts %in% 3) & any(counts %in% 2)) {
      message("Full house ", names(counts)[which(counts %in% 3)])
-    return(50 + as.numeric(names(counts)[which(counts %in% 3)]) + 2 * as.numeric(names(counts)[which(counts %in% 2)]))
+    return(30)
   }
   # Three of a kind
   if (any(counts %in% 3)) {
      message("Three ", names(counts)[which(counts %in% 3)])
-    return(40 + as.numeric(names(counts)[which(counts %in% 3)]))
+    return(20)
   }
   # Two pairs
   if (sum(counts %in% 2) == 2) {
      message("Two pairs ", names(counts)[which(counts %in% 2)])
-    return(2 * sum(as.numeric(names(counts)[which(counts %in% 2)])))
+    return(10)
   }
   # One pair
   if (sum(counts %in% 2) == 1) {
      message("One pair ", names(counts)[which(counts %in% 2)])
-    return(sum(as.numeric(names(counts)[which(counts %in% 2)])))
+    return(5)
   }
   # High card
   0
@@ -102,15 +102,25 @@ tibble(x = input) |>
   separate(x, into = c("hands", "bid"), sep = " ") |> 
   mutate(chands = map(hands, count_cards),
          scores = map_int(chands, scoring),
-         rank =  dense_rank(scores),
-         winnings = as.numeric(bid) * rank) #|> 
-  summarise(total = sum(winnings))
+         rank =  dense_rank(scores)) |> 
+  # must rank the ties now
+  nest(.by = rank) |> 
+  mutate(rank = map2(rank, data, \(x, y) solve_ties(rank = x, tib = y)))
+# winnings = as.numeric(bid) * rank) |> 
+#|> summarise(total = sum(winnings))
 
 ```
 
-One pair 3
-Three 5
-Two pairs 137  KK677 0  0  0  2  0  0  0  2  1  0  0  0  0 
-Two pairs 1011 KTJJT 2  2  0  1  0  0  0  0  0  0  0  0  0
-Three 12
+```{r}
+solve_ties <- function(rank, tib) {
+  # no ties
+  if (nrow(tib)) return(rank)
+  
+}
+
+tibble(h = tt$data[[2]]$hands) |>
+  mutate(h2 = map(h, \(x) str_split_1(x, ""))) |> 
+  unnest(h2)
+```
+
 
