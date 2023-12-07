@@ -59,31 +59,38 @@ count_cards <- function(cards) {
 scoring <- function(counts) {
   # Five of a kind
   if (any(counts %in% 5)) {
-    return(10 * as.numeric(names(counts)[which(counts %in% 5)]))
+    message("Five ", names(counts)[which(counts %in% 5)])
+    return(25 * as.numeric(names(counts)[which(counts %in% 5)]))
   }
   # Four of a kind
   if (any(counts %in% 4)) {
-    return(7 * as.numeric(names(counts)[which(counts %in% 4)]))
+    message("Four ", names(counts)[which(counts %in% 4)])
+    return(100 + as.numeric(names(counts)[which(counts %in% 4)]))
   }
   # Full house
   if (any(counts %in% 3) & any(counts %in% 2)) {
-    return(3 * as.numeric(names(counts)[which(counts %in% 3)]) + 2 * as.numeric(names(counts)[which(counts %in% 2)]))
+     message("Full house ", names(counts)[which(counts %in% 3)])
+    return(50 + as.numeric(names(counts)[which(counts %in% 3)]) + 2 * as.numeric(names(counts)[which(counts %in% 2)]))
   }
   # Three of a kind
   if (any(counts %in% 3)) {
-    return(3 * as.numeric(names(counts)[which(counts %in% 3)]))
+     message("Three ", names(counts)[which(counts %in% 3)])
+    return(40 + as.numeric(names(counts)[which(counts %in% 3)]))
   }
   # Two pairs
-  if (sum(counts %in% 2) == 4) {
+  if (sum(counts %in% 2) == 2) {
+     message("Two pairs ", names(counts)[which(counts %in% 2)])
     return(2 * sum(as.numeric(names(counts)[which(counts %in% 2)])))
   }
   # One pair
-  if (sum(counts %in% 2) == 2) {
+  if (sum(counts %in% 2) == 1) {
+     message("One pair ", names(counts)[which(counts %in% 2)])
     return(sum(as.numeric(names(counts)[which(counts %in% 2)])))
   }
   # High card
   0
 }
+
 scoring(c(`1` = 4, `2` = 2, `3` = 3, `4` = 5))
 scoring(c(`1` = 4, `2` = 2, `3` = 3, `4` = 0))
 scoring(c(`1` = 0, `2` = 2, `3` = 3, `4` = 0))
@@ -94,7 +101,16 @@ scoring(c(`1` = 0, `2` = 2, `3` = 3, `4` = 0))
 tibble(x = input) |> 
   separate(x, into = c("hands", "bid"), sep = " ") |> 
   mutate(chands = map(hands, count_cards),
-         scores = map(chands, scoring))
+         scores = map_int(chands, scoring),
+         rank =  dense_rank(scores),
+         winnings = as.numeric(bid) * rank) #|> 
+  summarise(total = sum(winnings))
 
 ```
+
+One pair 3
+Three 5
+Two pairs 137  KK677 0  0  0  2  0  0  0  2  1  0  0  0  0 
+Two pairs 1011 KTJJT 2  2  0  1  0  0  0  0  0  0  0  0  0
+Three 12
 
