@@ -28,8 +28,73 @@ QQQJA 483") -> input
 ```{r}
 #| label: helpers
 
+items <- c("T", "J", "Q", "K", "A", "9", "8", "7", "6", "5", "4", "3", "2")
+
+convert_cards <- function(figures) {
+  case_match(figures,
+    "T" ~ "10",
+    "J" ~ "11",
+    "Q" ~ "12",
+    "K" ~ "13",
+    "A" ~ "14",
+    "9" ~ "9",
+    "8" ~ "8",
+    "7" ~ "7",
+    "6" ~ "6",
+    "5" ~ "5",
+    "4" ~ "4",
+    "3" ~ "3",
+    "2" ~ "2",
+    .ptype = character(),
+    .default = NA
+  )
+}
+
+count_cards <- function(cards) {
+  cts <- str_count(cards, items)
+  names(cts) <- convert_cards(items)
+  cts
+}
+
+scoring <- function(counts) {
+  # Five of a kind
+  if (any(counts %in% 5)) {
+    return(10 * as.numeric(names(counts)[which(counts %in% 5)]))
+  }
+  # Four of a kind
+  if (any(counts %in% 4)) {
+    return(7 * as.numeric(names(counts)[which(counts %in% 4)]))
+  }
+  # Full house
+  if (any(counts %in% 3) & any(counts %in% 2)) {
+    return(3 * as.numeric(names(counts)[which(counts %in% 3)]) + 2 * as.numeric(names(counts)[which(counts %in% 2)]))
+  }
+  # Three of a kind
+  if (any(counts %in% 3)) {
+    return(3 * as.numeric(names(counts)[which(counts %in% 3)]))
+  }
+  # Two pairs
+  if (sum(counts %in% 2) == 4) {
+    return(2 * sum(as.numeric(names(counts)[which(counts %in% 2)])))
+  }
+  # One pair
+  if (sum(counts %in% 2) == 2) {
+    return(sum(as.numeric(names(counts)[which(counts %in% 2)])))
+  }
+  # High card
+  0
+}
+scoring(c(`1` = 4, `2` = 2, `3` = 3, `4` = 5))
+scoring(c(`1` = 4, `2` = 2, `3` = 3, `4` = 0))
+scoring(c(`1` = 0, `2` = 2, `3` = 3, `4` = 0))
+```
+
+```{r}
+#| label: part1
 tibble(x = input) |> 
   separate(x, into = c("hands", "bid"), sep = " ") |> 
-  mutate(hands = map(hands, \(x) str_split_1(x, "")))
+  mutate(chands = map(hands, count_cards),
+         scores = map(chands, scoring))
+
 ```
 
