@@ -101,8 +101,10 @@ min(locations)
 ## Part 2
 
 ```{r}
-tibble(lg = seeds[seq(2, 20, 2)]) |> 
-  summarise(sum(lg))
+tibble(id = 1:10,
+       start = seeds[seq(1, 19, 2)],
+       lg = seeds[seq(2, 20, 2)])
+#  summarise(sum(lg))
 ```
 
 2,104,769,314 numbers to treat
@@ -171,20 +173,21 @@ takes too long, to be done in a more efficient language
 soil: 7 intervals: 45 min
 fertilizer: 46 intervals: 3h
 water: 49 intervals: 2h
-light: 23 intervals: 1h
-temperature: 46 intervals: 2h
+light: 23 intervals:  1h
+temperature: 46 intervals: 1h 
 humidity: 16 intervals: 1h
-location: 24 intervals: 
+location: 24 intervals: 2h
 
 
- 312415190				
+
+ 312415190	13h15 min: 12634632
  106131293				
   30365957				
 1183890307				
   13162298				
   74991378				
    3190497				
- 226221606				
-  87808390				
+ 226221606	00h17 min: 1708965309
+  87808390	launcher_05-9.sh Error: negative length vectors are not allowed
   66592398
 

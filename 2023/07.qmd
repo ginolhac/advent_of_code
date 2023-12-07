@@ -1,0 +1,35 @@
+---
+format: html
+---
+
+```{r}
+#| label: setup
+#| include: false
+library(tidyverse)
+```
+
+## Input
+
+```{r}
+#| label: readin-input
+
+read_lines(
+"32T3K 765
+T55J5 684
+KK677 28
+KTJJT 220
+QQQJA 483") -> input
+#input <- read_lines("input/07")
+```
+
+
+## Part 1
+
+```{r}
+#| label: helpers
+
+tibble(x = input) |> 
+  separate(x, into = c("hands", "bid"), sep = " ") |> 
+  mutate(hands = map(hands, \(x) str_split_1(x, "")))
+```
+
