@@ -165,7 +165,7 @@ find_shift_gr(seed_ir[1], garden_gr$`seed-to-soil`) |>
   
 ```
 
-86-89
+
 
 
 takes too long, to be done in a more efficient language
@@ -178,14 +178,14 @@ temperature: 46 intervals: 1h
 humidity: 16 intervals: 1h
 location: 24 intervals: 2h
 
+Brute force it on aion, 10 jobs:
 
-
- 312415190	13h15 min: 12634632
- 106131293				
-  30365957				
+ 312415190	13h15 min: 12634632 <- right answer
+ 106131293	13h22 min: 12634632
+  30365957	09h21 min: 315550789		
 1183890307				
-  13162298				
-  74991378				
+  13162298	09h27 min: 315550789 			
+  74991378	15h34 min: 0
    3190497				
  226221606	00h17 min: 1708965309
   87808390	launcher_05-9.sh Error: negative length vectors are not allowed
