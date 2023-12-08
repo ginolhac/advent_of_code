@@ -19,7 +19,7 @@ T55J5 684
 KK677 28
 KTJJT 220
 QQQJA 483") -> input
-#input <- read_lines("input/07")
+input <- read_lines("input/07")
 ```
 
 
@@ -59,32 +59,32 @@ count_cards <- function(cards) {
 scoring <- function(counts) {
   # Five of a kind
   if (any(counts %in% 5)) {
-    message("Five ", names(counts)[which(counts %in% 5)])
+    #message("Five ", names(counts)[which(counts %in% 5)])
     return(50)
   }
   # Four of a kind
   if (any(counts %in% 4)) {
-    message("Four ", names(counts)[which(counts %in% 4)])
+    #message("Four ", names(counts)[which(counts %in% 4)])
     return(40)
   }
   # Full house
   if (any(counts %in% 3) & any(counts %in% 2)) {
-     message("Full house ", names(counts)[which(counts %in% 3)])
+     #message("Full house ", names(counts)[which(counts %in% 3)])
     return(30)
   }
   # Three of a kind
   if (any(counts %in% 3)) {
-     message("Three ", names(counts)[which(counts %in% 3)])
+     #message("Three ", names(counts)[which(counts %in% 3)])
     return(20)
   }
   # Two pairs
   if (sum(counts %in% 2) == 2) {
-     message("Two pairs ", names(counts)[which(counts %in% 2)])
+     #message("Two pairs ", names(counts)[which(counts %in% 2)])
     return(10)
   }
   # One pair
   if (sum(counts %in% 2) == 1) {
-     message("One pair ", names(counts)[which(counts %in% 2)])
+     #message("One pair ", names(counts)[which(counts %in% 2)])
     return(5)
   }
   # High card
@@ -94,6 +94,37 @@ scoring <- function(counts) {
 scoring(c(`1` = 4, `2` = 2, `3` = 3, `4` = 5))
 scoring(c(`1` = 4, `2` = 2, `3` = 3, `4` = 0))
 scoring(c(`1` = 0, `2` = 2, `3` = 3, `4` = 0))
+
+solve_ties <- function(rank, tib) {
+  # no ties
+  if (nrow(tib) == 1L) return(rank)
+  # ties
+  tibble(id = tib$hands) |>
+    mutate(card = map(id, \(x) str_split_1(x, "") |> 
+                        convert_cards() |> 
+                        as.numeric()),
+           id = paste0(id, "_", row_number())) |> 
+    column_to_rownames(var = "id") |> 
+    unnest_wider(card, names_sep = "_") |> 
+    # rows are always the 5 cards
+    # columns are all hands that are ties
+    t() -> mat
+  apply(mat, 1, rank) |> rowSums() / 1000 + rank
+  # for (i in seq_len(nrow(mat))) {
+  #   # if ties in max, go to next card
+  #   if (length(which(mat[i, ] %in% max(mat[i, ]))) > 1L) {
+  #     message("next", length(which(mat[i, ] %in% max(mat[i, ]))))
+  #     next
+  #   } else {
+  #     if (i == 5L) {
+  #       message("Tie after 5 cards, rank: ", rank)
+  #     }
+  #     # if not, return the hands that wins
+  #     #return(which.max(mat[i, ]))
+  #     return(rank(mat[i, ]) / 1000 + rank)
+  #   }
+  # }
+}
 ```
 
 ```{r}
@@ -105,22 +136,13 @@ tibble(x = input) |>
          rank =  dense_rank(scores)) |> 
   # must rank the ties now
   nest(.by = rank) |> 
-  mutate(rank = map2(rank, data, \(x, y) solve_ties(rank = x, tib = y)))
-# winnings = as.numeric(bid) * rank) |> 
-#|> summarise(total = sum(winnings))
+  mutate(rank2 = map2(rank, data, \(x, y) solve_ties(rank = x, tib = y))) |> 
+  unnest(c(rank2, data)) |> 
+  mutate(rank3 = dense_rank(rank2),
+         winnings = as.numeric(bid) * rank3) |> 
+  summarise(total = sum(winnings))
 
 ```
 
-```{r}
-solve_ties <- function(rank, tib) {
-  # no ties
-  if (nrow(tib)) return(rank)
-  
-}
-
-tibble(h = tt$data[[2]]$hands) |>
-  mutate(h2 = map(h, \(x) str_split_1(x, ""))) |> 
-  unnest(h2)
-```
 
 
