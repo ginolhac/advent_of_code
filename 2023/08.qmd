@@ -40,15 +40,24 @@ tbl_graph(
     from = rep(seq_along(nodes), 2),
     to = c(match(left_edges, nodes), match(right_edges, nodes)),
     direction = rep(c("left", "right"), each = length(nodes)))
-) |> 
-  ggraph(layout = 'kk') + 
-  geom_edge_fan(aes(colour = direction)) + 
+) -> haunted
+haunted |> 
+  ggraph( layout = 'kk') + 
+  geom_edge_fan(aes(colour = direction), alpha = 0.1) + 
   geom_node_text(data = \(x) filter(x, name %in% c("AAA", "ZZZ")),
                  aes(label = name), nudge_x = -2) +
-  geom_node_point(aes(label = name)) +
+  geom_node_point(aes(#size = centrality_pagerank(), 
+                      colour = node_is_center())) +
   theme_graph()
 
 
 ```
 
+```{r}
+library(igraph)
+shortest_paths(haunted, "AAA", "ZZZ")$vpath
+
+subgraph.edges(graph= haunted, eids = which(V(haunted) == "AAA")) |> 
+  as_tbl_graph() 
+```
 
