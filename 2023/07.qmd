@@ -91,26 +91,6 @@ scoring <- function(counts) {
   0
 }
 
-scoring(c(`1` = 4, `2` = 2, `3` = 3, `4` = 5))
-scoring(c(`1` = 4, `2` = 2, `3` = 3, `4` = 0))
-scoring(c(`1` = 0, `2` = 2, `3` = 3, `4` = 0))
-
-solve_ties <- function(rank, tib) {
-  # no ties
-  if (nrow(tib) == 1L) return(rank)
-  # ties
-  tibble(id = tib$hands) |>
-    mutate(card = map(id, \(x) str_split_1(x, "") |> 
-                        convert_cards() |> 
-                        as.numeric()),
-           id = paste0(id, "_", row_number())) |> 
-    column_to_rownames(var = "id") |> 
-    unnest_wider(card, names_sep = "_") |> 
-    # rows are always the 5 cards
-    # columns are all hands that are ties
-    t() -> mat
-  apply(mat, 1, rank) |> rowSums() / 1000 + rank
-}
 ```
 
 ```{r}
@@ -136,25 +116,17 @@ Tanguy solution
 tibble(x = input) |> 
   separate(x, into = c("hands", "bid"), sep = " ") |> 
   mutate(chands = map(hands, count_cards),
-         hands2 = str_replace_all(hands, c("T" = "B", "A" = "Z", "K" = "W") |> 
-                                    sort()),
+         hands2 = str_replace_all(hands, c("T" = "B", "A" = "Z", "K" = "W")),
          scores = map_int(chands, scoring),
          rank =  dense_rank(scores)) |> 
   arrange(rank, hands2) |> 
   mutate(rank2 = row_number(),
          winnings = as.numeric(bid) * rank2) |> 
+  select(-chands, -scores)
   summarise(total = sum(winnings))
   
 ```
 
 248559379
-
-
-```{r}
-sort(c("T", "A", "J", "Q", "K", "9", "8", "7", "6", "5", "4", "3", "2") |> 
-       str_replace_all(c("T" = "B", "A" = "Z", "K" = "W")))
-```
-
-
 
 
