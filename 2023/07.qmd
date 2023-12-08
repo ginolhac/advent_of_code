@@ -28,7 +28,7 @@ input <- read_lines("input/07")
 ```{r}
 #| label: helpers
 
-items <- c("T", "J", "Q", "K", "A", "9", "8", "7", "6", "5", "4", "3", "2")
+items <- c("T", "J", "Q", "K", "9", "8", "7", "6", "5", "4", "3", "2")
 
 convert_cards <- function(figures) {
   case_match(figures,
@@ -110,20 +110,6 @@ solve_ties <- function(rank, tib) {
     # columns are all hands that are ties
     t() -> mat
   apply(mat, 1, rank) |> rowSums() / 1000 + rank
-  # for (i in seq_len(nrow(mat))) {
-  #   # if ties in max, go to next card
-  #   if (length(which(mat[i, ] %in% max(mat[i, ]))) > 1L) {
-  #     message("next", length(which(mat[i, ] %in% max(mat[i, ]))))
-  #     next
-  #   } else {
-  #     if (i == 5L) {
-  #       message("Tie after 5 cards, rank: ", rank)
-  #     }
-  #     # if not, return the hands that wins
-  #     #return(which.max(mat[i, ]))
-  #     return(rank(mat[i, ]) / 1000 + rank)
-  #   }
-  # }
 }
 ```
 
@@ -143,6 +129,32 @@ tibble(x = input) |>
   summarise(total = sum(winnings))
 
 ```
+
+Tanguy solution
+
+```{r}
+tibble(x = input) |> 
+  separate(x, into = c("hands", "bid"), sep = " ") |> 
+  mutate(chands = map(hands, count_cards),
+         hands2 = str_replace_all(hands, c("T" = "B", "A" = "Z", "K" = "W") |> 
+                                    sort()),
+         scores = map_int(chands, scoring),
+         rank =  dense_rank(scores)) |> 
+  arrange(rank, hands2) |> 
+  mutate(rank2 = row_number(),
+         winnings = as.numeric(bid) * rank2) |> 
+  summarise(total = sum(winnings))
+  
+```
+
+248559379
+
+
+```{r}
+sort(c("T", "A", "J", "Q", "K", "9", "8", "7", "6", "5", "4", "3", "2") |> 
+       str_replace_all(c("T" = "B", "A" = "Z", "K" = "W")))
+```
+
 
 
 
