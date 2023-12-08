@@ -1,0 +1,54 @@
+---
+format: html
+---
+
+```{r}
+#| label: setup
+#| include: false
+library(tidyverse)
+library(tidygraph)
+library(ggraph)
+```
+
+## Input
+
+```{r}
+#| label: readin-input
+
+read_lines(
+"RL
+
+AAA = (BBB, CCC)
+BBB = (DDD, EEE)
+CCC = (ZZZ, GGG)
+DDD = (DDD, DDD)
+EEE = (EEE, EEE)
+GGG = (GGG, GGG)
+ZZZ = (ZZZ, ZZZ)") -> input
+input <- read_lines("input/08")
+```
+
+```{r}
+paths <- input[1]
+nodes <- str_extract(input, "^\\w+")[-c(1:2)]
+left_edges <- str_extract(input, "\\(([A-Z]{3})", group = 1)[-c(1:2)]
+right_edges <- str_extract(input, "\\s([A-Z]{3})\\)$", group = 1)[-c(1:2)]
+
+tbl_graph(
+  nodes = data.frame(name = nodes),
+  data.frame(
+    from = rep(seq_along(nodes), 2),
+    to = c(match(left_edges, nodes), match(right_edges, nodes)),
+    direction = rep(c("left", "right"), each = length(nodes)))
+) |> 
+  ggraph(layout = 'kk') + 
+  geom_edge_fan(aes(colour = direction)) + 
+  geom_node_text(data = \(x) filter(x, name %in% c("AAA", "ZZZ")),
+                 aes(label = name), nudge_x = -2) +
+  geom_node_point(aes(label = name)) +
+  theme_graph()
+
+
+```
+
+
