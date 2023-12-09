@@ -28,7 +28,7 @@ input <- read_lines("input/07")
 ```{r}
 #| label: helpers
 
-items <- c("T", "J", "Q", "K", "9", "8", "7", "6", "5", "4", "3", "2")
+items <- c("T", "J", "Q", "K", "A", "9", "8", "7", "6", "5", "4", "3", "2")
 
 convert_cards <- function(figures) {
   case_match(figures,
@@ -122,7 +122,7 @@ tibble(x = input) |>
   arrange(rank, hands2) |> 
   mutate(rank2 = row_number(),
          winnings = as.numeric(bid) * rank2) |> 
-  select(-chands, -scores)
+  select(-chands, -scores) |> 
   summarise(total = sum(winnings))
   
 ```
