@@ -21,19 +21,30 @@ input <- read_lines("input/09")
 ```
 
 ```{r}
-
-predict_value <- function(vec) {
+#| label: main_fn
+predict_value <- function(vec, part = 1) {
   
   tmp <- vec |> str_split_1(" ") |> as.numeric()
-  last_collector <- tmp[length(tmp)]
+  last_collector <- ifelse(part == 1, tmp[length(tmp)], tmp[1])
   while (length(unique(tmp)) > 2L) {
     tmp <- tmp - lag(tmp) 
-    last_collector <- c(last_collector, tmp[length(tmp)])
+    if (part == 1) last_collector <- c(last_collector, tmp[length(tmp)])
+    else {
+      last_collector <- c(last_collector, na.omit(tmp)[1])
+    }
   }
-  reduce(last_collector, `+`, .dir = "backward")
+  if (part == 1) reduce(last_collector, `+`, .dir = "backward")
+  else  c(last_collector, 0) |> reduce( `-`, .dir = "backward")
 }
 
 map_int(input, predict_value) |> 
+  sum()
+```
+
+## Part 2
+
+```{r}
+map_int(input, predict_value, part = 2) |> 
   sum()
 ```
 
