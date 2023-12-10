@@ -1,0 +1,39 @@
+---
+format: html
+---
+
+```{r}
+#| label: setup
+#| include: false
+library(tidyverse)
+```
+
+## Input
+
+```{r}
+#| label: readin-input
+
+read_lines(
+"0 3 6 9 12 15
+1 3 6 10 15 21
+10 13 16 21 30 45") -> input
+input <- read_lines("input/09")
+```
+
+```{r}
+
+predict_value <- function(vec) {
+  
+  tmp <- vec |> str_split_1(" ") |> as.numeric()
+  last_collector <- tmp[length(tmp)]
+  while (length(unique(tmp)) > 2L) {
+    tmp <- tmp - lag(tmp) 
+    last_collector <- c(last_collector, tmp[length(tmp)])
+  }
+  reduce(last_collector, `+`, .dir = "backward")
+}
+
+map_int(input, predict_value) |> 
+  sum()
+```
+
