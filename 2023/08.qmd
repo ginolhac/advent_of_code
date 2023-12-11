@@ -57,7 +57,16 @@ haunted |>
 library(igraph)
 shortest_paths(haunted, "AAA", "ZZZ")$vpath
 
-subgraph.edges(graph= haunted, eids = which(V(haunted) == "AAA")) |> 
-  as_tbl_graph() 
+ 
+ # select the nodes having these names
+selnodes <- V(haunted)[name %in% c( "AAA", "ZZZ")]
+# get their network neighborhood 
+selegoV <- ego(haunted, order=1, nodes = selnodes, mode = "all", mindist = 0)
+
+# turn the returned list of igraph.vs objects into a graph
+selegoG <- induced_subgraph(haunted, unlist(selegoV))
+
+# plot the subgraph
+plot(selegoG, vertex.label = V(selegoG)$name)
 ```
 

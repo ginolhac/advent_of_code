@@ -1,0 +1,67 @@
+---
+format: html
+---
+
+```{r}
+#| label: setup
+#| include: false
+library(tidyverse)
+library(igraph)
+```
+
+## Input
+
+```{r}
+#| label: readin-input
+
+read_lines(
+"...#......
+.......#..
+#.........
+..........
+......#...
+.#........
+.........#
+..........
+.......#..
+#...#.....") -> input
+input <- read_lines("input/11")
+```
+
+
+Number of galaxies:
+
+```{r}
+paste0(input, collapse = "") |> 
+  str_count("#")
+```
+
+```{r}
+tibble(x = input) |> 
+  adventdrob::grid_matrix(var = x) |> 
+  apply(2, str_detect, pattern = "#") -> to_expand
+col_to_expand <- colSums(to_expand) == 0
+row_to_expand <- rowSums(to_expand) == 0
+```
+
+```{r}
+tibble(x = input) |> 
+  adventdrob::grid_tidy(var = x) |>
+  adventdrob::adjacent_join() |> 
+  filter(value == "#" | value2 == "#")
+```
+
+
+```{r}
+tibble(x = input |> 
+         str_replace_all(c("#" = "1", "\\." = "0"))) |> 
+  adventdrob::grid_matrix(var = x) -> mat
+
+
+g <- graph_from_adjacency_matrix(mat, mode = 'undirected')
+
+plot(g)
+
+shortest.paths(g, v=1, to=V(g), algorithm="dijkstra")
+```
+
