@@ -3,6 +3,10 @@
 
 ### 2023
 
+- Day10, ascii by PY Berrard
+
+![](2023/10_ascii.png)
+
 - Day05, part2 to be tried in Rust like [here](https://github.com/hgrsd/aoc2023/blob/main/src/bin/day5.rs)
 
 ### 2022

@@ -1,0 +1,75 @@
+---
+format: html
+---
+
+```{r}
+#| label: setup
+#| include: false
+library(tidyverse)
+library(adventdrob)
+```
+
+## Input
+
+```{r}
+#| label: readin-input
+
+read_lines(
+".....
+.S-7.
+.|.|.
+.L-J.
+.....") -> input
+input <- read_lines("input/10")
+```
+
+## Part 1
+
+```{r}
+tibble(x = input) |> 
+  grid_tidy(var = x) |> 
+  adjacent_join() -> tinput
+```
+
+
+plotting like https://mastodon.social/@marcaurele/111555609399299629
+
+```{r}
+library(ggimage)
+tinput |> 
+  head(1000) |> 
+  mutate(emo = case_match(
+    value,
+    "S" ~  "1f987",  #devil "1f608",
+    "7" ~ "2935",
+    "|" ~ "2195",
+    "L" ~ "21aa",
+    "J" ~ "2934",
+    "-" ~ "2194",
+    "." ~ "1f3dc",
+    .default = "NA")) |> 
+  ggplot(aes(col, -row, image = emo)) +
+  geom_emoji() +
+  theme_void()
+```
+
+From Pierre-Yves Berrard, ASCII art 
+
+```{r}
+input |>
+  head(100) |> 
+  str_sub(end = 100L) |> 
+  stringr::str_replace_all(
+    c("-" = "\u2500",
+      "\\|" = "\u2502",
+      "F" = "\u250C",
+      "J" = "\u2518",
+      "7" = "\u2510",
+      "L" = "\u2514",
+      "S" = "o")
+  ) |>
+  cat(sep = "\n") |> 
+  write_lines("11_ascii.txt")
+```
+
+
