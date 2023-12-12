@@ -77,10 +77,10 @@ tbl_graph(
 haunted |> 
   ggraph( layout = 'kk') + 
   geom_edge_fan(aes(colour = direction), alpha = 0.1) + 
-  geom_node_text(data = \(x) filter(x, name %in% c("AAA", "ZZZ")),
-                 aes(label = name), nudge_x = -2) +
   geom_node_point(aes(#size = centrality_pagerank(), 
                       colour = node_is_center())) +
+  geom_node_text(data = \(x) filter(x, str_detect(name, "[AZ]$")),
+                 aes(label = name), repel = TRUE) +
   theme_graph()
 ```
 

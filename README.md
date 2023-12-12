@@ -3,6 +3,10 @@
 
 ### 2023
 
+- Day08, network for part2
+
+![](2023/08.png)
+
 - Day10, ascii by PY Berrard
 
 ![](2023/10_ascii.png)
