@@ -28,6 +28,39 @@ ZZZ = (ZZZ, ZZZ)") -> input
 input <- read_lines("input/08")
 ```
 
+
+## Part 1
+
+```{r}
+#| label: part1
+
+paths <- input[1] |> str_split_1("") |> rep(400) 
+nodes <- str_extract(input, "^\\w+")[-c(1:2)]
+left_edges <- str_extract(input, "\\(([A-Z]{3})", group = 1)[-c(1:2)]
+right_edges <- str_extract(input, "\\s([A-Z]{3})\\)$", group = 1)[-c(1:2)]
+
+# create the network
+network <- vector(mode = "list", length = length(nodes))
+names(network) <- nodes
+for (i in seq_along(network)) {
+  network[[i]] <- c(L = left_edges[i], R = right_edges[i])
+}
+
+# walk along
+steps <- 0L
+pos <- "AAA"
+while (pos != "ZZZ") {
+  steps <- steps + 1L
+  message("step ", steps, " pos ", pos, " go to ", paths[steps])
+  pos <- network[[pos]][[paths[steps]]]
+  message("step ", steps, " pos ", pos)
+}
+print(steps)
+```
+
+
+## Visualisation of the 6 loops
+
 ```{r}
 paths <- input[1]
 nodes <- str_extract(input, "^\\w+")[-c(1:2)]
@@ -49,9 +82,12 @@ haunted |>
   geom_node_point(aes(#size = centrality_pagerank(), 
                       colour = node_is_center())) +
   theme_graph()
-
-
 ```
+
+
+
+
+Useless play around with `igraph`
 
 ```{r}
 library(igraph)
@@ -61,7 +97,7 @@ shortest_paths(haunted, "AAA", "ZZZ")$vpath
  # select the nodes having these names
 selnodes <- V(haunted)[name %in% c( "AAA", "ZZZ")]
 # get their network neighborhood 
-selegoV <- ego(haunted, order=1, nodes = selnodes, mode = "all", mindist = 0)
+selegoV <- ego(haunted, order = 1, nodes = selnodes, mode = "all", mindist = 0)
 
 # turn the returned list of igraph.vs objects into a graph
 selegoG <- induced_subgraph(haunted, unlist(selegoV))
