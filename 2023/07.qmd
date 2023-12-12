@@ -56,7 +56,7 @@ count_cards <- function(cards) {
   cts
 }
 
-scoring <- function(counts) {
+scoring <- function(counts, part2 = FALSE) {
   # Five of a kind
   if (any(counts %in% 5)) {
     #message("Five ", names(counts)[which(counts %in% 5)])
@@ -65,33 +65,70 @@ scoring <- function(counts) {
   # Four of a kind
   if (any(counts %in% 4)) {
     #message("Four ", names(counts)[which(counts %in% 4)])
+    if (part2) {
+      # if we have a joker, can be a five of a kind
+      if (counts["11"] == 1 | counts["11"] == 4) return(50)
+    }
     return(40)
   }
   # Full house
   if (any(counts %in% 3) & any(counts %in% 2)) {
      #message("Full house ", names(counts)[which(counts %in% 3)])
+    if (part2) {
+      # if we have a joker, can be a four of a kind
+      if (counts["11"] == 1) return(40)
+      # if we have 2 jokers, can be a five
+      if (counts["11"] == 2) return(50)
+    }
     return(30)
   }
   # Three of a kind
   if (any(counts %in% 3)) {
-     #message("Three ", names(counts)[which(counts %in% 3)])
+    #message("Three ", names(counts)[which(counts %in% 3)])
+    if (part2) {
+      # if we have a joker, can be a four of a kind
+      if (counts["11"] == 1) return(40)
+      # if we have 3 joker, can be also four of a kind
+      if (counts["11"] == 3) return(40)
+      # if we have 2 jokers, can be a five
+      if (counts["11"] == 2) return(50)
+    }
     return(20)
   }
   # Two pairs
   if (sum(counts %in% 2) == 2) {
-     #message("Two pairs ", names(counts)[which(counts %in% 2)])
+    #message("Two pairs ", names(counts)[which(counts %in% 2)])
+    if (part2) {
+      # if we have a joker, can be a full house
+      if (counts["11"] == 1) return(30)
+      # if we have 2 jokers, can be a four
+      if (counts["11"] == 2) return(40)
+    }
     return(10)
   }
   # One pair
   if (sum(counts %in% 2) == 1) {
-     #message("One pair ", names(counts)[which(counts %in% 2)])
+    #message(counts, " One pair ", names(counts)[which(counts %in% 2)])
+    if (part2) {
+      # if we have a joker, can be a three of a kind
+      if (counts["11"] == 1  & sum(counts) > 2) return(20)
+      # # if we have 2 jokers, can be a three also
+      if (counts["11"] == 2) return(20)
+      # # if we have 2 jokers, can be a five
+      # if (counts["11"] == 3) return(50)
+    }
     return(5)
   }
   # High card
+  if (part2) {
+   # if we have a joker, can be a pair
+      if (counts["11"] == 1) return(5)
+  }
   0
 }
 
 ```
+
 
 ```{r}
 #| label: part1
@@ -110,9 +147,10 @@ tibble(x = input) |>
 
 ```
 
-Tanguy solution
+[Tanguy](https://github.com/TractorTom) smart solution to use lexicographic ordering
 
 ```{r}
+#| label: part1-tanguy
 tibble(x = input) |> 
   separate(x, into = c("hands", "bid"), sep = " ") |> 
   mutate(chands = map(hands, count_cards),
@@ -128,5 +166,28 @@ tibble(x = input) |>
 ```
 
 248559379
+
+## Part 2: Jokers
+
+
+
+```{r}
+#| label: part2
+
+tibble(x = input) |> 
+  separate(x, into = c("hands", "bid"), sep = " ") |> 
+  mutate(chands = map(hands, count_cards),
+         hands2 = str_replace_all(hands, c("J" = "1", "T" = "B", "A" = "Z", "K" = "W")),
+         scores = map_int(chands, scoring, part2 = TRUE),
+         rank =  dense_rank(scores)) |> 
+  arrange(rank, hands2) |>
+  mutate(rank2 = row_number(),
+         winnings = as.numeric(bid) * rank2) |> 
+  select(-chands, -scores) |> 
+  summarise(total = sum(winnings))
+
+```
+
+249631254
 
 
