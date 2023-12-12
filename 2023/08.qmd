@@ -62,6 +62,7 @@ print(steps)
 ## Visualisation of the 6 loops
 
 ```{r}
+#| label: viz-network
 paths <- input[1]
 nodes <- str_extract(input, "^\\w+")[-c(1:2)]
 left_edges <- str_extract(input, "\\(([A-Z]{3})", group = 1)[-c(1:2)]
@@ -84,7 +85,45 @@ haunted |>
   theme_graph()
 ```
 
+## Part2
 
+Least common multiple functions from [TractorTom](https://github.com/TractorTom/Advent-of-Code/blob/master/2023/Day08/day08.R)
+
+Idea from SebDL
+
+```{r}
+#| label: helpers
+
+pgcd <- function(a, b) {
+  if (b == 0) {
+    return(a)
+  } else {
+    return(pgcd(b, a %% b))
+  }
+}
+
+ppcm <- function(a, b) a * b / pgcd(a, b)
+```
+
+
+```{r}
+#| label: part2
+
+walk_network <- function(start, end) {
+  steps <- 0L
+  pos <- start
+  while (pos != end) {
+    steps <- steps + 1L
+    pos <- network[[pos]][[paths[steps]]]
+  }
+  steps
+}
+# thanks to the plot we know the pairs
+astarts <- c("VBA", "DVA", "VPA", "DTA", "TVA", "AAA")
+zends   <- c("DVZ", "HSZ", "GGZ", "HLZ", "XKZ", "ZZZ")
+six_steps <- map2_int(astarts, zends, walk_network)
+reduce(six_steps, ppcm) |> format(scientific = FALSE)
+```
 
 
 Useless play around with `igraph`
