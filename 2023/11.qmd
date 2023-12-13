@@ -70,10 +70,11 @@ for (i in seq_len(nrow(galmat))) {
 
 
 ```{r}
-distance_with_expansion <- function(x, y) {
+distance_with_expansion <- function(x, y, part2 = 1) {
   expansion <- 0L
-  expansion <- expansion + sum(abs(galpos[[x]][1]:galpos[[y]][1]) %in% expansion_rows)
-  expansion <- expansion + sum(abs(galpos[[x]][2]:galpos[[y]][2]) %in% expansion_cols)
+  
+  expansion <- expansion + part2 * sum(abs(galpos[[x]][1]:galpos[[y]][1]) %in% expansion_rows)
+  expansion <- expansion + part2 * sum(abs(galpos[[x]][2]:galpos[[y]][2]) %in% expansion_cols)
 
   # difference of row positions
   distance <- abs(galpos[[x]][1] - galpos[[y]][1]) + 
@@ -95,5 +96,14 @@ expand_grid(V1 = seq_len(nb_gal),
 
 ```
 
+## Part 2
+
+```{r}
+expand_grid(V1 = seq_len(nb_gal),
+            V2 = seq_len(nb_gal)) |> 
+  filter(V1 <= V2) |> 
+  mutate(dist = map2_int(V1, V2, distance_with_expansion, part2 = (1000000) - 1)) |> 
+  summarise(total = sum(dist))
+```
 
 
