@@ -30,7 +30,7 @@ input <- read_lines("input/10")
 ```{r}
 animat <- tibble(x = input) |> 
   grid_matrix(var = x)
-anipos <- vector(mode = "list", length = length(animat))
+
 
 for (i in seq_len(nrow(animat))) {
   for (j in seq_len(ncol(animat))) {
@@ -41,6 +41,45 @@ for (i in seq_len(nrow(animat))) {
     }
   }
 }
+animat[animal[1], animal[2]]
+
+animotion <- function(motion) {
+  prev <- motion[[1]]
+  cd <- motion[[2]]
+  message("prev ", prev, " ", pos, animat[cd[1], cd[2]])
+  case_when(
+    # if we come up and found a F, we turn right
+    animat[cd[1], cd[2]] == "F" & prev == "up"    ~ list("right", c(cd[1], cd[2] + 1L)),
+    # but if we come from right, we turn left and go down!
+    animat[cd[1], cd[2]] == "F" & prev == "left"  ~ list("down",  c(cd[1] + 1L, cd[2])),
+    animat[cd[1], cd[2]] == "|" & prev == "up"    ~ list("up",    c(cd[1] - 1L, cd[2])),
+    animat[cd[1], cd[2]] == "|" & prev == "down"  ~ list("down",  c(cd[1] + 1L, cd[2])),
+    animat[cd[1], cd[2]] == "-" & prev == "left"  ~ list("left",  c(cd[1], cd[2] - 1L)),
+    animat[cd[1], cd[2]] == "-" & prev == "right" ~ list("right", c(cd[1], cd[2] + 1L)),
+    animat[cd[1], cd[2]] == "J" & prev == "right" ~ list("up",    c(cd[1] - 1L, cd[2])),
+    animat[cd[1], cd[2]] == "J" & prev == "down"  ~ list("left",  c(cd[1], cd[2] - 1L)),
+    animat[cd[1], cd[2]] == "L" & prev == "down"  ~ list("right", c(cd[1], cd[2] + 1L)),
+    animat[cd[1], cd[2]] == "L" & prev == "left"  ~ list("up",    c(cd[1] - 1L, cd[2])),
+    animat[cd[1], cd[2]] == "7" & prev == "up"    ~ list("left",  c(cd[1], cd[2] - 1L)),
+    animat[cd[1], cd[2]] == "7" & prev == "right" ~ list("down",  c(cd[1] + 1L, cd[2])),
+    animat[cd[1], cd[2]] == "." ~ list("dots!"),
+    animat[cd[1], cd[2]] == "S" ~ list("animal!"),
+    .default = NA
+  )
+}
+
+steps <- 0L
+pos <- c(animal[1], animal[2] + 1L)
+previous <- "right"
+while (steps < 10L) {
+  res <- animotion(list(previous, pos))
+  previous <- res[[1]]
+  pos <- res[[2]]
+  steps <- steps + 1L
+  # TODO: compute distance to animal
+  if (animat[pos[1], pos[2]] == "S") break
+}
+steps
 ```
 
 
