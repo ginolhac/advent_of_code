@@ -6,7 +6,7 @@ format: html
 #| label: setup
 #| include: false
 library(tidyverse)
-library(igraph)
+library(adventdrob)
 ```
 
 ## Input
@@ -32,36 +32,68 @@ input <- read_lines("input/11")
 Number of galaxies:
 
 ```{r}
-paste0(input, collapse = "") |> 
+nb_gal <- paste0(input, collapse = "") |> 
   str_count("#")
+nb_gal
 ```
 
 ```{r}
 tibble(x = input) |> 
-  adventdrob::grid_matrix(var = x) |> 
-  apply(2, str_detect, pattern = "#") -> to_expand
-col_to_expand <- colSums(to_expand) == 0
-row_to_expand <- rowSums(to_expand) == 0
+  grid_matrix(var = x) -> galmat
+
+apply(galmat, 2, str_detect, pattern = "#") -> to_expand
+expansion_cols <- which(colSums(to_expand) == 0)
+expansion_rows <- which(rowSums(to_expand) == 0)
 ```
+
+### Register galaxy coordinates
 
 ```{r}
-tibble(x = input) |> 
-  adventdrob::grid_tidy(var = x) |>
-  adventdrob::adjacent_join() |> 
-  filter(value == "#" | value2 == "#")
+galpos <- vector(mode = "list", length = nb_gal)
+
+counter <- 0L
+for (i in seq_len(nrow(galmat))) {
+  for (j in seq_len(ncol(galmat))) {
+    if (galmat[i, j] == "#")  {
+      counter <- counter + 1L
+      galpos[[counter]] <- c(i, j)
+      #message(galmat[i, j], i, j)
+    }
+  }
+}
 ```
+
+## Part 1
+
+
+### Compute Manhattan distance between each pair of galaxies
 
 
 ```{r}
-tibble(x = input |> 
-         str_replace_all(c("#" = "1", "\\." = "0"))) |> 
-  adventdrob::grid_matrix(var = x) -> mat
+distance_with_expansion <- function(x, y) {
+  expansion <- 0L
+  expansion <- expansion + sum(abs(galpos[[x]][1]:galpos[[y]][1]) %in% expansion_rows)
+  expansion <- expansion + sum(abs(galpos[[x]][2]:galpos[[y]][2]) %in% expansion_cols)
+
+  # difference of row positions
+  distance <- abs(galpos[[x]][1] - galpos[[y]][1]) + 
+    # difference of columns
+    abs(galpos[[x]][2] - galpos[[y]][2])
+  # message(x, " (", galpos[[x]][1], galpos[[x]][2], ") and ", 
+  #         y, " (", galpos[[y]][1], galpos[[y]][2], ") distance ", 
+  #         distance, " expansion ", expansion, " total ", distance + expansion)
+  distance + expansion
+}
 
 
-g <- graph_from_adjacency_matrix(mat, mode = 'undirected')
+expand_grid(V1 = seq_len(nb_gal),
+            V2 = seq_len(nb_gal)) |> 
+  filter(V1 <= V2) |> 
+  mutate(dist = map2_int(V1, V2, distance_with_expansion)) |> 
+  summarise(total = sum(dist))
 
-plot(g)
 
-shortest.paths(g, v=1, to=V(g), algorithm="dijkstra")
 ```
+
+
 
