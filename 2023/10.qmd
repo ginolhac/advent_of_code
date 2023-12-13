@@ -25,10 +25,22 @@ input <- read_lines("input/10")
 
 ## Part 1
 
+### Register coordinates
+
 ```{r}
-tibble(x = input) |> 
-  grid_tidy(var = x) |> 
-  adjacent_join() -> tinput
+animat <- tibble(x = input) |> 
+  grid_matrix(var = x)
+anipos <- vector(mode = "list", length = length(animat))
+
+for (i in seq_len(nrow(animat))) {
+  for (j in seq_len(ncol(animat))) {
+    if (animat[i, j] == "S") {
+      message("found the animal ", i, " ", j)
+      animal <- c(i, j)
+      break
+    }
+  }
+}
 ```
 
 
