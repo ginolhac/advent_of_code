@@ -1,0 +1,51 @@
+---
+format: html
+---
+
+```{r}
+#| label: setup
+#| include: false
+library(tidyverse)
+```
+
+## Input
+
+```{r}
+#| label: readin-input
+
+read_lines(
+"#.##..##.
+..#.##.#.
+##......#
+##......#
+..#.##.#.
+..##..##.
+#.#.##.#.
+
+#...##..#
+#....#..#
+..##..###
+#####.##.
+#####.##.
+..##..###
+#....#..#") -> input
+```
+
+## Part 1
+
+Binarized the input
+
+```{r}
+input  |> 
+  str_length() -> linelg
+mat_limits <- which(linelg == 0)
+
+first <- input[seq_len(mat_limits[1]) - 1L] |> 
+  str_replace_all(c("\\." = "0", "#" = "1")) |> 
+  tibble(x = _) |> 
+  adventdrob::grid_matrix(var = x)
+
+# loop over to find all zeroes
+first[1, ] - first[3]
+```
+

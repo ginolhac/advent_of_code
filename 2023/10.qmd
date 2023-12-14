@@ -60,7 +60,7 @@ animat[animal[1], animal[2]]
 animotion <- function(motion) {
   prev <- motion[[1]]
   cd <- motion[[2]]
-  message("prev ", prev, " [", pos, "], ", animat[cd[1], cd[2]], " farthest: ", farthest, " steps: ", steps)
+  #message("prev ", prev, " [", pos, "], ", animat[cd[1], cd[2]], " farthest: ", farthest, " steps: ", steps)
   case_when(
     # if we come up and found a F, we turn right
     animat[cd[1], cd[2]] == "F" & prev == "up"    ~ list("right", c(cd[1], cd[2] + 1L)),
@@ -90,8 +90,8 @@ steps <- 1L
 distmax <- 0L
 farthest <- 1L
 # arbitrary deciding to move right
-pos <- c(animal[1], animal[2] + 1L)
-previous <- "right"
+pos <- c(animal[1], animal[2] - 1L)
+previous <- "left"
 while (steps < 20L) {
   res <- animotion(list(previous, pos))
   previous <- res[[1]]
@@ -106,7 +106,13 @@ while (steps < 20L) {
 }
 message("final steps: ", steps, " farthest: ", farthest, " distmax: ", distmax)
 ```
+right:
+```
+found the animal 53 101
+final steps: 20 farthest: 19 distmax: 11
+```
 
+## Plotting
 
 plotting like https://mastodon.social/@marcaurele/111555609399299629
 
