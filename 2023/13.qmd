@@ -45,7 +45,17 @@ first <- input[seq_len(mat_limits[1]) - 1L] |>
   tibble(x = _) |> 
   adventdrob::grid_matrix(var = x)
 
-# loop over to find all zeroes
-first[1, ] - first[3]
+
+# pairs of cols that are identical
+expand_grid(x = seq_len(ncol(first)), y = seq_len(ncol(first))) |> 
+  filter(x < y) |> 
+  mutate(diff_cols = map2_lgl(x, y, \(x, y) all((first[, x] - first[, y]) == 0))) |> 
+  filter(diff_cols)
+
+# pairs of rows that are identical
+expand_grid(x = seq_len(nrow(first)), y = seq_len(nrow(first))) |> 
+  filter(x < y) |> 
+  mutate(diff_rows = map2_lgl(x, y, \(x, y) all((first[, x] - first[, y]) == 0))) |> 
+  filter(diff_rows)
 ```
 
