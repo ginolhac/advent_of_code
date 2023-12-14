@@ -23,9 +23,23 @@ read_lines(
 input <- read_lines("input/10")
 ```
 
+```{r}
+#| label: example2
+
+read_lines(
+"..F7.
+.FJ|.
+SJ.L7
+|F--J
+LJ...") -> input
+```
+
+
+
 ## Part 1
 
-### Register coordinates
+
+
 
 ```{r}
 animat <- tibble(x = input) |> 
@@ -46,7 +60,7 @@ animat[animal[1], animal[2]]
 animotion <- function(motion) {
   prev <- motion[[1]]
   cd <- motion[[2]]
-  message("prev ", prev, " ", pos, animat[cd[1], cd[2]])
+  message("prev ", prev, " [", pos, "], ", animat[cd[1], cd[2]], " farthest: ", farthest, " steps: ", steps)
   case_when(
     # if we come up and found a F, we turn right
     animat[cd[1], cd[2]] == "F" & prev == "up"    ~ list("right", c(cd[1], cd[2] + 1L)),
@@ -68,18 +82,29 @@ animotion <- function(motion) {
   )
 }
 
-steps <- 0L
+anidist <- function(anipos, current) {
+  abs(anipos[1] - current[1]) + abs(anipos[2] - current[2])
+}
+
+steps <- 1L
+distmax <- 0L
+farthest <- 1L
+# arbitrary deciding to move right
 pos <- c(animal[1], animal[2] + 1L)
 previous <- "right"
-while (steps < 10L) {
+while (steps < 20L) {
   res <- animotion(list(previous, pos))
   previous <- res[[1]]
   pos <- res[[2]]
   steps <- steps + 1L
-  # TODO: compute distance to animal
+  # Compute distance to animal
+  if (anidist(animal, pos) > distmax) {
+    distmax <- anidist(animal, pos)
+    farthest <- steps
+  }
   if (animat[pos[1], pos[2]] == "S") break
 }
-steps
+message("final steps: ", steps, " farthest: ", farthest, " distmax: ", distmax)
 ```
 
 
