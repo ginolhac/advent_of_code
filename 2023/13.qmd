@@ -32,51 +32,83 @@ read_lines(
 
 ```
 
+Split input by blank empty lines
+```{r}
+input <- read_lines("input/13")
+# from https://stackoverflow.com/a/50345309/1395352
+split_vec <- function(vec, sep = 0) {
+  is.sep <- vec == sep
+  split(vec[!is.sep], cumsum(is.sep)[!is.sep])
+}
+
+splited_input <- split_vec(input, sep = "")
+```
+
+
+
 ## Part 1
 
 Binarized the input
 
 ```{r}
-input2  |> 
-  str_length() -> linelg
-mat_limits <- which(linelg == 0)
-# https://stackoverflow.com/a/50345309/1395352
-for (sep in c(0, mat_limits, length(input))) {
-  input[seq_len(mat_limits[1]) - 1L] |> 
-  str_replace_all(c("\\." = "0", "#" = "1")) |> 
-  tibble(x = _) |> 
-  adventdrob::grid_matrix(var = x)
+
+conv2matrix <- function(grid) {
+  grid |> 
+    str_replace_all(c("\\." = "0", "#" = "1")) |> 
+    tibble(x = _) |> 
+    adventdrob::grid_matrix(var = x)
 }
 
-first <- input[seq_len(mat_limits[1]) - 1L] |> 
-  str_replace_all(c("\\." = "0", "#" = "1")) |> 
-  tibble(x = _) |> 
-  adventdrob::grid_matrix(var = x)
 
-
-# pairs of cols that are identical
-expand_grid(x = seq_len(ncol(first)), y = seq_len(ncol(first))) |> 
-  filter(x < y) |> 
-  mutate(diff_cols = map2_lgl(x, y, \(x, y) all((first[, x] - first[, y]) == 0))) |> 
-  filter(diff_cols) |> 
-  mutate(diffy = lag(y, default = max(y) + 1L) - y,
-         diffx = lag(x, default = min(x) - 1L) - x) |> 
-  # mirror must be contiguous
-  filter((diffy + diffx) == 0) |> 
-  # valid if at least one of the column is one of border
-  filter((min(x) == 1L | max(y) == ncol(first)))
+find_mirror_cols <- function(mat) {
+  # pairs of cols that are identical
+  expand_grid(x = seq_len(ncol(mat)), y = seq_len(ncol(mat))) |> 
+    filter(x < y) |> 
+    mutate(diff_cols = map2_lgl(x, y, \(x, y) all((mat[, x] - mat[, y]) == 0))) |> 
+    filter(diff_cols) -> diffs 
+  if (nrow(diffs) == 0) return(diffs)
+  diffs |> 
+    mutate(diffy = lag(y, default = max(y) + 1L) - y,
+           diffx = lag(x, default = min(x) - 1L) - x) |> 
+    # mirror must be contiguous
+    filter((diffy + diffx) == 0) -> contiguous
+  if (nrow(contiguous) == 0) return(contiguous)
+  contiguous |>  
+    # valid if at least one of the column is one of border
+    filter((min(x) == 1 | max(y) == ncol(mat)))
   # if we have cols, return min(y) otherwise empty test the rows
+}
 
-# pairs of rows that are identical
-expand_grid(x = seq_len(nrow(first)), y = seq_len(nrow(first))) |> 
-  filter(x < y) |> 
-  mutate(diff_rows = map2_lgl(x, y, \(x, y) all((first[x, ] - first[y, ]) == 0))) |> 
-  filter(diff_rows) |> 
-  mutate(diffy = lag(y, default = max(y) + 1L) - y,
-         diffx = lag(x, default = min(x) - 1L) - x) |> 
-  # mirror must be contiguous
-  filter((diffy + diffx) == 0) |> 
-  # valid if at least one of the column is one of border
-  filter((min(x) == 1L | max(y) == nrow(first)))
+
+find_mirror_rows <- function(mat) {
+  # pairs of rows that are identical
+  expand_grid(x = seq_len(nrow(mat)), y = seq_len(nrow(mat))) |> 
+    filter(x < y) |> 
+    mutate(diff_rows = map2_lgl(x, y, \(x, y) all((mat[x, ] - mat[y, ]) == 0))) |> 
+    filter(diff_rows) -> diffs 
+  if (nrow(diffs) == 0) return(diffs)
+  diffs |>  
+    mutate(diffy = lag(y, default = max(y) + 1L) - y,
+           diffx = lag(x, default = min(x) - 1L) - x) |> 
+    # mirror must be contiguous
+    filter((diffy + diffx) == 0) -> contiguous
+  if (nrow(contiguous) == 0) return(contiguous)
+  contiguous |> 
+    # valid if at least one of the column is one of border
+    filter((min(x) == 1 | max(y) == nrow(mat)))
+}
 ```
+
+```{r}
+map_int(splited_input, \(x) {
+  x <- conv2matrix(x)
+  mc <- find_mirror_cols(x)
+  mc <- ifelse(nrow(mc) > 0, max(mc$x), 0)
+  mr <- find_mirror_rows(x)
+  mr <- ifelse(nrow(mr) > 0, max(mr$x), 0)
+  #message("mc", mc, " mr: ", mr)
+  mc + (100 * mr)
+}) |> reduce(`+`)
+```
+
 
