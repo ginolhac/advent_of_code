@@ -50,12 +50,25 @@ first <- input[seq_len(mat_limits[1]) - 1L] |>
 expand_grid(x = seq_len(ncol(first)), y = seq_len(ncol(first))) |> 
   filter(x < y) |> 
   mutate(diff_cols = map2_lgl(x, y, \(x, y) all((first[, x] - first[, y]) == 0))) |> 
-  filter(diff_cols)
+  filter(diff_cols) |> 
+  mutate(diffy = lag(y, default = max(y) + 1L) - y,
+         diffx = lag(x, default = min(x) - 1L) - x) |> 
+  # mirror must be contiguous
+  filter((diffy + diffx) == 0) |> 
+  # valid if at least one of the column is one of border
+  filter((min(x) == 1L | max(y) == ncol(first)))
+  # if we have cols, return min(y) otherwise empty test the rows
 
 # pairs of rows that are identical
 expand_grid(x = seq_len(nrow(first)), y = seq_len(nrow(first))) |> 
   filter(x < y) |> 
-  mutate(diff_rows = map2_lgl(x, y, \(x, y) all((first[, x] - first[, y]) == 0))) |> 
-  filter(diff_rows)
+  mutate(diff_rows = map2_lgl(x, y, \(x, y) all((first[x, ] - first[y, ]) == 0))) |> 
+  filter(diff_rows) |> 
+  mutate(diffy = lag(y, default = max(y) + 1L) - y,
+         diffx = lag(x, default = min(x) - 1L) - x) |> 
+  # mirror must be contiguous
+  filter((diffy + diffx) == 0) |> 
+  # valid if at least one of the column is one of border
+  filter((min(x) == 1L | max(y) == nrow(first)))
 ```
 
