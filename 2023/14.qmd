@@ -32,6 +32,43 @@ input |>
 # for each columns
 # mirror locations
 which(mat[,1] == 2)
+# solid rock locations
+which(mat[,1] == 1)
+
+vec <- mat[, 6]
+
+# pre-fill res vector with solid rock
+res <- vector(mode = "integer", length = length(vec))
+res[which(vec == 1)] <- 1
+
+# no solid rocks, cluster north
+if (length(which(vec == 1)) == 0) {
+  res[seq_along(which(vec == 2))] <- 2
+}
+last_i <- 1
+# split vector by solid rock
+if (which(vec == 1)[length(which(vec == 1))] < length(vec)) {
+  # add last part if rock is not ending vec
+  rock_pos <- c(which(vec == 1), length(vec))
+} else {
+  rock_pos <- which(vec == 1)
+}
+for (i in rock_pos) {
+  # if rock is starting nothing to do
+  if (i == 1) break
+  # no space between rocks, nothing to shift
+  if (length(last_i:i) == 1) {
+    message("break")
+    break
+  }
+  # how many mirrors to move north
+  nb_mir <- length(which(vec[last_i:i] == 2))
+  message("lasti ", last_i, " i ", i, " mirros: ", nb_mir)
+  #print(nb_mir)
+  if (nb_mir > 0) res[last_i:(nb_mir + last_i - 1)] <- 2
+  last_i <- i + 1
+}
+
 ```
 
 
