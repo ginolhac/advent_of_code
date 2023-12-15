@@ -92,27 +92,29 @@ conv2matrix <- function(grid) {
     adventdrob::grid_matrix(var = x)
 }
 
-is_mirrored <- function(mat, i, margin) {
+is_mirrored <- function(mat, i, margin, part2 = FALSE) {
   margin <- match.arg(margin, c("rows", "cols"))
   #message("i ", i, " end ", (i * 2):(i + 1))
   if (margin == "rows") {
-    all(mat[seq_len(i), ] == mat[(i * 2):(i + 1), ])
-    #mat[seq_len(i), ] == mat[(i * 2):(i + 1), ]
+    # tolerance of 1 part 2
+    goal <- ifelse(part2, length(mat[seq_len(i), ]) - 1, length(mat[seq_len(i), ]))
+    sum(mat[seq_len(i), ] == mat[(i * 2):(i + 1), ]) == goal
   } else {
-    all(mat[, seq_len(i)] == mat[, (i * 2):(i + 1)])
+    goal <- ifelse(part2, length(mat[, seq_len(i)]) - 1, length(mat[, seq_len(i)]))
+    sum(mat[, seq_len(i)] == mat[, (i * 2):(i + 1)]) == goal
   }
 }
 
-find_mirros <- function(x) {
+find_mirros <- function(x, part2 = FALSE) {
   # column left side 
-  mircols <- c(map_lgl(seq_len(floor(ncol(x) / 2)), \(i) is_mirrored(x, i, "cols")),
+  mircols <- c(map_lgl(seq_len(floor(ncol(x) / 2)), \(i) is_mirrored(x, i, "cols", part2)),
                # column right side, flip the matrix
-               map_lgl(seq_len(floor(ncol(x) / 2)), \(i) is_mirrored(x[, ncol(x):1], i, "cols")) |> 
+               map_lgl(seq_len(floor(ncol(x) / 2)), \(i) is_mirrored(x[, ncol(x):1], i, "cols", part2)) |> 
                  rev())
   # rows up side 
-  mirrows <- c(map_lgl(seq_len(floor(nrow(x) / 2)), \(i) is_mirrored(x, i, "rows")),
+  mirrows <- c(map_lgl(seq_len(floor(nrow(x) / 2)), \(i) is_mirrored(x, i, "rows", part2)),
                # rows bottom side, flip the matrix
-               map_lgl(seq_len(floor(nrow(x) / 2)), \(i) is_mirrored(x[nrow(x):1, ], i, "rows")) |> 
+               map_lgl(seq_len(floor(nrow(x) / 2)), \(i) is_mirrored(x[nrow(x):1, ], i, "rows", part2)) |> 
                  rev())
   #message("mirror rows: ", which(mirrows == TRUE), " cols: ", which(mircols == TRUE))
   #c(which(mirrows == TRUE), which(mircols == TRUE))
@@ -122,15 +124,29 @@ find_mirros <- function(x) {
 }
 ```
 
+## Part 1
 
 ```{r}
 map(splitted_input, \(x) {
   x <- conv2matrix(x)
   find_mirros(x)
-  #message("mc", mc, " mr: ", mr)
-  #mc + (100 * mr)
 }) |> reduce(`+`)
 ```
+
+## Part 2
+
+
+```{r}
+map(splitted_input, \(x) {
+  x <- conv2matrix(x)
+  find_mirros(x, part2 = TRUE)
+}) |> reduce(`+`)
+```
+
+
+
+
+
 
 
 
