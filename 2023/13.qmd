@@ -82,7 +82,7 @@ splitted_input <- split_vec(input, sep = "")
 
 ## Part 1
 
-Binarized the input
+Binarized the input and helpers
 
 ```{r}
 conv2matrix <- function(grid) {
@@ -92,53 +92,47 @@ conv2matrix <- function(grid) {
     adventdrob::grid_matrix(var = x)
 }
 
-
-```
-
-
-```{r}
-map_int(splitted_input, \(x) {
-  x <- conv2matrix(x)
-  mc <- find_mirror_cols(x)
-  mc <- ifelse(nrow(mc) > 0, max(mc$x), 0)
-  mr <- find_mirror_rows(x)
-  mr <- ifelse(nrow(mr) > 0, max(mr$x), 0)
-  #message("mc", mc, " mr: ", mr)
-  mc + (100 * mr)
-}) -> tmp # |> reduce(`+`)
-```
-
-3521 too low
-
-
-```{r}
-
-x = splitted_input[[2]] |> conv2matrix()
-
 is_mirrored <- function(mat, i, margin) {
   margin <- match.arg(margin, c("rows", "cols"))
-  message("i ", i, " end ", (i * 2):(i + 1))
+  #message("i ", i, " end ", (i * 2):(i + 1))
   if (margin == "rows") {
     all(mat[seq_len(i), ] == mat[(i * 2):(i + 1), ])
+    #mat[seq_len(i), ] == mat[(i * 2):(i + 1), ]
   } else {
     all(mat[, seq_len(i)] == mat[, (i * 2):(i + 1)])
   }
 }
 
-             # column left side 
-mircols <- c(map_lgl(seq_len(floor(ncol(x) / 2)), \(i) is_mirrored(x, i, "cols")),
-             # column right side, flip the matrix
-             map_lgl(seq_len(floor(ncol(x) / 2)), \(i) is_mirrored(x[, ncol(x):1], i, "cols")) |> 
-               rev())
-             # rows up side 
-mirrows <- c(map_lgl(seq_len(floor(nrow(x) / 2)), \(i) is_mirrored(x, i, "rows")),
-             # rows bottom side, flip the matrix
-             map_lgl(seq_len(floor(nrow(x) / 2)), \(i) is_mirrored(x[, nrow(x):1], i, "rows")) |> 
-               rev())
-message("mirror rows: ", mirrows, " cols: ", mircols)
-
-
+find_mirros <- function(x) {
+  # column left side 
+  mircols <- c(map_lgl(seq_len(floor(ncol(x) / 2)), \(i) is_mirrored(x, i, "cols")),
+               # column right side, flip the matrix
+               map_lgl(seq_len(floor(ncol(x) / 2)), \(i) is_mirrored(x[, ncol(x):1], i, "cols")) |> 
+                 rev())
+  # rows up side 
+  mirrows <- c(map_lgl(seq_len(floor(nrow(x) / 2)), \(i) is_mirrored(x, i, "rows")),
+               # rows bottom side, flip the matrix
+               map_lgl(seq_len(floor(nrow(x) / 2)), \(i) is_mirrored(x[nrow(x):1, ], i, "rows")) |> 
+                 rev())
+  #message("mirror rows: ", which(mirrows == TRUE), " cols: ", which(mircols == TRUE))
+  #c(which(mirrows == TRUE), which(mircols == TRUE))
+  mirrows <- ifelse(length(which(mirrows == TRUE)) == 0, 0, which(mirrows == TRUE))
+  mircols <- ifelse(length(which(mircols == TRUE)) == 0, 0, which(mircols == TRUE))
+  100 * mirrows + mircols
+}
 ```
+
+
+```{r}
+map(splitted_input, \(x) {
+  x <- conv2matrix(x)
+  find_mirros(x)
+  #message("mc", mc, " mr: ", mr)
+  #mc + (100 * mr)
+}) |> reduce(`+`)
+```
+
+
 
 
 Old crap:
