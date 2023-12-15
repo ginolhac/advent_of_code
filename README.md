@@ -11,7 +11,7 @@
 
 ![](2023/10_ascii.png)
 
-- Day05, part2 to be tried in Rust like [here](https://github.com/hgrsd/aoc2023/blob/main/src/bin/day5.rs)
+- Day05, part2 to be tried in Rust like [here](https://github.com/hgrsd/aoc2023/blob/main/src/bin/day5.rs) also see [range-set-blaze](https://github.com/CarlKCarlK/range-set-blaze)
 
 ### 2022
 

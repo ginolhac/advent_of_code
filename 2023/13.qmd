@@ -28,7 +28,42 @@ read_lines(
 #####.##.
 #####.##.
 ..##..###
-#....#..#") -> input
+#....#..#
+
+##.#.##
+#.##...
+.######
+##....#
+#.##.#.
+.#.####
+.#.####
+#.##.#.
+##....#
+.######
+#.##..#
+##.#.##
+..###..
+..###..
+##.#.##
+#.##..#
+.######
+
+.####....#..##.##
+..########..####.
+.#..##..#..####..
+#.#..#..###...###
+..#...##.#..#.##.
+###.#.##.###..##.
+....###.#..####.#
+....###.#..####.#
+###.#.##.###..##.
+..#...##.#..#.##.
+#.#..#..###...###
+.#..##..#..####..
+..########..#.##.
+.####....#..##.##
+.####....#..##.##") -> input
+
 
 ```
 
@@ -41,9 +76,8 @@ split_vec <- function(vec, sep = 0) {
   split(vec[!is.sep], cumsum(is.sep)[!is.sep])
 }
 
-splited_input <- split_vec(input, sep = "")
+splitted_input <- split_vec(input, sep = "")
 ```
-
 
 
 ## Part 1
@@ -51,7 +85,6 @@ splited_input <- split_vec(input, sep = "")
 Binarized the input
 
 ```{r}
-
 conv2matrix <- function(grid) {
   grid |> 
     str_replace_all(c("\\." = "0", "#" = "1")) |> 
@@ -59,6 +92,58 @@ conv2matrix <- function(grid) {
     adventdrob::grid_matrix(var = x)
 }
 
+
+```
+
+
+```{r}
+map_int(splitted_input, \(x) {
+  x <- conv2matrix(x)
+  mc <- find_mirror_cols(x)
+  mc <- ifelse(nrow(mc) > 0, max(mc$x), 0)
+  mr <- find_mirror_rows(x)
+  mr <- ifelse(nrow(mr) > 0, max(mr$x), 0)
+  #message("mc", mc, " mr: ", mr)
+  mc + (100 * mr)
+}) -> tmp # |> reduce(`+`)
+```
+
+3521 too low
+
+
+```{r}
+
+x = splitted_input[[2]] |> conv2matrix()
+
+is_mirrored <- function(mat, i, margin) {
+  margin <- match.arg(margin, c("rows", "cols"))
+  message("i ", i, " end ", (i * 2):(i + 1))
+  if (margin == "rows") {
+    all(mat[seq_len(i), ] == mat[(i * 2):(i + 1), ])
+  } else {
+    all(mat[, seq_len(i)] == mat[, (i * 2):(i + 1)])
+  }
+}
+
+             # column left side 
+mircols <- c(map_lgl(seq_len(floor(ncol(x) / 2)), \(i) is_mirrored(x, i, "cols")),
+             # column right side, flip the matrix
+             map_lgl(seq_len(floor(ncol(x) / 2)), \(i) is_mirrored(x[, ncol(x):1], i, "cols")) |> 
+               rev())
+             # rows up side 
+mirrows <- c(map_lgl(seq_len(floor(nrow(x) / 2)), \(i) is_mirrored(x, i, "rows")),
+             # rows bottom side, flip the matrix
+             map_lgl(seq_len(floor(nrow(x) / 2)), \(i) is_mirrored(x[, nrow(x):1], i, "rows")) |> 
+               rev())
+message("mirror rows: ", mirrows, " cols: ", mircols)
+
+
+```
+
+
+Old crap:
+
+```{r}
 
 find_mirror_cols <- function(mat) {
   # pairs of cols that are identical
@@ -71,8 +156,10 @@ find_mirror_cols <- function(mat) {
     mutate(diffy = lag(y, default = max(y) + 1L) - y,
            diffx = lag(x, default = min(x) - 1L) - x) |> 
     # mirror must be contiguous
-    filter((diffy + diffx) == 0) -> contiguous
-  if (nrow(contiguous) == 0) return(contiguous)
+    filter((diffy + diffx) == 0 & (max(x) - min(y) == -1)) -> contiguous
+  #message("contiguous: ", print(contiguous), " span: ", max(contiguous$y) - min(contiguous$x), " (over ", ncol(mat), ")")
+  # should span the whole matrix -1
+  if (nrow(contiguous) == 0 |  (max(contiguous$y) - min(contiguous$x)) < ncol(mat) - 2) return(tibble())
   contiguous |>  
     # valid if at least one of the column is one of border
     filter((min(x) == 1 | max(y) == ncol(mat)))
@@ -91,24 +178,12 @@ find_mirror_rows <- function(mat) {
     mutate(diffy = lag(y, default = max(y) + 1L) - y,
            diffx = lag(x, default = min(x) - 1L) - x) |> 
     # mirror must be contiguous
-    filter((diffy + diffx) == 0) -> contiguous
-  if (nrow(contiguous) == 0) return(contiguous)
+    filter((diffy + diffx) == 0 & (max(x) - min(y) == -1)) -> contiguous
+  #message("contiguous: ", print(contiguous), " span: ", max(contiguous$y) - min(contiguous$x), " (over ", nrow(mat), ")")
+  if (nrow(contiguous) == 0 | (max(contiguous$y) - min(contiguous$x)) < nrow(mat) - 2) return(tibble())
   contiguous |> 
     # valid if at least one of the column is one of border
     filter((min(x) == 1 | max(y) == nrow(mat)))
 }
 ```
-
-```{r}
-map_int(splited_input, \(x) {
-  x <- conv2matrix(x)
-  mc <- find_mirror_cols(x)
-  mc <- ifelse(nrow(mc) > 0, max(mc$x), 0)
-  mr <- find_mirror_rows(x)
-  mr <- ifelse(nrow(mr) > 0, max(mr$x), 0)
-  #message("mc", mc, " mr: ", mr)
-  mc + (100 * mr)
-}) |> reduce(`+`)
-```
-
 
