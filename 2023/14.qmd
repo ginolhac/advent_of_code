@@ -1,0 +1,43 @@
+---
+format: html
+---
+
+```{r}
+#| label: setup
+#| include: false
+library(tidyverse)
+```
+
+## Input
+
+```{r}
+read_lines(
+"O....#....
+O.OO#....#
+.....##...
+OO.#O....O
+.O.....O#.
+O.#..O.#.#
+..O..#O..O
+.......O..
+#....###..
+#OO..#....") -> input
+```
+
+```{r}
+input |> 
+ str_replace_all(c("\\." = "0", "#" = "1", "O" = 2)) |> 
+    tibble(x = _) |> 
+    adventdrob::grid_matrix(var = x) -> mat
+# for each columns
+# mirror locations
+which(mat[,1] == 2)
+```
+
+
+
+```{r}
+# sum for example
+3 + 12 + 21 + 32 + 18 + 50
+```
+
