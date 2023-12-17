@@ -48,6 +48,10 @@ shift_mirrors <- function(vec) {
   if (which(vec == 1)[length(which(vec == 1))] < length(vec)) {
     # add last part if rock is not ending vec
     rock_pos <- c(which(vec == 1), length(vec))
+    # edge case, 99 is rock but 100 is mirror, no shift but must be reported
+    if ((which(vec == 1)[length(which(vec == 1))] == (length(vec) - 1)) & vec[length(vec)] == 2) {
+      res[length(vec)] <- 2
+    }
   } else {
     rock_pos <- which(vec == 1)
   }
@@ -70,7 +74,6 @@ shift_mirrors <- function(vec) {
   }
   res
 }
-mat
 
 moved <- apply(mat, 2, shift_mirrors)
 
@@ -80,10 +83,10 @@ counting points
 (apply(moved, 1, \(x) length(which(x == 2))) * nrow(moved):1) |> reduce(`+`)
 ```
 
-105621 too low
+105621 too low. Issue with columns  29 42 thanks to Tanguy solution (105623)
 
 
-## plotting
+## Plotting
 
 
 ```{r}
