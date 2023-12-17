@@ -87,6 +87,7 @@ counting points
 
 
 ```{r}
+library(gganimate)
 bind_rows(
   tibble(x = 1:nrow(moved),
          y = apply(moved, 1, \(x) which(x == 2)),
@@ -104,12 +105,21 @@ bind_rows(
          y = apply(mat, 1, \(x) which(x == 1)),
          type = "rocks",
          t = 1)) |> 
+  mutate(t = factor(t, labels = c("intial", "shifted North"))) |> 
   unnest(y) |> 
-  ggplot(aes(x, -y, shape = type, colour = type)) +
-  geom_point(size = 5) +
-  theme_classic() +
-  theme(plot.background = element_rect(colour = "black", linewidth = 1)) +
-  facet_wrap(vars(t))
+  ggplot(aes(x = factor(y), y = -x, shape = type, colour = type)) +
+  geom_point(size = 6) +
+  transition_states(t) +
+  scale_colour_manual(values = c("grey", "black")) +
+  scale_shape_manual(values = c(9, 15)) +
+  theme_void() +
+  theme(legend.position = "none",
+        panel.grid.major.x = element_line(colour = "grey80"),
+        panel.grid.minor.x = element_line(colour = "grey80")) +
+  labs(title = "{closest_state}") -> miranim
+animate(miranim)
+anim_save("day14.gif")
+ # facet_wrap(vars(t), ncol = 1)
 ```
 
 

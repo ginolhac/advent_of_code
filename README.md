@@ -3,6 +3,10 @@
 
 ### 2023
 
+- Day14, shifting mirrors
+
+![](2023/day14.gif)
+
 - Day08, network for part2
 
 ![](2023/08.png)
@@ -11,7 +15,7 @@
 
 ![](2023/10_ascii.png)
 
-- Day05, part2 to be tried in Rust like [here](https://github.com/hgrsd/aoc2023/blob/main/src/bin/day5.rs) also see [range-set-blaze](https://github.com/CarlKCarlK/range-set-blaze)
+- Day05, part2 to be tried in Rust like [here](https://github.com/hgrsd/aoc2023/blob/main/src/bin/day5.rs)
 
 ### 2022
 
