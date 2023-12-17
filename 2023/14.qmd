@@ -33,7 +33,20 @@ Main process, shift by columns
 
 ```{r}
 
+rotate_90d_right <- function(mat) {
+  # transpose then flip
+  m <- t(mat)
+  m[, ncol(m):1]
+}
+
+rotate_90d_left <- function(mat) {
+  # transpose then flip
+  m <- t(mat)
+  m[nrow(m):1, ]
+}
+
 shift_mirrors <- function(vec) {
+
   # pre-fill res vector with solid rock
   res <- vector(mode = "integer", length = length(vec))
   res[which(vec == 1)] <- 1
@@ -75,6 +88,13 @@ shift_mirrors <- function(vec) {
   res
 }
 
+rotate_and_shift <- function(mat, round = 1, part2 = FALSE) {
+  mat |> 
+    rotate_90d_right() |> 
+    apply(MARGIN = 2, FUN = shift_mirrors)
+}
+
+
 moved <- apply(mat, 2, shift_mirrors)
 
 ```
@@ -84,6 +104,46 @@ counting points
 ```
 
 105621 too low. Issue with columns  29 42 thanks to Tanguy solution (105623)
+
+
+## Part 2
+
+
+```{r}
+# step zero, rotate once left so we start by shifting North
+ongoing <- rotate_90d_left(mat)
+aim <- 1e6
+current_load <- vector(mode = "integer", length = aim)
+for (i in seq_len(aim)) {
+  if (i %% 10000 == 0) message("treating iteration: ", i, " (", round((i / aim) * 100, 2),"%)")
+  ongoing <- rotate_and_shift(ongoing)
+  current_load[i] <- (apply(ongoing, 1, \(x) length(which(x == 2))) * nrow(ongoing):1) |> 
+    reduce(`+`)
+}
+ongoing
+
+(apply(ongoing, 1, \(x) length(which(x == 2))) * nrow(ongoing):1) |> reduce(`+`)
+```
+
+```{r}
+library(gganimate)
+tibble(y = current_load,
+       dir = rep(c("N", "W", "S", "E"), 1e6 / 4),
+       x = seq_len(1e6)) |> #count(x, dir, sort = TRUE)
+  head(1000) |> 
+  ggplot(aes(x, y, colour = dir)) +
+  geom_line() +
+  transition_reveal(x) +
+  theme_minimal() +
+  theme(legend.position = "top") +
+  labs(x = "Iteration",
+       y = "Current load",
+       title = "AoC day14, part2",
+       subtitle = "iteration: {frame_along}",
+       colour = "Shifting\ndirection") 
+anim_save("2023/day14_part2.gif")
+```
+
 
 
 ## Plotting
