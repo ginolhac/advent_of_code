@@ -53,7 +53,7 @@ input |>
       "J" = "\u2518",
       "7" = "\u2510",
       "L" = "\u2514",
-      "S" = "S")
+      "S" = "o")
   ) |>
   cat(sep = "\n") |> 
   write_lines("10_ascii.txt")

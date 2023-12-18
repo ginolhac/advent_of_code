@@ -22,7 +22,7 @@ O.#..O.#.#
 .......O..
 #....###..
 #OO..#....") -> input
-#input <- read_lines("input/14")
+input <- read_lines("input/14")
 input |> 
  str_replace_all(c("\\." = "0", "#" = "1", "O" = 2)) |> 
     tibble(x = _) |> 
@@ -105,7 +105,7 @@ Counting points
 (apply(moved, 1, \(x) length(which(x == 2))) * nrow(moved):1) |> reduce(`+`)
 ```
 
-105621 too low. Issue with columns 29 42 thanks to Tanguy solution (105623)
+105621 too low. Issue with columns 29, 42 thanks to Tanguy solution (105623)
 
 
 ## Part 2
@@ -116,27 +116,30 @@ Counting points
 library(tictoc)
 tic()
 ongoing <- rotate_90d_left(mat)
-aim <- 1e5
+aim <- 1e4
 current_load <- vector(mode = "integer", length = aim)
 for (i in seq_len(aim)) {
-  if (i %% 10000 == 0) message("treating iteration: ", i, " (", round((i / aim) * 100, 2),"%)")
+  if (i %% 5000 == 0) message("treating iteration: ", i, " (", round((i / aim) * 100, 2),"%)")
   ongoing <- rotate_and_shift(ongoing)
   current_load[i] <- (apply(ongoing, 1, \(x) length(which(x == 2))) * nrow(ongoing):1) |> 
     reduce(`+`)
 }
 toc()
-ongoing
+#saveRDS(current_load, "day14_current_load1e5.rds")
 
 (apply(ongoing, 1, \(x) length(which(x == 2))) * nrow(ongoing):1) |> reduce(`+`)
 ```
 
-35.514 seconds for 1e5
+35.514 seconds for 1e5 and example
+550.767 seconds for 1e5 and real input
 
 ```{r}
+current_load <- readRDS("day14_current_load1e5.rds")
+
 library(gganimate)
 tibble(y = current_load,
-       dir = rep(c("N", "W", "S", "E"), 1e6 / 4),
-       x = seq_len(1e6)) |> #count(x, dir, sort = TRUE)
+       dir = rep(c("N", "W", "S", "E"), aim / 4),
+       x = seq_len(aim)) |> #count(y, dir, sort = TRUE)
   head(1000) |> 
   ggplot(aes(x, y, colour = dir)) +
   geom_line() +
@@ -148,9 +151,13 @@ tibble(y = current_load,
        title = "AoC day14, part2",
        subtitle = "iteration: {frame_along}",
        colour = "Shifting\ndirection") 
-anim_save("2023/day14_part2.gif")
+#anim_save("2023/day14_part2_input.gif")
+
 ```
 
+
+105711
+116574 too high (true is 98029)
 
 
 ## Plotting part 1
@@ -191,6 +198,3 @@ animate(miranim)
 anim_save("day14.gif")
  # facet_wrap(vars(t), ncol = 1)
 ```
-
-
-
