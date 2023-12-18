@@ -139,6 +139,8 @@ input |>
 
 
 ```{r}
+input <- read_lines("input/10")
+
 animat <- tibble(x = input) |> 
   grid_matrix(var = x)
 
@@ -161,7 +163,7 @@ options(expressions=5e5)
 distmat <- matrix(nrow = nrow(animat), ncol = ncol(animat))
 
 serialc <- function(pos, distance) {
-  if (distance > 825) {
+  if (distance > 850) {
     return()
   }
   # check that this cell in the matrix is not NA  
@@ -172,28 +174,102 @@ serialc <- function(pos, distance) {
   # write the distance to the matrix
   distmat[pos[1], pos[2]] <<- distance
   message("pos ", pos, " distance ", distance)
-  message(pos[2] + 1, " ", between(pos[2] + 1, 1, ncol(animat), " current ", animat[pos[1], pos[2]]))
+  message(pos[2] + 1, " current ", animat[pos[1], pos[2]])
   # check right
-  if (between(pos[2] + 1, 1, ncol(animat)) && animat[pos[1], pos[2] + 1] %in% c("7", "J", "-")) {
+  if (between(pos[2] + 1, 1, ncol(animat)) &&  animat[pos[1], pos[2]] %in% c("-", "L", "F", "S") && animat[pos[1], pos[2] + 1] %in% c("7", "J", "-")) {
     serialc(c(pos[1], pos[2] + 1), distance + 1)
   } 
   # check left
-  if (between(pos[2] - 1, 1, ncol(animat)) && animat[pos[1], pos[2] - 1] %in% c("F", "-", "L")) {
+  if (between(pos[2] - 1, 1, ncol(animat)) && animat[pos[1], pos[2]] %in% c("-", "7", "J", "S") && animat[pos[1], pos[2] - 1] %in% c("F", "-", "L")) {
     serialc(c(pos[1], pos[2] - 1), distance + 1)
   }
   # check down
-  if (between(pos[1] + 1, 1, nrow(animat)) && animat[pos[1] + 1, pos[2]] %in% c("J", "|", "L")) {
+  if (between(pos[1] + 1, 1, nrow(animat)) && animat[pos[1], pos[2]] %in% c("F", "|", "7", "S") && animat[pos[1] + 1, pos[2]] %in% c("J", "|", "L")) {
     serialc(c(pos[1] + 1, pos[2]), distance + 1)
   }
 
   # check up
-  if (between(pos[1] - 1, 1, nrow(animat)) && animat[pos[1] - 1, pos[2]] %in% c("F", "|", "7")) {
+  if (between(pos[1] - 1, 1, nrow(animat)) && animat[pos[1], pos[2]] %in% c("J", "|", "L", "S") && animat[pos[1] - 1, pos[2]] %in% c("F", "|", "7")) {
     serialc(c(pos[1] - 1, pos[2]), distance + 1)
   }
 }
 
 serialc(animal, 0)
 ```
+
+```{r}
+input <- read_lines("input/10")
+
+animat <- tibble(x = input) |> 
+  grid_matrix(var = x)
+
+
+
+for (i in seq_len(nrow(animat))) {
+  for (j in seq_len(ncol(animat))) {
+    if (animat[i, j] == "S") {
+      message("found the animal ", i, " ", j)
+      animal <- c(i, j)
+      break
+    }
+  }
+}
+animat[animal[1], animal[2]]
+
+
+options(expressions=5e5)
+
+distmat <- matrix(nrow = nrow(animat), ncol = ncol(animat))
+
+pos <- animal
+distance <- 0
+for (i in seq_len(15000)) {
+  
+
+  # write the distance to the matrix
+  distmat[pos[1], pos[2]] <- distance
+  distance <- distance + 1
+  message("pos ", pos, " distance ", distance)
+  message(pos[2] + 1, " current ", animat[pos[1], pos[2]])
+  # check right
+  if (between(pos[2] + 1, 1, ncol(animat)) &&  
+      is.na(distmat[pos[1], pos[2] + 1]) &&
+      animat[pos[1], pos[2]] %in% c("-", "L", "F", "S") && 
+      animat[pos[1], pos[2] + 1] %in% c("7", "J", "-")) {
+    pos <- c(pos[1], pos[2] + 1)
+    next
+  } 
+  # check left
+  if (between(pos[2] - 1, 1, ncol(animat)) && 
+      is.na(distmat[pos[1], pos[2] - 1]) &&
+      animat[pos[1], pos[2]] %in% c("-", "7", "J", "S") && 
+      animat[pos[1], pos[2] - 1] %in% c("F", "-", "L")) {
+    pos <- c(pos[1], pos[2] - 1)
+    next
+  }
+  # check down
+  if (between(pos[1] + 1, 1, nrow(animat)) && 
+      is.na(distmat[pos[1] + 1, pos[2]]) &&
+      animat[pos[1], pos[2]] %in% c("F", "|", "7", "S") && 
+      animat[pos[1] + 1, pos[2]] %in% c("J", "|", "L")) {
+    message("down")
+    pos <- c(pos[1] + 1, pos[2])
+    next
+  }
+  # check up
+  if (between(pos[1] - 1, 1, nrow(animat)) && 
+      is.na(distmat[pos[1] - 1, pos[2]]) &&
+      animat[pos[1], pos[2]] %in% c("J", "|", "L", "S") && 
+      animat[pos[1] - 1, pos[2]] %in% c("F", "|", "7")) {
+    message("up")
+    pos <- c(pos[1] - 1, pos[2])
+    next
+  }
+
+}
+
+```
+
 
 
 
