@@ -64,7 +64,17 @@ input |>
 
 
 ```{r}
-input <- read_lines("input/10")
+read_lines(
+"...........
+.S-------7.
+.|F-----7|.
+.||.....||.
+.||.....||.
+.|L-7.F-J|.
+.|..|.|..|.
+.L--J.L--J.
+...........") -> input
+#input <- read_lines("input/10")
 
 animat <- tibble(x = input) |> 
   grid_matrix(var = x)
@@ -86,17 +96,18 @@ distmat <- matrix(nrow = nrow(animat), ncol = ncol(animat))
 
 pos <- animal
 distance <- 0
-for (i in seq_len(15000)) {
+for (i in seq_len(14000)) {
   # specific to this puzzle, we come from the left
-  if (animat[pos[1], pos[2] + 1] == "S" ) {
+  #if (animat[pos[1], pos[2] + 1] == "S") {
+  if (animat[pos[1] - 1, pos[2]] == "S") {
     message("Done!")
     break
   }
   # write the distance to the matrix
   distmat[pos[1], pos[2]] <- distance
   distance <- distance + 1
-  message("pos ", pos, " distance ", distance)
-  message(pos[2] + 1, " current ", animat[pos[1], pos[2]])
+  message("pos x: ", pos[1], " y: ", pos[2], " distance ", distance)
+  #message("current ", animat[pos[1], pos[2]])
   # check right
   if (between(pos[2] + 1, 1, ncol(animat)) &&  
       is.na(distmat[pos[1], pos[2] + 1]) &&
@@ -118,7 +129,7 @@ for (i in seq_len(15000)) {
       is.na(distmat[pos[1] + 1, pos[2]]) &&
       animat[pos[1], pos[2]] %in% c("F", "|", "7", "S") && 
       animat[pos[1] + 1, pos[2]] %in% c("J", "|", "L", "S")) {
-    message("down")
+    #message("down")
     pos <- c(pos[1] + 1, pos[2])
     next
   }
@@ -127,7 +138,7 @@ for (i in seq_len(15000)) {
       is.na(distmat[pos[1] - 1, pos[2]]) &&
       animat[pos[1], pos[2]] %in% c("J", "|", "L", "S") && 
       animat[pos[1] - 1, pos[2]] %in% c("F", "|", "7", "S")) {
-    message("up")
+    #message("up")
     pos <- c(pos[1] - 1, pos[2])
     next
   }
@@ -146,7 +157,7 @@ Recursion that didn't work (C stack too close to the limit)
 
 ```{r}
 
-options(expressions=5e5)
+options(expressions = 5e5)
 
 distmat <- matrix(nrow = nrow(animat), ncol = ncol(animat))
 
