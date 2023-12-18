@@ -225,7 +225,10 @@ pos <- animal
 distance <- 0
 for (i in seq_len(15000)) {
   
-
+  if (animat[pos[1], pos[2] + 1] == "S" ) {
+    message("Done!")
+    break
+  }
   # write the distance to the matrix
   distmat[pos[1], pos[2]] <- distance
   distance <- distance + 1
@@ -235,7 +238,7 @@ for (i in seq_len(15000)) {
   if (between(pos[2] + 1, 1, ncol(animat)) &&  
       is.na(distmat[pos[1], pos[2] + 1]) &&
       animat[pos[1], pos[2]] %in% c("-", "L", "F", "S") && 
-      animat[pos[1], pos[2] + 1] %in% c("7", "J", "-")) {
+      animat[pos[1], pos[2] + 1] %in% c("7", "J", "-", "S")) {
     pos <- c(pos[1], pos[2] + 1)
     next
   } 
@@ -243,7 +246,7 @@ for (i in seq_len(15000)) {
   if (between(pos[2] - 1, 1, ncol(animat)) && 
       is.na(distmat[pos[1], pos[2] - 1]) &&
       animat[pos[1], pos[2]] %in% c("-", "7", "J", "S") && 
-      animat[pos[1], pos[2] - 1] %in% c("F", "-", "L")) {
+      animat[pos[1], pos[2] - 1] %in% c("F", "-", "L", "S")) {
     pos <- c(pos[1], pos[2] - 1)
     next
   }
@@ -251,7 +254,7 @@ for (i in seq_len(15000)) {
   if (between(pos[1] + 1, 1, nrow(animat)) && 
       is.na(distmat[pos[1] + 1, pos[2]]) &&
       animat[pos[1], pos[2]] %in% c("F", "|", "7", "S") && 
-      animat[pos[1] + 1, pos[2]] %in% c("J", "|", "L")) {
+      animat[pos[1] + 1, pos[2]] %in% c("J", "|", "L", "S")) {
     message("down")
     pos <- c(pos[1] + 1, pos[2])
     next
@@ -260,7 +263,7 @@ for (i in seq_len(15000)) {
   if (between(pos[1] - 1, 1, nrow(animat)) && 
       is.na(distmat[pos[1] - 1, pos[2]]) &&
       animat[pos[1], pos[2]] %in% c("J", "|", "L", "S") && 
-      animat[pos[1] - 1, pos[2]] %in% c("F", "|", "7")) {
+      animat[pos[1] - 1, pos[2]] %in% c("F", "|", "7", "S")) {
     message("up")
     pos <- c(pos[1] - 1, pos[2])
     next
