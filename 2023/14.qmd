@@ -113,8 +113,10 @@ Counting points
 
 ```{r}
 # step zero, rotate once left so we start by shifting North
+library(tictoc)
+tic()
 ongoing <- rotate_90d_left(mat)
-aim <- 1e6
+aim <- 1e5
 current_load <- vector(mode = "integer", length = aim)
 for (i in seq_len(aim)) {
   if (i %% 10000 == 0) message("treating iteration: ", i, " (", round((i / aim) * 100, 2),"%)")
@@ -122,10 +124,13 @@ for (i in seq_len(aim)) {
   current_load[i] <- (apply(ongoing, 1, \(x) length(which(x == 2))) * nrow(ongoing):1) |> 
     reduce(`+`)
 }
+toc()
 ongoing
 
 (apply(ongoing, 1, \(x) length(which(x == 2))) * nrow(ongoing):1) |> reduce(`+`)
 ```
+
+35.514 seconds for 1e5
 
 ```{r}
 library(gganimate)
