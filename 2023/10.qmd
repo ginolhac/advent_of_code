@@ -60,7 +60,7 @@ animat[animal[1], animal[2]]
 animotion <- function(motion) {
   prev <- motion[[1]]
   cd <- motion[[2]]
-  #message("prev ", prev, " [", pos, "], ", animat[cd[1], cd[2]], " farthest: ", farthest, " steps: ", steps)
+  message("prev ", prev, " [", pos, "], ", animat[cd[1], cd[2]], " farthest: ", farthest, " steps: ", steps)
   case_when(
     # if we come up and found a F, we turn right
     animat[cd[1], cd[2]] == "F" & prev == "up"    ~ list("right", c(cd[1], cd[2] + 1L)),
@@ -82,15 +82,15 @@ animotion <- function(motion) {
   )
 }
 
-anidist <- function(anipos, current) {
-  abs(anipos[1] - current[1]) + abs(anipos[2] - current[2])
-}
+# anidist <- function(anipos, current) {
+#   abs(anipos[1] - current[1]) + abs(anipos[2] - current[2])
+# }
 
 steps <- 1L
 distmax <- 0L
 farthest <- 1L
 # arbitrary deciding to move right
-pos <- c(animal[1], animal[2] - 1L)
+pos <- c(animal[1] + 1L, animal[2])
 previous <- "left"
 while (steps < 20L) {
   res <- animotion(list(previous, pos))
@@ -98,10 +98,10 @@ while (steps < 20L) {
   pos <- res[[2]]
   steps <- steps + 1L
   # Compute distance to animal
-  if (anidist(animal, pos) > distmax) {
-    distmax <- anidist(animal, pos)
-    farthest <- steps
-  }
+  # if (anidist(animal, pos) > distmax) {
+  #   distmax <- anidist(animal, pos)
+  #   farthest <- steps
+  # }
   if (animat[pos[1], pos[2]] == "S") break
 }
 message("final steps: ", steps, " farthest: ", farthest, " distmax: ", distmax)
@@ -130,10 +130,70 @@ input |>
       "J" = "\u2518",
       "7" = "\u2510",
       "L" = "\u2514",
-      "S" = "o")
+      "S" = "S")
   ) |>
   cat(sep = "\n") |> 
-  write_lines("11_ascii.txt")
+  write_lines("10_ascii.txt")
 ```
+
+
+
+```{r}
+animat <- tibble(x = input) |> 
+  grid_matrix(var = x)
+
+
+
+for (i in seq_len(nrow(animat))) {
+  for (j in seq_len(ncol(animat))) {
+    if (animat[i, j] == "S") {
+      message("found the animal ", i, " ", j)
+      animal <- c(i, j)
+      break
+    }
+  }
+}
+animat[animal[1], animal[2]]
+
+
+options(expressions=5e5)
+
+distmat <- matrix(nrow = nrow(animat), ncol = ncol(animat))
+
+serialc <- function(pos, distance) {
+  if (distance > 825) {
+    return()
+  }
+  # check that this cell in the matrix is not NA  
+  if (!is.na(distmat[pos[1], pos[2]]) & distmat[pos[1], pos[2]] < distance) {
+    return()
+  }
+  
+  # write the distance to the matrix
+  distmat[pos[1], pos[2]] <<- distance
+  message("pos ", pos, " distance ", distance)
+  message(pos[2] + 1, " ", between(pos[2] + 1, 1, ncol(animat), " current ", animat[pos[1], pos[2]]))
+  # check right
+  if (between(pos[2] + 1, 1, ncol(animat)) && animat[pos[1], pos[2] + 1] %in% c("7", "J", "-")) {
+    serialc(c(pos[1], pos[2] + 1), distance + 1)
+  } 
+  # check left
+  if (between(pos[2] - 1, 1, ncol(animat)) && animat[pos[1], pos[2] - 1] %in% c("F", "-", "L")) {
+    serialc(c(pos[1], pos[2] - 1), distance + 1)
+  }
+  # check down
+  if (between(pos[1] + 1, 1, nrow(animat)) && animat[pos[1] + 1, pos[2]] %in% c("J", "|", "L")) {
+    serialc(c(pos[1] + 1, pos[2]), distance + 1)
+  }
+
+  # check up
+  if (between(pos[1] - 1, 1, nrow(animat)) && animat[pos[1] - 1, pos[2]] %in% c("F", "|", "7")) {
+    serialc(c(pos[1] - 1, pos[2]), distance + 1)
+  }
+}
+
+serialc(animal, 0)
+```
+
 
 
