@@ -98,12 +98,14 @@ rotate_and_shift <- function(mat, round = 1, part2 = FALSE) {
 moved <- apply(mat, 2, shift_mirrors)
 
 ```
-counting points
+
+Counting points
+
 ```{r}
 (apply(moved, 1, \(x) length(which(x == 2))) * nrow(moved):1) |> reduce(`+`)
 ```
 
-105621 too low. Issue with columns  29 42 thanks to Tanguy solution (105623)
+105621 too low. Issue with columns 29 42 thanks to Tanguy solution (105623)
 
 
 ## Part 2
@@ -146,7 +148,7 @@ anim_save("2023/day14_part2.gif")
 
 
 
-## Plotting
+## Plotting part 1
 
 
 ```{r}
