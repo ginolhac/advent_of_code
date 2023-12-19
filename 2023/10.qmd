@@ -90,16 +90,30 @@ for (i in seq_len(nrow(animat))) {
     }
   }
 }
-animat[animal[1], animal[2]]
+
+is_next_the_animal <- function(pos, animat, distance) {
+  if (distance < 2) return(FALSE)
+  # is it north?
+  if ((between(pos[1] - 1, 1, nrow(animat)) && animat[pos[1] - 1, pos[2]] == "S" & animat[pos[1], pos[2]] %in% c("J", "|", "L")) |
+      # is it right?
+      (between(pos[2] + 1, 1, ncol(animat)) && animat[pos[1], pos[2] + 1] == "S" & animat[pos[1], pos[2]] %in% c("-", "L", "F")) |
+      # is it left?
+      (between(pos[2] - 1, 1, ncol(animat)) && animat[pos[1], pos[2] - 1] == "S" & animat[pos[1], pos[2]] %in% c("7", "J", "-")) |
+      # is it down?
+      (between(pos[1] + 1, 1, nrow(animat)) && animat[pos[1] + 1, pos[2] ] == "S" & animat[pos[1], pos[2]] %in% c("7", "|", "F"))) {
+    return(TRUE)
+  }
+  FALSE
+}
 
 distmat <- matrix(nrow = nrow(animat), ncol = ncol(animat))
 
 pos <- animal
 distance <- 0
 for (i in seq_len(14000)) {
-  # specific to this puzzle, we come from the left
-  if (animat[pos[1], pos[2] + 1] == "S") {
-  #if (animat[pos[1] - 1, pos[2]] == "S") {
+
+  if (is_next_the_animal(pos, animat, distance)) {
+    distmat[pos[1], pos[2]] <- distance
     message("Done!")
     break
   }
