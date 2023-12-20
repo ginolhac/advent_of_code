@@ -11,7 +11,7 @@
 
 ![](2023/08.png)
 
-- Day10, ascii by PY Berrard
+- Day10, ASCII by using PY Berrard UTF-8 code trick
 
 ![](2023/10_ascii.png)
 
