@@ -144,12 +144,13 @@ for (i in seq_len(aim)) {
     reduce(`+`)
 }
 toc()
-#saveRDS(current_load, "day14_current_load1e4.rds")
+#saveRDS(current_load, "day14_current_load1e5.rds")
 
 ```
 
 9 seconds for 1e4 and example
 202.738 seconds for 1e4 and real input
+2022.078 seconds for 1e5 and real input
 
 ```{r}
 #current_load <- readRDS("day14_current_load1e5.rds")
@@ -176,11 +177,12 @@ anim_save("day14_part2_input.gif")
 ```{r}
 tibble(y = current_load,
        cycle = seq_len(aim)) |> 
-  filter(cycle == 1000)
+  filter(y == 98029) |> 
+  mutate(diff = lag(cycle) - cycle)
 ```
 
 
- 98029
+98029
 
 
 ```{r}
