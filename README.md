@@ -3,9 +3,13 @@
 
 ### 2023
 
-- Day14, shifting mirrors
+- Day14, shifting mirrors part1
 
 ![](2023/day14.gif)
+
+- Day14, shifting mirrors part2
+
+![](2023/day14_part2_input.gif)
 
 - Day08, network for part2
 
