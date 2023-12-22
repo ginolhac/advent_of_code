@@ -42,4 +42,35 @@ map_int(input, compute_hash) |> sum()
 ```
 
 
+## Part 2
+
+```{r}
+boxes <- vector(mode = "list", length = 256) # no zero in R
+
+for (el in input) {
+  index <- str_extract(el, "^[a-z]+")
+  hash <- compute_hash(index)
+  action <- str_extract(el, "[=\\-]")
+  focal_length <- str_extract(el, "=(\\d+)$", group = 1)
+  message("---- ", el, " box:",hash, " index: ", index, " ac ", action, " focal ", focal_length)
+  if (action == "=" && length(boxes[[hash + 1]]) == 0) {
+    boxes[[hash + 1]] <- setNames(focal_length, index)
+    message("init  ", index, " in ", hash + 1)
+  } else if (action == "=" && length(boxes[[hash + 1]]) >= 1) {
+    boxes[[hash + 1]] <- c(boxes[[hash + 1]], setNames(focal_length, index))
+    message("adding  ", index, " in ", hash + 1)
+  } else if (!is.na(boxes[[hash + 1]][index]) && action == "-") {
+    message("removing  ", index, " in ", hash + 1)
+    boxes[[hash + 1]][index] <- ""
+  } else if (action == "=" && !is.na(boxes[[hash + 1]][index])) {
+    message("updating  ", index, " in ", hash + 1)
+    boxes[[hash + 1]][index] <- focal_length
+  }   else {
+    message("issue: ", el, " index: ", index, " ac ", action, " focal ", focal_length)
+  }
+  print(boxes[1:4])
+}
+
+boxes[[1]]
+```
 
