@@ -44,8 +44,14 @@ map_int(input, compute_hash) |> sum()
 
 ## Part 2
 
+**Hashmap** can be using base R `new.env(hash = TRUE)` but here testing the `hashtab()` introduced in R 4.2.0
+
+As package, [`{fatmap}`](https://github.com/r-lib/fastmap) seems relevant
+
 ```{r}
-boxes <- vector(mode = "list", length = 256) # no zero in R
+# 0 to 255, so 256 since no zero in R
+boxes <- vector(mode = "list", length = 256) |> 
+  lapply(hashtab)
 
 for (el in input) {
   index <- str_extract(el, "^[a-z]+")
@@ -53,24 +59,45 @@ for (el in input) {
   action <- str_extract(el, "[=\\-]")
   focal_length <- str_extract(el, "=(\\d+)$", group = 1)
   message("---- ", el, " box:",hash, " index: ", index, " ac ", action, " focal ", focal_length)
-  if (action == "=" && length(boxes[[hash + 1]]) == 0) {
-    boxes[[hash + 1]] <- setNames(focal_length, index)
+  if (action == "=" && is.null(gethash(boxes[[hash + 1]], index))) {
+    sethash(boxes[[hash + 1]], index, focal_length)
     message("init  ", index, " in ", hash + 1)
-  } else if (action == "=" && length(boxes[[hash + 1]]) >= 1) {
-    boxes[[hash + 1]] <- c(boxes[[hash + 1]], setNames(focal_length, index))
-    message("adding  ", index, " in ", hash + 1)
-  } else if (!is.na(boxes[[hash + 1]][index]) && action == "-") {
+  #} else if (action == "=" && length(boxes[[hash + 1]]) >= 1) {
+   # boxes[[hash + 1]] <- c(boxes[[hash + 1]], setNames(focal_length, index))
+    #message("adding  ", index, " in ", hash + 1)
+  } else if (!is.null(gethash(boxes[[hash + 1]], index)) && action == "-") {
     message("removing  ", index, " in ", hash + 1)
-    boxes[[hash + 1]][index] <- ""
-  } else if (action == "=" && !is.na(boxes[[hash + 1]][index])) {
+    remhash(boxes[[hash + 1]], index)
+  } else if (action == "=" && !is.null(gethash(boxes[[hash + 1]], index))) {
     message("updating  ", index, " in ", hash + 1)
-    boxes[[hash + 1]][index] <- focal_length
+    sethash(boxes[[hash + 1]], index, focal_length)
   }   else {
-    message("issue: ", el, " index: ", index, " ac ", action, " focal ", focal_length)
+    message("issue: ", el, " hash ", hash, " index: ", index, " ac ", action, " focal ", focal_length)
   }
-  print(boxes[1:4])
+  print(hashkeys(boxes[[4]]))
 }
 
-boxes[[1]]
+
+```
+
+
+```{r}
+# from hashtab help page
+hashkeys <- function(h) {
+  val <- vector("list", numhash(h))
+  idx <- 0
+  maphash(h, function(k, v) { 
+    idx <<- idx + 1
+    val[idx] <<- list(k)
+  })
+  val
+}
+
+# compute focusing power
+for (i in seq_along(boxes)) {
+  ht <- hashkeys(boxes[[i]])
+  if (length(ht) == 0) next
+  print(ht)
+}
 ```
 
