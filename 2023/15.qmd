@@ -1,0 +1,45 @@
+---
+format: html
+---
+
+```{r}
+#| label: setup
+#| include: false
+library(tidyverse)
+```
+
+## Input
+
+```{r}
+scan("input/15_example", what = "character", sep = ",") -> input
+scan("input/15", what = "character", sep = ",") -> input
+```
+
+
+
+```{r}
+test <- "HASH"
+
+compute_hash <- function(string) {
+  cur_val <- 0
+  for (s in str_split_1(string, "")) {
+    cur_val <- ((cur_val + utf8ToInt(s)) * 17) %% 256
+    #message(s, " ", utf8ToInt(s), " val ", cur_val)
+  }
+  cur_val
+}
+
+compute_hash(test)
+# expect 52
+
+```
+
+
+## Part 1
+
+```{r}
+map_int(input, compute_hash) |> sum()
+```
+
+
+
