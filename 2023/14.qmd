@@ -39,11 +39,6 @@ rotate_90d_right <- function(mat) {
   m[, ncol(m):1]
 }
 
-rotate_90d_left <- function(mat) {
-  # transpose then flip
-  m <- t(mat)
-  m[nrow(m):1, ]
-}
 
 shift_mirrors <- function(vec) {
 
@@ -161,7 +156,7 @@ tibble(y = current_load,
   head(300) |> 
   ggplot(aes(cycle, y)) +
   geom_line() +
-  transition_reveal(cycle) +
+  #transition_reveal(cycle) +
   #geom_hline(yintercept = 98029, colour = "red", linetype = "dashed") +
   theme_minimal() +
   theme(legend.position = "top") +
@@ -177,9 +172,42 @@ anim_save("day14_part2_input.gif")
 ```{r}
 tibble(y = current_load,
        cycle = seq_len(aim)) |> 
-  filter(y == 98029) |> 
-  mutate(diff = lag(cycle) - cycle)
+  # before 150 current load is instable
+  filter(cycle > 250, cycle < 100000) |> 
+  nest(.by = y) |> 
+  mutate(periodicity = map(data, \(x) {
+    mutate(x, diff = lead(cycle) - cycle) |> 
+      pull(diff) |> 
+      na.omit() |> 
+      unique()
+    }),
+    n = map_int(periodicity, length)) |>
+  filter(n == 1) |> 
+  mutate(periodicity = map_int(periodicity, pluck))
 ```
+
+only 20 load are possible, and 4 have 2 or 3 periodicity so discarding those.
+
+We end up with a periodicity of **26**.
+
+```{r}
+tic()
+expected <- 0
+for (i in seq(1e9, 1e4, -26)) {
+  if (i < 1e5 & i > 1e4) {
+    expected <- c(expected, i)
+  }
+  if (i %% 1e5 == 0) message(" looking for compatible cycles ", i)
+}
+toc() # 15 sec
+
+
+tibble(y = current_load,
+       cycle = seq_len(aim)) |> 
+  filter(cycle %in% expected) |> 
+  distinct(y)
+```
+
 
 
 98029
