@@ -1,0 +1,21 @@
+---
+format: html
+---
+
+```{r}
+#| label: setup
+#| include: false
+library(tidyverse)
+```
+
+## Input
+
+```{r}
+#| label: readin-input
+tibble(x = read_lines("input/01")) |> 
+  separate_wider_regex(x, 
+                       c(first = "\\d+", "\\s+", second = "\\d+")) |> 
+  mutate(across(everything(), \(x) as.numeric(x) |> sort())) |> 
+  mutate(diff = abs(second - first)) |> 
+  summarise(sum = sum(diff))
+```
