@@ -19,3 +19,18 @@ tibble(x = read_lines("input/01")) |>
   mutate(diff = abs(second - first)) |> 
   summarise(sum = sum(diff))
 ```
+
+## Part 2
+
+
+```{r}
+tibble(x = read_lines("input/01")) |> 
+  separate_wider_regex(x, 
+                       c(first = "\\d+", "\\s+", second = "\\d+")) -> input 
+
+mutate(input, 
+       occurences = map_int(first, \(x) sum(x == input$second)),
+       sync = as.numeric(first) * occurences) |> 
+  summarise(sum = sum(sync))
+```
+
