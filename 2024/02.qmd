@@ -1,0 +1,86 @@
+---
+format: html
+---
+
+```{r}
+#| label: setup
+#| include: false
+library(tidyverse)
+```
+
+
+## Part 1
+
+```{r}
+assess_safety <- function(vec) {
+  x <- diff(vec)
+  diff_ok <- all(abs(x) >= 1 & abs(x) <= 3)
+  # decreasing OR ascending
+  safe <- all(x > 0) | all(x < 0)
+  diff_ok & safe
+}
+```
+
+
+
+```{r}
+# read_lines("7 6 4 2 1
+# 1 2 7 8 9
+# 9 7 6 2 1
+# 1 3 2 4 5
+# 8 6 4 4 1
+# 1 3 6 7 9") |> 
+read_lines("input/02") |> 
+  map(\(x) str_split_1(x, " ") |> as.numeric()) |> 
+  map_lgl(assess_safety) |> 
+  sum()
+```
+
+
+## Part 2
+
+```{r}
+leave_1_out <- function(vec) {
+  seq_along(vec) |> 
+    map_lgl(\(x) assess_safety(vec[-x])) |> 
+    any()
+}
+```
+
+
+```{r}
+# read_lines("7 6 4 2 1
+# 1 2 7 8 9
+# 9 7 6 2 1
+# 1 3 2 4 5
+# 8 6 4 4 1
+# 1 3 6 7 9") |>
+read_lines("input/02") |> 
+  map(\(x) str_split_1(x, " ") |> as.numeric()) |> 
+  map_lgl(leave_1_out) |> 
+  sum()
+```
+
+
+
+trying to be smart: fail
+
+```{r}
+assess_safety2 <- function(vec) {
+  x <- diff(vec)
+  # 1 bad level ok
+  diff_ok <- abs(x) >= 1 & abs(x) <= 3
+  # more than one bad level
+  if (sum(diff_ok) < (length(x) - 1)) return(FALSE)
+  vec <- vec[c(TRUE, diff_ok)]
+  x <- diff(vec)
+  if (!all(abs(x) >= 1 & abs(x) <= 3)) return(FALSE)
+  if (all(diff_ok)) {
+    
+  } else {
+    # one bad level already removed, must be sign correct
+    safe <- all(x > 0) | all(x < 0)
+  }
+  safe
+}
+```
