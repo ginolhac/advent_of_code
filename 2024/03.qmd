@@ -27,6 +27,7 @@ str_extract_all(input, "mul\\(\\d{1,3},\\d{1,3}\\)") |>
 
 ## Part 2
 
+Missing `?` to get the right answer in `str_remove_all()` thanks to Hugues!
 
 ```{r}
 read_lines("
@@ -34,7 +35,7 @@ xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))") -> i
 
 input <- read_lines("input/03")
 paste(input, collapse = "") |> 
-  str_remove_all("don't\\(\\).+do\\(\\)") |> 
+  str_remove_all("don't\\(\\).+?do\\(\\)") |> 
   str_extract_all("mul\\(\\d{1,3},\\d{1,3}\\)") |> 
   unlist() |> 
   str_replace("mul", "`*`") |> 
