@@ -1,0 +1,59 @@
+---
+format: html
+---
+
+```{r}
+#| label: setup
+#| include: false
+library(tidyverse)
+```
+
+
+## Part 1
+
+
+```{r}
+read_lines("
+xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5))") -> input
+
+input <- read_lines("input/03")
+
+str_extract_all(input, "mul\\(\\d{1,3},\\d{1,3}\\)") |> 
+  unlist() |> 
+  str_replace("mul", "`*`") |> 
+  map_int(\(x) parse(text = x) |> eval()) |> 
+  sum()
+```
+
+## Part 2
+
+
+```{r}
+read_lines("
+xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))") -> input
+
+input <- read_lines("input/03")
+paste(input, collapse = "") |> 
+  str_remove_all("don't\\(\\).+do\\(\\)") |> 
+  str_extract_all("mul\\(\\d{1,3},\\d{1,3}\\)") |> 
+  unlist() |> 
+  str_replace("mul", "`*`") |> 
+  map_int(\(x) parse(text = x) |> eval()) |> 
+  sum()
+```
+
+Does not work. Using a different strategy then
+
+```{r}
+
+input <- read_lines("input/03")
+paste(input, collapse = "") |> 
+  str_split("do(?=(n't)?\\(\\))") |> 
+  unlist() |> 
+  str_subset("^n't", negate = TRUE) |> 
+  str_extract_all("mul\\(\\d{1,3},\\d{1,3}\\)") |> 
+  unlist() |> 
+  str_replace("mul", "`*`") |> 
+  map_int(\(x) parse(text = x) |> eval()) |> 
+  sum()
+```
