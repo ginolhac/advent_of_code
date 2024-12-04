@@ -44,3 +44,48 @@ semi_join(input_adjacent, XMA,
   filter(value == "A", value2 == "S")
 
 ```
+
+
+```{r}
+library(stringi)
+read_lines("MMMSXXMASM
+MSAMXMSMSA
+AMXSXMAAMM
+MSAMASMSMX
+XMASAMXAMM
+XXAMMXXAMA
+SMSMSASXSS
+SAXAMASAAA
+MAMMMXMMMM
+MXMXAXMASX") -> input
+
+str_transpose <- function(x) {
+  tibble(x = x) |> 
+    grid_matrix(var = x) |> 
+    # turn the matrix 90 degrees
+    t() |> 
+    apply(MARGIN = 1, paste, collapse = '')
+}
+
+mat <- tibble(x = input) |> 
+    grid_matrix(var = x)
+
+for (i in ncol(mat):1) {
+  j <- 1
+  for (j in seq_along(ncol(mat) - 1)) {
+    print(paste(i, j, mat[i, j]))
+  }
+  j <- j + 1
+}
+  
+
+
+# horizontal
+sum(stri_count_fixed(input, "XMAS")) +
+  sum(stri_count_fixed(stri_reverse(input), "XMAS")) +
+  # vertical
+  sum(stri_count_fixed(str_transpose(input), "XMAS")) +
+  sum(stri_count_fixed(stri_reverse(str_transpose(input)), "XMAS"))
+```
+
+
