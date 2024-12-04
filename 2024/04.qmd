@@ -1,0 +1,46 @@
+---
+format: html
+---
+
+```{r}
+#| label: setup
+#| include: false
+library(tidyverse)
+library(adventdrob) # dgrtwo/adventdrob
+```
+
+
+## Part 1
+
+```{r}
+tibble(x = read_lines("
+MMMSXXMASM
+MSAMXMSMSA
+AMXSXMAAMM
+MSAMASMSMX
+XMASAMXAMM
+XXAMMXXAMA
+SMSMSASXSS
+SAXAMASAAA
+MAMMMXMMMM
+MXMXAXMASX")) -> input
+
+#input <- read_lines("input/04")
+
+input |> 
+  grid_tidy(x) |>
+  adjacent_join() -> input_adjacent 
+# All X followed by a M
+input_adjacent |> 
+  filter(value == "X", value2 == "M") -> XM
+
+semi_join(input_adjacent, XM, 
+          by = join_by(value == value2, row == row2, col == col2)) |> 
+  filter(value == "M", value2 == "A") -> XMA
+
+
+semi_join(input_adjacent, XMA, 
+          by = join_by(value == value2, row == row2, col == col2)) |> 
+  filter(value == "A", value2 == "S")
+
+```
