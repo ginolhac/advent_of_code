@@ -7,6 +7,7 @@ format: html
 #| include: false
 library(tidyverse)
 library(adventdrob) # dgrtwo/adventdrob
+library(stringi)
 ```
 
 
@@ -47,7 +48,6 @@ semi_join(input_adjacent, XMA,
 
 
 ```{r}
-library(stringi)
 read_lines("MMMSXXMASM
 MSAMXMSMSA
 AMXSXMAAMM
@@ -64,28 +64,51 @@ str_transpose <- function(x) {
     grid_matrix(var = x) |> 
     # turn the matrix 90 degrees
     t() |> 
+    # merge cols per row in one string
     apply(MARGIN = 1, paste, collapse = '')
 }
 
-mat <- tibble(x = input) |> 
+extract_diagonal <- function(x, transpose = FALSE) {
+  mat <- tibble(x = x) |> 
     grid_matrix(var = x)
-
-for (i in ncol(mat):1) {
-  j <- 1
-  for (j in seq_along(ncol(mat) - 1)) {
-    print(paste(i, j, mat[i, j]))
+  if (transpose) mat <- t(mat)
+  # half lower matrix
+  res <- vector(mode = "list", length = ncol(mat) - 3L)
+  # half upper
+  res2 <- vector(mode = "list", length = ncol(mat) - 3L)
+  for (iter in 0:(ncol(mat) - 4)) {
+    for (i in (nrow(mat) - (3 + iter)):ncol(mat)) {
+      j <- i - (ncol(mat) - 4) + iter
+      # too bad we grow vectors but alas
+      res[[iter + 1]] <- c(res[[iter + 1]], mat[i, j])
+        #print(paste(iter, i, mat[i, j], map_chr(res, paste, collapse = ''), collapse = " "))
+        #print(map_chr(res2, paste, collapse = ''))
+        res2[[iter + 1]] <- c(res2[[iter + 1]], mat[j, i])
+    }
   }
-  j <- j + 1
+  hlower <- map_chr(res, paste, collapse = '')
+  hupper <- map_chr(res2, paste, collapse = '')
+  # don't count twice the largest diagonal
+  c(hlower, hupper[-length(hupper)])
 }
-  
+
+
+
 
 
 # horizontal
 sum(stri_count_fixed(input, "XMAS")) +
-  sum(stri_count_fixed(stri_reverse(input), "XMAS")) +
+  sum(stri_count_fixed(input, "SAMX")) +
   # vertical
   sum(stri_count_fixed(str_transpose(input), "XMAS")) +
-  sum(stri_count_fixed(stri_reverse(str_transpose(input)), "XMAS"))
+  sum(stri_count_fixed(str_transpose(input), "SAMX")) +
+  # diagonal \\
+  sum(stri_count_fixed(extract_diagonal(input), "XMAS")) +
+  sum(stri_count_fixed(extract_diagonal(input), "SAMX")) +
+  # diagonal //
+  sum(stri_count_fixed(extract_diagonal(input, transpose = TRUE), "XMAS")) +
+  sum(stri_count_fixed(extract_diagonal(input, transpose = TRUE), "SAMX")) 
+  
 ```
 
 
