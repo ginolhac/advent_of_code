@@ -14,40 +14,6 @@ library(stringi)
 ## Part 1
 
 ```{r}
-tibble(x = read_lines("
-MMMSXXMASM
-MSAMXMSMSA
-AMXSXMAAMM
-MSAMASMSMX
-XMASAMXAMM
-XXAMMXXAMA
-SMSMSASXSS
-SAXAMASAAA
-MAMMMXMMMM
-MXMXAXMASX")) -> input
-
-#input <- read_lines("input/04")
-
-input |> 
-  grid_tidy(x) |>
-  adjacent_join() -> input_adjacent 
-# All X followed by a M
-input_adjacent |> 
-  filter(value == "X", value2 == "M") -> XM
-
-semi_join(input_adjacent, XM, 
-          by = join_by(value == value2, row == row2, col == col2)) |> 
-  filter(value == "M", value2 == "A") -> XMA
-
-
-semi_join(input_adjacent, XMA, 
-          by = join_by(value == value2, row == row2, col == col2)) |> 
-  filter(value == "A", value2 == "S")
-
-```
-
-
-```{r}
 read_lines("MMMSXXMASM
 MSAMXMSMSA
 AMXSXMAAMM
@@ -150,3 +116,83 @@ sum(stri_count_fixed(input, "XMAS")) +
 ```
 
 
+## Part2
+
+Looking for X-MAS
+
+1  MMMSXXMASM
+2  MSAMXMSMSA
+3  AMXSXMAAMM
+4  MSAMASMSMX
+5  XMASAMXAMM
+6  XXAMMXXAMA
+7  SMSMSASXSS
+8  SAXAMASAAA
+9  MAMMMXMMMM
+10 MXMXAXMASX
+
+```{r}
+tibble(x = read_lines("MMMSXXMASM
+MSAMXMSMSA
+AMXSXMAAMM
+MSAMASMSMX
+XMASAMXAMM
+XXAMMXXAMA
+SMSMSASXSS
+SAXAMASAAA
+MAMMMXMMMM
+MXMXAXMASX")) -> input
+
+input <- tibble(x = read_lines("input/04"))
+
+grid_size <- nrow(input)
+
+input |> 
+  grid_tidy(x) |>
+  adjacent_join(diagonal = TRUE) -> input_adjacent 
+
+
+input_adjacent |> 
+  # All As and neighbor M or S
+  filter(value == "A", value2 %in% c("M", "S")) |> 
+  # not on borders
+  filter(between(row, 2, grid_size - 1L), between(col, 2, grid_size - 1L)) |> 
+  # M and S at least 4 of the neighbors
+  mutate(n_neighbor = n(), .by = c(row, value, col)) |> 
+  filter(n_neighbor >= 4) |> 
+  mutate(id = consecutive_id(row, value, col), .before = row) |> 
+  nest(.by = c(id, value)) -> gnested
+
+
+lgl_filter <- function(x) {
+  if (nrow(x) == 0) return(FALSE)
+  #print(paste(x$value2))
+  if_else(str_count(paste(x$value2, collapse = ''), "[MS]") == 2L, TRUE, FALSE)
+}
+
+valided_xmas <- function(x) {
+  # hori
+  h1 <- lgl_filter(filter(x, row2 == row - 1, value2 == "M", row2 == row + 1, value2 == "S"))
+  h2 <- lgl_filter(filter(x, row2 == row - 1, value2 == "S", row2 == row + 1, value2 == "M"))
+  # vertical
+  v1 <- lgl_filter(filter(x, col2 == col - 1, value2 == "M", col2 == col + 1, value2 == "S"))
+  v2 <- lgl_filter(filter(x, col2 == col - 1, value2 == "S", col2 == col + 1, value2 == "M"))
+  # diag //
+  d1 <- lgl_filter(filter(x, (col2 == col - 1 & row2 == row - 1 & value2 == "M") |
+                            (col2 == col + 1 & row2 == row + 1 & value2 == "S")))
+  d2 <- lgl_filter(filter(x, (col2 == col - 1 & row2 == row - 1 & value2 == "S") | 
+                            (col2 == col + 1 & row2 == row + 1 & value2 == "M")))
+  # diag \\
+  d3 <- lgl_filter(filter(x, (col2 == col - 1 & row2 == row + 1 & value2 == "M") | 
+                            (col2 == col + 1 & row2 == row - 1 & value2 == "S")))
+  d4 <- lgl_filter(filter(x, (col2 == col - 1 & row2 == row + 1 & value2 == "S") | 
+                            (col2 == col + 1 & row2 == row - 1 & value2 == "M")))
+  # vertical cross
+  any((any(h1, h2) & any(v1, v2)) | (any(d1, d2) & any(d3, d4)))
+}
+
+
+gnested |> 
+  mutate(XMAS = map_lgl(data, valided_xmas)) -> p2
+sum(p2$XMAS)
+```
