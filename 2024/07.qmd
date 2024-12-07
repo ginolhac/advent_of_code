@@ -1,0 +1,63 @@
+---
+format: html
+---
+
+```{r}
+#| label: setup
+#| include: false
+library(tidyverse)
+```
+
+
+## Part 1
+
+```{r}
+input <- read_lines("190: 10 19
+3267: 81 40 27
+83: 17 5
+156: 15 6
+7290: 6 8 6 15
+161011: 16 10 13
+192: 17 8 14
+21037: 9 7 18 13
+292: 11 6 16 20")
+
+
+tibble(x = input) |> 
+  separate_wider_delim(x, names = c("res", "test"), delim = ":") |> 
+  rowid_to_column(var = "id") |> 
+  mutate(test_vec = map(test, \(x) str_split_1(x, pattern = ' ')),
+         )
+
+```
+
+1 -> 2
+1 * 2 
+1 + 2
+
+3 -> 4
+1 * 2 * 3
+1 * 2 + 3
+1 + 2 * 3
+1 + 2 + 3
+
+4 -> 8
+1 * 2 * 3 * 4
+1 * 2 * 3 + 4
+1 * 2 + 3 * 4
+1 * 2 + 3 + 4
+1 + 2 * 3 * 4
+1 + 2 * 3 + 4
+1 + 2 + 3 * 4
+1 + 2 + 3 + 4
+
+
+```{r}
+expand_grid(c("+", "*"), c("+", "*"), c("+", "*")) |> 
+  as.matrix() |> 
+  asplit(MARGIN = 1) |> # split into list of row vectors
+  map(\(x) vctrs::vec_interleave(as.character(vec), c(x, "")) |> 
+        paste(collapse = " ")) |> 
+  map_int(\(x) eval(parse(text = x)))
+```
+
