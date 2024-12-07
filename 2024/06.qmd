@@ -1,0 +1,138 @@
+---
+format: html
+---
+
+```{r}
+#| label: setup
+#| include: false
+library(tidyverse)
+library(adventdrob)
+```
+
+
+## Part 1
+
+```{r}
+input <- read_lines("....#.....
+.........#
+..........
+..#.......
+.......#..
+..........
+.#..^.....
+........#.
+#.........
+......#...")
+
+input <- read_lines("input/06")
+
+tibble(x = input) |> 
+  grid_matrix(var = x) -> gmat
+# found the start
+for (i in seq_len(nrow(gmat))) {
+  for (j in seq_len(ncol(gmat))) {
+    if (gmat[i, j] == "^")  {
+      message(gmat[i, j], " ", i, " ", j)
+      start <- c(i, j)
+      break
+    }
+  }
+}
+
+is_out <- function(pos, p) {
+  
+  if ((p == "b" && (pos[1] - 1) < 1) |
+      (p == "t" && (pos[1] + 1) > nrow(gmat)) |
+      (p == "l" && (pos[2] + 1) > ncol(gmat)) |
+      (p == "r" && (pos[2] - 1) < 1)) return(TRUE)
+  FALSE
+}
+
+
+distmat <- matrix(nrow = nrow(gmat), ncol = ncol(gmat))
+
+pos <- start
+distance <- 1
+previous <- "b" # bottom
+for (i in seq_len(10000)) {
+
+  # check if out
+  if (is_out(pos, previous)) {
+        distmat[pos[1], pos[2]] <- distance
+    message("Done! ", distance)
+    break
+  }
+  # write the distance to the matrix
+  if (is.na(distmat[pos[1], pos[2]])) {
+    distmat[pos[1], pos[2]] <- distance
+    distance <- distance + 1
+  }
+  #message("pos x: ", pos[1], " y: ", pos[2], " previous:", previous, " distance ", distance)
+  # start, go up
+  if (gmat[pos[1], pos[2]] == "^" && distance == 1) {
+    pos <- c(pos[1] - 1, pos[2])
+    next
+  }
+  # check up
+  if (previous == "b" && 
+      gmat[pos[1] - 1, pos[2]] != "#") {
+    #message("up")
+    pos <- c(pos[1] - 1, pos[2])
+    previous <- "b"
+    next
+  }
+  # turn right -> right
+  if (previous == "b" && gmat[pos[1] - 1, pos[2]] == "#") {
+    #message("turn right right")
+    pos <- c(pos[1], pos[2] + 1)
+    previous <- "l"
+    next
+  }
+  # check right
+  if (previous == "l" && 
+      gmat[pos[1], pos[2] + 1] != "#") {
+    #message("right")
+    pos <- c(pos[1], pos[2] + 1)
+    previous <- "l"
+    next
+  }
+  # turn right -> down
+  if (previous == "l" && gmat[pos[1], pos[2] + 1] == "#") {
+    #message("turn right down")
+    pos <- c(pos[1] + 1, pos[2])
+    previous <- "t"
+    next
+  }
+  # check down
+  if (previous == "t" && 
+      gmat[pos[1] + 1, pos[2]] != "#") {
+    #message("down")
+    pos <- c(pos[1] + 1, pos[2])
+    previous <- "t"
+    next
+  }
+  # turn right -> left
+  if (previous == "t" && gmat[pos[1] + 1, pos[2]] == "#") {
+    #message("turn right left")
+    pos <- c(pos[1], pos[2] - 1)
+    previous <- "r"
+    next
+  }
+  # check left
+  if (previous == "r" && 
+      gmat[pos[1], pos[2] - 1] != "#") {
+    #message("left")
+    pos <- c(pos[1], pos[2] - 1)
+    previous <- "r"
+    next
+  }
+  # turn right -> up
+  if (previous == "r" && gmat[pos[1], pos[2] - 1] == "#") {
+    #message("turn right left")
+    pos <- c(pos[1] - 1, pos[2])
+    previous <- "b"
+    next
+  }
+}
+```
+
