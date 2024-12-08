@@ -22,13 +22,22 @@ input <- read_lines("190: 10 19
 21037: 9 7 18 13
 292: 11 6 16 20")
 
+input <- read_lines("input/07")
+
+
+left2right <- function(ops, nums) {
+  result <- nums[1]
+  for (i in seq_along(ops)) {
+    result <- eval(parse(text = paste(result, ops[i], nums[i + 1])))
+  }
+  result
+}
+
 generate_computations <- function(vec) {
   expand.grid(rep(list(c("*", "+")), length(vec) - 1L)) |> 
     as.matrix() |> 
     asplit(MARGIN = 1) |> # split into list of row vectors
-    map(\(x) vctrs::vec_interleave(vec, c(x, "")) |> 
-          paste(collapse = " ")) |> 
-    map_int(\(x) eval(parse(text = x)))
+    map_dbl(\(x) left2right(x, vec))
 }
 
 tibble(x = input) |> 
@@ -38,7 +47,10 @@ tibble(x = input) |>
                           str_split_1(pattern = ' ')),
          combi = map(test_vec, generate_computations)) |> 
   unnest(combi) |> 
-  summarise(any(res == combi), .by = c(id, res))
+  summarise(calib = any(res == combi), .by = c(id, res)) |> 
+  filter(calib) |> 
+  summarise(sum(as.numeric(res))) -> p1
+p1
 
 ```
 
@@ -64,11 +76,16 @@ tibble(x = input) |>
 
 
 ```{r}
- expand.grid(rep(list(c("*", "+")), 3)) |> 
-  as.matrix() |> 
-  asplit(MARGIN = 1) |> # split into list of row vectors
-  map(\(x) vctrs::vec_interleave(as.character(c(1:4)), c(x, "")) |> 
-        paste(collapse = " ")) |> 
-  map_int(\(x) eval(parse(text = x)))
+ops <- c("+", "*", "+")
+nums <- c(11, 6, 16, 20)
+
+
+reduce(nums, \(x) eval(parse(text = paste(result, ops[i], nums[i + 1]))))
+
+# Evaluate left to right
+result <- nums[1]
+for (i in seq_along(ops)) {
+  result <- eval(parse(text = paste(result, ops[i], nums[i + 1])))
+}
 ```
 
