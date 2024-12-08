@@ -22,12 +22,23 @@ input <- read_lines("190: 10 19
 21037: 9 7 18 13
 292: 11 6 16 20")
 
+generate_computations <- function(vec) {
+  expand.grid(rep(list(c("*", "+")), length(vec) - 1L)) |> 
+    as.matrix() |> 
+    asplit(MARGIN = 1) |> # split into list of row vectors
+    map(\(x) vctrs::vec_interleave(vec, c(x, "")) |> 
+          paste(collapse = " ")) |> 
+    map_int(\(x) eval(parse(text = x)))
+}
 
 tibble(x = input) |> 
   separate_wider_delim(x, names = c("res", "test"), delim = ":") |> 
   rowid_to_column(var = "id") |> 
-  mutate(test_vec = map(test, \(x) str_split_1(x, pattern = ' ')),
-         )
+  mutate(test_vec = map(test, \(x)  str_trim(x, side = "left") |> 
+                          str_split_1(pattern = ' ')),
+         combi = map(test_vec, generate_computations)) |> 
+  unnest(combi) |> 
+  summarise(any(res == combi), .by = c(id, res))
 
 ```
 
@@ -53,10 +64,10 @@ tibble(x = input) |>
 
 
 ```{r}
-expand_grid(c("+", "*"), c("+", "*"), c("+", "*")) |> 
+ expand.grid(rep(list(c("*", "+")), 3)) |> 
   as.matrix() |> 
   asplit(MARGIN = 1) |> # split into list of row vectors
-  map(\(x) vctrs::vec_interleave(as.character(vec), c(x, "")) |> 
+  map(\(x) vctrs::vec_interleave(as.character(c(1:4)), c(x, "")) |> 
         paste(collapse = " ")) |> 
   map_int(\(x) eval(parse(text = x)))
 ```
