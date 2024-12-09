@@ -20,10 +20,10 @@ extract_midpoint <- function(x) {
 }
 
 
-read_lines("input/05_1") |> 
+read_lines("input/05") |> 
   str_subset('\\|') -> page_order
 
-read_lines("input/05_1") |> 
+read_lines("input/05") |> 
   str_subset('\\|', negate = TRUE) |> 
   str_subset('^$', negate = TRUE) -> updates
 
@@ -47,33 +47,45 @@ updates[correct_updates] |>
 "97,13,75,29,47"   "13|75" "13|29" "13|47" "29|47"
 
 ```{r}
-
-reorder_update <- function(vec, x) {
+#system("ulimit -s 16384")
+options(expressions = 500000)
+reorder_update <- function(vec) {
   vec <- str_split_1(vec, ',')
-  offender <- str_split_1(x, '\\|')
+  vec |> 
+    combn(2, simplify = FALSE) |> 
+    map_chr(paste, collapse = "|") -> up_pairs
+  # end recursion
+  if (all(up_pairs %in% page_order)) return(paste(vec, collapse = ','))
+  # offending order
+  offender <- str_split_1(up_pairs[!up_pairs %in% page_order][1], '\\|')
+  idx1 <- which(vec == offender[1])
+  idx2 <- which(vec == offender[2])
+  vec[idx1] <- offender[2]
+  vec[idx2] <- offender[1]
+  reorder_update(paste(vec, collapse = ','))
+}
+
+#vec <- "97,13,75,29,47"
+#reorder_update(vec)
+library(tictoc)
+tic()
+map(updates[!correct_updates], reorder_update, .progress = TRUE) |> 
+  map_int(extract_midpoint) |> 
+  sum()
+toc()
+```
+
+
+
+failed
+
+``` r
+
   aft <- if_else(which(vec == offender[2]) == length(vec), 
                  length(vec),
                  which(vec == offender[2]) - 1L)
   fct_inorder(vec) |> 
     fct_relevel(offender[1], after = aft) |> 
-    levels()
-}
-
-
-map(updates[!correct_updates], \(x) {
-  str_split_1(x, ',') |> 
-    combn(2, simplify = FALSE) |> 
-    map_chr(paste, collapse = "|") -> up_pairs
-  # offending order
-  offenders <- up_pairs[!up_pairs %in% page_order]
-  offenders
-})
-
-reorder_update(c("75,97,47,61,53"), "75|97")
-reorder_update(c("61,13,29"), "13|29")
-
+    levels() |> 
+    paste(collapse = ',') -> x
 ```
-
-
-
-
