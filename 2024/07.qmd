@@ -6,6 +6,7 @@ format: html
 #| label: setup
 #| include: false
 library(tidyverse)
+options(scipen = 999)
 ```
 
 
@@ -25,19 +26,20 @@ input <- read_lines("190: 10 19
 input <- read_lines("input/07")
 
 
-left2right <- function(ops, nums) {
+left2right <- function(ops, nums, res) {
   result <- nums[1]
   for (i in seq_along(ops)) {
     result <- eval(parse(text = paste(result, ops[i], nums[i + 1])))
+    if (result > res) reurn(Inf)
   }
   result
 }
 
-generate_computations <- function(vec) {
+generate_computations <- function(vec, res) {
   expand.grid(rep(list(c("*", "+")), length(vec) - 1L)) |> 
     as.matrix() |> 
     asplit(MARGIN = 1) |> # split into list of row vectors
-    map_dbl(\(x) left2right(x, vec))
+    map_dbl(\(x) left2right(x, vec, res))
 }
 
 tibble(x = input) |> 
@@ -45,7 +47,7 @@ tibble(x = input) |>
   rowid_to_column(var = "id") |> 
   mutate(test_vec = map(test, \(x)  str_trim(x, side = "left") |> 
                           str_split_1(pattern = ' ')),
-         combi = map(test_vec, generate_computations)) |> 
+         combi = map2(test_vec, res, generate_computations)) |> 
   unnest(combi) |> 
   summarise(calib = any(res == combi), .by = c(id, res)) |> 
   filter(calib) |> 
@@ -62,23 +64,17 @@ ops <- c( "*", "#", "+")
 ops <- c( "*", "#", "+", "#")
 
 left2right2 <- function(ops, nums) {
-  if (any(str_detect(ops, "#"))) {
-    for (o in which(ops == "#")) {
-      nums[o + 1] <- paste0(nums[o], nums[o + 1], collapse = '') |> as.numeric()
-    }
-    nums <- nums[-which(ops == "#")]
-    ops <- str_subset(ops, "#", negate = TRUE)
-  }
   result <- nums[1]
-  print(nums)
-  print(ops)
-  
   for (i in seq_along(ops)) {
-    message(nums[i], " ", ops[i], " ", nums[i+1], " ", result)
+    #message(nums[i], " ", ops[i], " ", nums[i + 1], " ", result)
+    if (ops[i] == "#") {
+      result <- paste0(result, nums[i + 1], collapse = '') |> as.numeric()
+    }
     result <- eval(parse(text = paste(result, ops[i], nums[i + 1])))
   }
   result
 }
+
 
 generate_computations2 <- function(vec) {
   expand.grid(rep(list(c("*", "+", "#")), length(vec) - 1L)) |> 
