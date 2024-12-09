@@ -71,42 +71,48 @@ left2right2 <- function(ops, nums, res) {
       result <- paste0(result, nums[i + 1], collapse = '') |> as.numeric()
     }
     result <- eval(parse(text = paste(result, ops[i], nums[i + 1])))
-    if (result > res) return(Inf)
+    #if (result > res) return(Inf)
   }
   result
 }
 
 
 generate_computations2 <- function(vec, res) {
-  expand.grid(rep(list(c("*", "+", "#")), length(vec) - 1L)) |> 
+  combi_ops <- expand.grid(rep(list(c("*", "+", "#")), length(vec) - 1L)) |> 
     as.matrix() |> 
-    asplit(MARGIN = 1) |> # split into list of row vectors
-    map_dbl(\(x) left2right2(x, vec, res))
+    asplit(MARGIN = 1) # split into list of row vectors
+  num <- vector(mode = "integer", length = length(combi_ops))
+  for (i in seq_along(combi_ops)) {
+    num[i] <- left2right2(combi_ops[[i]], vec, res)
+    if (num[i] == res) return(num[i])
+  }
+  num
 }
 
 left2right2(c("*", "#", "*"), vec, 7290)
-
-
 
 tibble(x = input) |> 
   separate_wider_delim(x, names = c("res", "test"), delim = ":") |> 
   rowid_to_column(var = "id") |> 
   mutate(test_vec = map(test, \(x)  str_trim(x, side = "left") |> 
                           str_split_1(pattern = ' '))) -> tib_part2
-
+library(tictoc)
+tic()
 combi <- vector(mode = "list", length = nrow(tib_part2))
 
 for (i in seq_len(nrow(tib_part2))) {
-   combi[[i]] <- generate_computations2(tib_part2$test_vec[i][[1]], tib_part2$res[i])
-  if (i %% 10 == 0) message("done ", i)
+  combi[[i]] <- generate_computations2(tib_part2$test_vec[i][[1]], tib_part2$res[i])
+  if (i %% 10 == 0) message("done ", i, " ", Sys.time())
 }
-
-#
-         combi = map(test_vec, generate_computations2)) |> 
+toc()
+# 1189.396 sec elapsed (19 min) with return Inf when result > res
+# 2687.18 sec elapsed (44 min) without
+mutate(tib_part2, combi = combi) |> 
   unnest(combi) |> 
   summarise(calib = any(res == combi), .by = c(id, res)) |> 
   filter(calib) |> 
   summarise(sum(as.numeric(res))) -> p2
 p2
 ```
-
+ 13,439,616,832,940	too low 
+145,397,611,075,341
