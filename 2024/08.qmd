@@ -1,0 +1,129 @@
+---
+format: html
+---
+
+```{r}
+#| label: setup
+#| include: false
+library(tidyverse)
+library(adventdrob)
+```
+
+
+## Part 1
+
+```{r}
+input <- read_lines("............
+........0...
+.....0......
+.......0....
+....0.......
+......A.....
+............
+............
+........A...
+.........A..
+............
+............")
+
+input <- read_lines("..........
+..........
+..........
+....a.....
+........a.
+.....a....
+..........
+..........
+..........
+..........")
+
+
+
+tibble(x = input) |> 
+  grid_matrix(var = x) |> 
+  dim() -> matdim
+
+tibble(x = input) |> 
+  grid_tidy(var = x) |>
+  #adjacent_join(diagonal = TRUE) |> 
+  filter(value != '.', ) |> 
+  rowid_to_column(var = "id") |> 
+  nest(.by = c(value)) -> antennas
+
+
+generate_antinodes <- function(A, val) {
+  combn(A$id, 2L) |> 
+    t() |>
+    as_tibble() |> 
+    left_join(A, by = join_by(V1 == id)) |> 
+    left_join(A, by = join_by(V2 == id), suffix = c("_1", "_2")) |>
+    # Manhattan distance (useless)
+    mutate(distance = (abs(row_1 - row_2) + abs(col_1 - col_2)) - 1L) |> 
+    filter(distance > 0L) |> 
+    # create antinodes
+    mutate(delta_x = row_2 - row_1,
+           delta_y = col_2 - col_1,
+    # if delta x and y have different sign, treat them differently
+           diago = sign(delta_x) == sign(delta_y)) |> 
+    rowwise() |> 
+    mutate(row_anti1 = if_else(diago, min(row_1, row_2) - abs(delta_x), max(row_1, row_2) + abs(delta_x)),
+           col_anti1 = min(col_1, col_2) - abs(delta_y),
+           row_anti2 = if_else(diago, max(row_1, row_2) + abs(delta_x), min(row_1, row_2) - abs(delta_x)),
+           col_anti2 = if_else(diago, max(col_1, col_2) + abs(delta_y), max(col_1, col_2) + abs(delta_y))) |> 
+    # cleanup antinodes outside matrix
+    ungroup() -> ant
+  bind_rows(
+    select(ant, row = row_1, col = col_1) |> mutate(ID = val),
+    select(ant, row = row_2, col = col_2) |> mutate(ID = val),
+    select(ant, row = row_anti1, col = col_anti1) |> 
+      mutate(ID = paste0("#", val)),
+    select(ant, row = row_anti2, col = col_anti2) |> 
+      mutate(ID = paste0("#", val))) |> 
+    filter(if_all(c(row, col), \(x) between(x, 1, matdim[1])))
+}
+
+antennas |> 
+  mutate(antinodes = map2(data, value, generate_antinodes)) -> test
+
+bind_rows(
+test$antinodes[[1]],
+test$antinodes[[2]]) |> 
+  ggplot(aes(y = row, x = col, fill = ID)) +
+  geom_tile() +
+  geom_text(aes(label  = ID)) +
+  scale_y_reverse(breaks = 1:matdim[1], expand = c(0, 0)) +
+  scale_x_continuous(breaks = 1:matdim[1], expand = c(0, 0)) +
+  expand_limits(x = 1:matdim[1], y = 1:matdim[1]) +
+  theme_classic()
+ggsave("test_d08.png")
+
+unnest(test, antinodes) |> 
+  filter(str_detect(ID, "^#")) |> 
+  distinct(row, col)
+# 14 as expected
+```
+
+
+`expand(A, id, nesting(row, col))` is nice but is not ignoring directionnality and returns 1 -> 2 and 2 -> 1, useless for distances.
+
+```{r}
+input <- read_lines("input/08")
+tibble(x = input) |> 
+  grid_matrix(var = x) |> 
+  dim() -> matdim
+
+tibble(x = input) |> 
+  grid_tidy(var = x) |>
+  #adjacent_join(diagonal = TRUE) |> 
+  filter(value != '.', ) |> 
+  rowid_to_column(var = "id") |> 
+  nest(.by = c(value)) |> 
+  mutate(antinodes = map2(data, value, generate_antinodes)) |> 
+  unnest(antinodes) |> 
+  filter(str_detect(ID, "^#")) |> 
+  distinct(row, col)
+```
+
+## Part 2
+
+

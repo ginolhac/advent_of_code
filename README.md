@@ -1,6 +1,12 @@
 
 ## Advent Of Code
 
+### 2024
+
+- Day08, antinodes of antennas
+
+![](2024/test_d08.png)
+
 ### 2023
 
 - Day14, shifting mirrors part1
