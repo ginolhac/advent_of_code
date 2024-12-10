@@ -25,7 +25,7 @@ input <- read_lines("............
 .........A..
 ............
 ............")
-
+# easier example
 input <- read_lines("..........
 ..........
 ..........
@@ -45,7 +45,6 @@ tibble(x = input) |>
 
 tibble(x = input) |> 
   grid_tidy(var = x) |>
-  #adjacent_join(diagonal = TRUE) |> 
   filter(value != '.', ) |> 
   rowid_to_column(var = "id") |> 
   nest(.by = c(value)) -> antennas
@@ -95,7 +94,7 @@ test$antinodes[[2]]) |>
   scale_x_continuous(breaks = 1:matdim[1], expand = c(0, 0)) +
   expand_limits(x = 1:matdim[1], y = 1:matdim[1]) +
   theme_classic()
-ggsave("test_d08.png")
+ggsave("test_d08.png", width = 4, height = 3.5)
 
 unnest(test, antinodes) |> 
   filter(str_detect(ID, "^#")) |> 
@@ -126,4 +125,30 @@ tibble(x = input) |>
 
 ## Part 2
 
+Wrong approach in part 1
+
+```{r}
+tibble(x = input) |> 
+  grid_matrix(var = x) |> 
+  dim() -> matdim
+
+tibble(x = input) |> 
+  grid_tidy(var = x) |>
+  #adjacent_join(diagonal = TRUE) |> 
+  filter(value != '.', ) |> 
+  rowid_to_column(var = "id") |> 
+  nest(.by = c(value)) -> antennas
+
+
+A <- antennas$data[[1]]
+
+ combn(A$id, 2L) |> 
+    t() |>
+    as_tibble() |> 
+    left_join(A, by = join_by(V1 == id)) |> 
+    left_join(A, by = join_by(V2 == id), suffix = c("_1", "_2")) |>
+    # Manhattan distance (useless)
+    mutate(distance = (abs(row_1 - row_2) + abs(col_1 - col_2)) - 1L) |> 
+    filter(distance > 0L) 
+```
 
