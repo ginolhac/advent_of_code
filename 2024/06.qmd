@@ -29,12 +29,14 @@ input <- read_lines("input/06")
 tibble(x = input) |> 
   grid_matrix(var = x) -> gmat
 # found the start
-for (i in seq_len(nrow(gmat))) {
-  for (j in seq_len(ncol(gmat))) {
-    if (gmat[i, j] == "^")  {
-      message(gmat[i, j], " ", i, " ", j)
-      start <- c(i, j)
-      break
+find_start <- function(gmat) {
+  for (i in seq_len(nrow(gmat))) {
+    for (j in seq_len(ncol(gmat))) {
+      if (gmat[i, j] == "^")  {
+        message(gmat[i, j], " ", i, " ", j)
+        return(c(i, j))
+        break
+      }
     }
   }
 }
@@ -51,7 +53,7 @@ is_out <- function(pos, p) {
 
 distmat <- matrix(nrow = nrow(gmat), ncol = ncol(gmat))
 
-pos <- start
+pos <- find_start(gmat)
 distance <- 1
 previous <- "b" # bottom
 for (i in seq_len(10000)) {
@@ -136,3 +138,138 @@ for (i in seq_len(10000)) {
 }
 ```
 
+## Part 2
+
+How many infinite loops
+
+```{r}
+
+is_infinite_loop <- function(gmat, blocker) {
+  # add blacker
+  gmat[blocker[1], blocker[2]] <- '#'
+  # will register the last direction if visited
+  pos <- suppressMessages(find_start(gmat))
+  previous <- "b" # bottom
+  distmat <- matrix(nrow = nrow(gmat), ncol = ncol(gmat))
+  
+  for (i in seq_len(10000)) {
+    
+    #message("pos x: ", pos[1], " y: ", pos[2], " previous: ", previous)
+    # check if out
+    if (is_out(pos, previous)) {
+      #message("Done! ", blocker)
+      return(FALSE)
+    }
+
+
+    if (is.na(distmat[pos[1], pos[2]])) {
+      distmat[pos[1], pos[2]] <- previous
+    } else {
+      # check if infinite
+      if (distmat[pos[1], pos[2]] == previous && gmat[pos[1], pos[2]] != "^") {
+        #message("infinite! ", blocker)
+        return(TRUE)
+      }
+    }
+
+    # start, go up
+    if (gmat[pos[1], pos[2]] == "^" && is.na(distmat[pos[1], pos[2]])) {
+      pos <- c(pos[1] - 1, pos[2])
+      next
+    }
+    # check up
+    if (previous == "b" && 
+        gmat[pos[1] - 1, pos[2]] != "#") {
+      #message("up")
+      pos <- c(pos[1] - 1, pos[2])
+      previous <- "b"
+      next
+    }
+    # turn right -> right
+    if (previous == "b" && gmat[pos[1] - 1, pos[2]] == "#") {
+      #message("turn right right")
+      pos <- c(pos[1], pos[2] + 1)
+      previous <- "l"
+      next
+    }
+    # check right
+    if (previous == "l" && 
+        gmat[pos[1], pos[2] + 1] != "#") {
+      #message("right")
+      pos <- c(pos[1], pos[2] + 1)
+      previous <- "l"
+      next
+    }
+    # turn right -> down
+    if (previous == "l" && gmat[pos[1], pos[2] + 1] == "#") {
+      #message("turn right down")
+      pos <- c(pos[1] + 1, pos[2])
+      previous <- "t"
+      next
+    }
+    # check down
+    if (previous == "t" && 
+        gmat[pos[1] + 1, pos[2]] != "#") {
+      #message("down")
+      pos <- c(pos[1] + 1, pos[2])
+      previous <- "t"
+      next
+    }
+    # turn right -> left
+    if (previous == "t" && gmat[pos[1] + 1, pos[2]] == "#") {
+      #message("turn right left")
+      pos <- c(pos[1], pos[2] - 1)
+      previous <- "r"
+      next
+    }
+    # check left
+    if (previous == "r" && 
+        gmat[pos[1], pos[2] - 1] != "#") {
+      #message("left")
+      pos <- c(pos[1], pos[2] - 1)
+      previous <- "r"
+      next
+    }
+    # turn right -> up
+    if (previous == "r" && gmat[pos[1], pos[2] - 1] == "#") {
+      #message("turn right left")
+      pos <- c(pos[1] - 1, pos[2])
+      previous <- "b"
+      next
+    }
+  }
+}
+library(tictoc)
+tic()
+res <- matrix(nrow = nrow(gmat), ncol = ncol(gmat))
+for (i in seq_len(nrow(gmat))) {
+  for (j in seq_len(ncol(gmat))) {
+    # don't test where the guard don't go, thanks to Hugues
+    if (gmat[i, j] == "#" | gmat[i, j] == "^" | is.na(distmat[i, j])) next
+    res[i, j] <- is_infinite_loop(gmat, c(i, j))
+  }
+  if (i %% 10 == 0) message("done row: ", i)
+}
+toc()
+
+# 378.163 sec elapsed (6.3 min)
+# 73.102 sec elapsed (1.3 min)
+
+# 2 extra, find them with 
+as_tibble(res) |> 
+  rowid_to_column(var = "x") |> 
+  mutate(x = as.integer(x) - 1L) |>
+  pivot_longer(cols = -x, 
+               names_to = "y",
+               names_prefix = "V",
+               names_transform = list(y = as.integer)) |> 
+  mutate(y = y - 1L) |> 
+  filter(value) |> 
+  anti_join(read_csv("input/serialc_p2.txt", 
+                     col_names = c("y", "x"),
+                     show_col_types = FALSE))
+
+sum(res, na.rm = TRUE)
+```
+
+1890 too high (1888)
