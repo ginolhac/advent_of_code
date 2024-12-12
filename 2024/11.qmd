@@ -47,12 +47,16 @@ Stone <- R6Class(
     },
     nb_stones = function() self$hashvals() |> reduce(`+`),
     blink = function() {
+      # make a copy of the hashtab to avoid adding and modifying at the same time
+      stones <- hashtab(size = self$size())
+      for (k in self$hashkeys()) sethash(stones, k, gethash(self$stones, k))
+      # modify the stones
       for (k in self$hashkeys()) {
-        #print(paste(k, gethash(self$stones, k)))
         # 0 becomes 1
         if (k == "0") {
-          ones <- gethash(self$stones, "1", nomatch = 0L) 
-          sethash(self$stones, "1", ones + gethash(self$stones, "0", nomatch = 0L))
+          ones <- gethash(stones, "1", nomatch = 0L) 
+          sethash(self$stones, "1", ones + gethash(stones, k, nomatch = 0L))
+          remhash(self$stones, k)
         } else {
           # even numbers splitted
           if (str_length(k) %% 2 == 0) {
@@ -60,12 +64,11 @@ Stone <- R6Class(
             sethash(self$stones, left, gethash(self$stones, left, nomatch = 0L) + 1L)
             # get rid of "000" -> "0"
             right <- str_sub(k, -(str_length(k) / 2)) |> as.integer() |> as.character()
-            sethash(self$stones, right, gethash(self$stones, right, nomatch = 0L) + 1L)
+            sethash(self$stones, right, gethash(stones, k))
           } else {
-            #print(paste("2024 ", k))
+            print(paste("2024: ", k, gethash(self$stones, k)))
             new_key <- (as.integer(k) * 2024) |> as.character()
-            #print(paste("2024: ", k, new_key))
-            sethash(self$stones, new_key, gethash(self$stones, new_key, nomatch = 0L) + 1L)
+            sethash(self$stones, new_key, gethash(stones, new_key, nomatch = 0L) + gethash(self$stones, k))
           }
           remhash(self$stones, k)
         }
