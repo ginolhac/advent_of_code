@@ -1,0 +1,90 @@
+---
+format: html
+---
+
+```{r}
+#| label: setup
+#| include: false
+library(tidyverse)
+library(R6)
+```
+
+
+## Part 1
+
+Using `utils::hashtabs
+
+```{r}
+
+Stone <- R6Class(
+  "Stone",
+  list(
+    # Create a new empty hash table.
+    stones = hashtab(type = "identical"),
+    initialize = function(line) {
+      starters <- str_split_1(line, ' ')
+      for (i in seq_along(starters)) sethash(self$stones, starters[i], 1L)
+    },
+    init = function() {
+      message("New stone hashtab")
+    },
+    size = function() numhash(self$stones),
+    hashkeys = function() {
+      key <- vector("integer", numhash(self$stones))
+      idx <- 0
+      maphash(self$stones, function(k, v) { 
+        idx <<- idx + 1
+        key[idx] <<- k
+      })
+      key
+    },
+    hashvals = function() {
+      keys <- self$hashkeys()
+      val <- vector("integer", numhash(self$stones))
+      for (i in seq_along(keys)) val[i] <- gethash(self$stones, keys[i])
+      names(val) <- keys
+      val
+    },
+    nb_stones = function() self$hashvals() |> reduce(`+`),
+    blink = function() {
+      for (k in self$hashkeys()) {
+        #print(paste(k, gethash(self$stones, k)))
+        # 0 becomes 1
+        if (k == "0") {
+          ones <- gethash(self$stones, "1", nomatch = 0L) 
+          sethash(self$stones, "1", ones + gethash(self$stones, "0", nomatch = 0L))
+        } else {
+          # even numbers splitted
+          if (str_length(k) %% 2 == 0) {
+            left <- str_sub(k, 1L, str_length(k) / 2)
+            sethash(self$stones, left, gethash(self$stones, left, nomatch = 0L) + 1L)
+            # get rid of "000" -> "0"
+            right <- str_sub(k, -(str_length(k) / 2)) |> as.integer() |> as.character()
+            sethash(self$stones, right, gethash(self$stones, right, nomatch = 0L) + 1L)
+          } else {
+            #print(paste("2024 ", k))
+            new_key <- (as.integer(k) * 2024) |> as.character()
+            #print(paste("2024: ", k, new_key))
+            sethash(self$stones, new_key, gethash(self$stones, new_key, nomatch = 0L) + 1L)
+          }
+          remhash(self$stones, k)
+        }
+      }
+    })
+)
+aoc <- Stone$new("125 17")
+aoc$stones
+aoc$hashvals()
+
+for (i in 1:6) {
+  aoc$blink()
+  message("blink #", i, " hashsize: ", aoc$size(), " stones #: ", aoc$nb_stones())
+  print(aoc$hashvals())
+}
+```
+
+After 6 blinks:
+2097446912     14168    4048   2(4)  0(2)   4   40(2)   48(2)   2024   80      96  8   6(2)   7       3 
+Obtained:
+2097446912     14168    X      2(4)  0(2)   4   40      48      2024   80      96  80  6(2)   X       3 
+
