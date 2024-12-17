@@ -12,7 +12,7 @@ library(R6)
 
 ## Part 1
 
-Using `utils::hashtabs
+Using `utils::hashtabs`
 
 ```{r}
 
@@ -23,7 +23,10 @@ Stone <- R6Class(
     stones = hashtab(type = "identical"),
     initialize = function(line) {
       starters <- str_split_1(line, ' ')
-      for (i in seq_along(starters)) sethash(self$stones, starters[i], 1L)
+      for (i in seq_along(starters)) {
+        if (is.null(gethash(self$stones, starters[i]))) sethash(self$stones, starters[i], 1L)
+        else sethash(self$stones, starters[i], gethash(self$stones, starters[i]) + 1L)
+      }
     },
     init = function() {
       message("New stone hashtab")
@@ -75,7 +78,7 @@ Stone <- R6Class(
       }
     })
 )
-aoc <- Stone$new("125 17")
+aoc <- Stone$new("2")
 aoc$stones
 aoc$hashvals()
 
