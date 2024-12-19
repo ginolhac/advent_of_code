@@ -1,0 +1,154 @@
+---
+format: html
+---
+
+```{r}
+#| label: setup
+#| include: false
+library(tidyverse)
+```
+
+
+## Part 1
+
+
+
+```{r}
+
+parse_robot <- function(line) {
+    vals <- str_extract_all(line, "[\\-\\d]+") |> 
+        unlist() |> 
+        as.numeric()
+    list(pos = c(vals[1], vals[2]),
+         vel = c(vals[3], vals[4]))
+}
+
+move_robot <- function(rob, max_1 = 101, max_2 = 103) {
+    rob$pos[1] <- (rob$pos[1] + rob$vel[1]) %% max_1
+    rob$pos[2] <- (rob$pos[2] + rob$vel[2]) %% max_2
+    rob
+}
+
+
+plot_robot <- function(robots, max_1 = 101, max_2 = 103) {
+    map(robots, pluck, "pos") |> 
+        enframe(value = "pos") |> 
+        unnest_wider(pos, names_sep = "_") |> 
+        ggplot(aes(pos_1, pos_2)) +
+        geom_point(size = 2) +
+        geom_hline(yintercept = max_2 / 2, linetype = "dashed") +
+        geom_vline(xintercept = max_1 / 2, linetype = "dashed") +
+        scale_y_reverse(breaks = 0:max_2, expand = c(0, 0)) +
+        scale_x_continuous(breaks = 0:max_1, expand = c(0, 0), position = "top") +
+        expand_limits(x = -1:(max_1 + 1L), y = -1:(max_2 + 1L)) +
+        theme_bw() +
+        theme(axis.text = element_blank())
+}
+
+count_per_quadrant <- function(robots, max_1 = 101, max_2 = 103) {
+
+    map(robots, pluck, "pos") |> 
+        enframe(value = "pos") |> 
+        unnest_wider(pos, names_sep = "_") |> 
+        rowwise() |> 
+        mutate(quadrant = case_when(
+            between(pos_1, 0, floor(max_1 / 2) - 1L) && between(pos_2, 0, floor(max_2 / 2) - 1L) ~ "q1",
+            between(pos_1, ceiling(max_1 / 2), max_1) && between(pos_2, 0, floor(max_2 / 2) - 1L) ~ "q2",
+            between(pos_1, 0, floor(max_1 / 2) - 1L) && between(pos_2, ceiling(max_2 / 2), max_2) ~ "q3",
+            between(pos_1, ceiling(max_1 / 2), max_1) && between(pos_2, ceiling(max_2 / 2), max_2) ~ "q4",
+            .default = NA_character_
+        )) |> 
+        ungroup() |> 
+        count(quadrant)
+}
+
+#  "p=10,22 v=50,-21" "p=35,60 v=-8,52" 
+#     60 1               27,112
+# read_lines("p=0,4 v=3,-3
+# p=6,3 v=-1,-3
+# p=10,3 v=-1,2
+# p=2,0 v=2,-1
+# p=0,0 v=1,3
+# p=3,0 v=-2,-2
+# p=7,6 v=-1,-3
+# p=3,0 v=-1,-2
+# p=9,3 v=2,3
+# p=7,3 v=-1,2
+# p=2,4 v=2,-3
+# p=9,5 v=-3,-3
+# ") |> 
+read_lines("input/14") |> 
+    map(parse_robot) -> robots
+
+
+for (i in seq_len(100)) {
+    robots <- map(robots, move_robot) #, max_1 = 11, max_2 = 7)
+}
+plot_robot(robots) #, max_1 = 11, max_2 = 7)
+
+count_per_quadrant(robots) |> #, max_1 = 11, max_2 = 7) |> 
+    drop_na(quadrant) |> 
+    pull(n) |> 
+    reduce(`*`)
+```
+## Part 2
+
+```{r}
+duration <- 8000
+
+library(tictoc)
+res <- vector(mode = "list", length = duration <- 8000)
+
+tic(msg = "move robots")
+for (i in seq_len(duration <- 8000)) {
+    res[[i]] <- robots
+    robots <- map(robots, move_robot) #, max_1 = 11, max_2 = 7)
+    if (i %% 500 == 0) message("i ", i)
+}
+toc()
+tic(msg = "count quadrants")
+map(res, \(x) count_per_quadrant(x) |>
+        drop_na(quadrant), .progress = TRUE) |> 
+    bind_rows(.id = "id") -> tib_quad
+toc() # 88 sec for 500
+
+tib_quad |> 
+    ggplot(aes(as.integer(id), n, colour = quadrant)) +
+    geom_line(aes(group = quadrant)) +
+    theme_bw()
+
+#filter(tib_quad, n > 180)
+
+
+#plot_robot(res[[94]])
+```
+
+
+
+## Animation
+
+```{r}
+library(gganimate)
+
+map(res[1:10], \(x) map(x, pluck, "pos") |> 
+        enframe(value = "pos") |> 
+        unnest_wider(pos, names_sep = "_")) |> 
+    bind_rows(.id = "id") -> tib_plot
+
+max_1 <- 101
+max_2 <- 103
+
+ggplot(tib_plot, aes(pos_1, pos_2, group = name)) +
+    geom_point(size = 2) +
+    transition_states(as.integer(id), ) +
+    scale_y_reverse(expand = c(0, 0)) +
+    scale_x_continuous(expand = c(0, 0), position = "top") +
+    expand_limits(x = -1:(max_1 + 1L), y = -1:(max_2 + 1L)) +
+    theme_bw() +
+    theme(axis.text = element_blank()) +
+    labs(title = "{closest_state}") -> p
+animate(p)
+anim_save("d14.gif")
+
+```
+
