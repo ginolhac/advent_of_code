@@ -7,6 +7,7 @@ format: html
 #| include: false
 library(tidyverse)
 library(R6)
+library(fastmap)
 ```
 
 
@@ -14,8 +15,10 @@ library(R6)
 
 Using `utils::hashtabs`
 
-```{r}
 
+```{r}
+#| label: p1
+#| 
 Stone <- R6Class(
   "Stone",
   list(
@@ -32,65 +35,148 @@ Stone <- R6Class(
       message("New stone hashtab")
     },
     size = function() numhash(self$stones),
-    hashkeys = function() {
-      key <- vector("integer", numhash(self$stones))
+    hashkeys = function(h) {
+      key <- vector("integer", numhash(h))
       idx <- 0
-      maphash(self$stones, function(k, v) { 
+      maphash(h, function(k, v) { 
         idx <<- idx + 1
         key[idx] <<- k
       })
       key
     },
     hashvals = function() {
-      keys <- self$hashkeys()
+      keys <- self$hashkeys(self$stone)
       val <- vector("integer", numhash(self$stones))
       for (i in seq_along(keys)) val[i] <- gethash(self$stones, keys[i])
       names(val) <- keys
       val
     },
-    nb_stones = function() self$hashvals() |> reduce(`+`),
+    nb_stones = function() self$hashvals() |> reduce(`+`, .init = 0L),
     blink = function() {
+      # https://github.com/h-escoffier/AoC_2024/blob/main/day11.py
       # make a copy of the hashtab to avoid adding and modifying at the same time
       stones <- hashtab(size = self$size())
-      for (k in self$hashkeys()) sethash(stones, k, gethash(self$stones, k))
+      for (k in self$hashkeys(self$stone)) sethash(stones, k, gethash(self$stones, k))
       # modify the stones
-      for (k in self$hashkeys()) {
+      for (k in self$hashkeys(self$stone)) {
         # 0 becomes 1
         if (k == "0") {
-          ones <- gethash(stones, "1", nomatch = 0L) 
-          sethash(self$stones, "1", ones + gethash(stones, k, nomatch = 0L))
-          remhash(self$stones, k)
+          ones <- gethash(self$stones, "1", nomatch = 0L) 
+          sethash(stones, "1", ones + gethash(self$stones, k, nomatch = 0L))
+          #remhash(self$stones, k)
+          print(paste("0: ", k, gethash(self$stones, k)))
         } else {
           # even numbers splitted
           if (str_length(k) %% 2 == 0) {
             left <- str_sub(k, 1L, str_length(k) / 2)
-            sethash(self$stones, left, gethash(self$stones, left, nomatch = 0L) + 1L)
+            sethash(self$stones, left, gethash(self$stones, k))
             # get rid of "000" -> "0"
             right <- str_sub(k, -(str_length(k) / 2)) |> as.integer() |> as.character()
-            sethash(self$stones, right, gethash(stones, k))
+            sethash(self$stones, right, gethash(self$stones, right, nomatch = 0L) + gethash(self$stones, k))
+            print(paste("l/r: ", left, " ", right, gethash(self$stones, k)))
           } else {
             print(paste("2024: ", k, gethash(self$stones, k)))
             new_key <- (as.integer(k) * 2024) |> as.character()
-            sethash(self$stones, new_key, gethash(stones, new_key, nomatch = 0L) + gethash(self$stones, k))
+            old <- gethash(self$stones, k, nomatch = 0L)
+            sethash(stones, new_key, old + gethash(self$stones, k, nomatch = 0L))
           }
-          remhash(self$stones, k)
+          stones[[k]] <- stones[[k]] - self$stones[[k]]
         }
       }
+      self$stones <- newhash(size = numhash(stoness))
+      for (k in self$hashkeys(stone)) sethash(self$stones, k, gethash(self$stones, k))
     })
 )
-aoc <- Stone$new("2")
+aoc <- Stone$new("0 1 1")
 aoc$stones
-aoc$hashvals()
 
-for (i in 1:6) {
+for (i in 1:3) {
   aoc$blink()
   message("blink #", i, " hashsize: ", aoc$size(), " stones #: ", aoc$nb_stones())
   print(aoc$hashvals())
 }
 ```
 
+
 After 6 blinks:
 2097446912     14168    4048   2(4)  0(2)   4   40(2)   48(2)   2024   80      96  8   6(2)   7       3 
 Obtained:
 2097446912     14168    X      2(4)  0(2)   4   40      48      2024   80      96  80  6(2)   X       3 
+
+
+
+Using `r-lib/fastmap` https://github.com/r-lib/fastmap
+
+```{r}
+#| label: fastmap
+#| 
+stone_initialize <- function(s, line) {
+  starters <- str_split_1(line, ' ')
+  for (i in seq_along(starters)) {
+    if (!s$has(starters[i])) s$set(starters[i], 1L)
+    else s$set(starters[i], s$get(starters[i]) + 1L)
+  }
+  s
+}
+
+stone_vals <- function(s) {
+  ll <- s$as_list(sort = TRUE)
+  purrr::set_names(as.numeric(ll), nm = names(ll))
+}
+
+nb_stones <- function(s) stone_vals(s) |> reduce(`+`, .init = 0L)
+
+blink <- function(stones) {
+  # https://github.com/h-escoffier/AoC_2024/blob/main/day11.py
+  # make a copy of the hash to avoid adding and modifying at the same time
+  stocop <- stones$clone()
+  # modify the stones
+  for (k in stones$keys()) {
+    # 0 becomes 1
+    if (k == "0") {
+      old <- stones$get("0", missing = 0) 
+      stocop$set("1", old + stocop$get("1", missing = 0))
+      #print(paste("0: ", k, stocop$get(k)))
+    } else {
+      # even numbers splitted
+      if (str_length(k) %% 2 == 0) {
+        left <- str_sub(k, 1L, str_length(k) / 2)
+        stocop$set(left, stocop$get(left, missing = 0) + stones$get(k))
+        # get rid of "000" -> "0"
+        right <- str_sub(k, -(str_length(k) / 2)) |> as.numeric() |> as.character()
+        stocop$set(right, stocop$get(right, missing = 0L) + stones$get(k))
+        #print(paste("l/r: ", left, " ", right, stocop$get(k)))
+      } else {
+        new_key <- (as.numeric(k) * 2024) |> as.character()
+        old <- stones$get(k, missing = 0L)
+        #print(paste("2024: ", k, old, stocop$get(k)))
+        stocop$set(new_key, old + stocop$get(new_key, missing = 0))
+      }
+    }
+    #print(paste("k ", k, stocop$get(k), stones$get(k)))
+    stocop$set(k, (stocop$get(k) - stones$get(k)))
+    #print(paste("k2 ", k, stocop$get(k), stones$get(k)))
+  }
+  #print(stone_vals(stocop))
+  for (k in stocop$keys()) if (stocop$get(k) == 0) stocop$remove(k)
+  stocop
+}
+
+stones <- fastmap()
+input <- read_lines("2024/input/11")
+stones <- stone_initialize(stones, input)
+#stones <- stone_initialize(stones, "13395269184")
+message("inital: ")
+stone_vals(stones)
+
+library(tictoc)
+tic()
+for (i in 1:75) {
+  stones <- blink(stones)
+  message("blink #", i, " size: ", stones$size(), " stones #: ", nb_stones(stones))
+  #print(stone_vals(stones))
+}
+toc()
+ 
+```
 
