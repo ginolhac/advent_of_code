@@ -96,6 +96,9 @@ count_per_quadrant(robots) |> #, max_1 = 11, max_2 = 7) |>
 ```{r}
 duration <- 8000
 
+read_lines("input/14") |> 
+    map(parse_robot) -> robots
+
 library(tictoc)
 res <- vector(mode = "list", length = duration <- 8000)
 
@@ -107,12 +110,12 @@ for (i in seq_len(duration <- 8000)) {
 }
 toc()
 tic(msg = "count quadrants")
-map(res, \(x) count_per_quadrant(x) |>
+map(res[6000:7000], \(x) count_per_quadrant(x) |>
         drop_na(quadrant), .progress = TRUE) |> 
-    bind_rows(.id = "id") -> tib_quad2
+    bind_rows(.id = "id") -> tib_quad3
 toc() # 88 sec for 500, 1554 for 8000
 
-tib_quad |> 
+tib_quad2 |> 
     mutate(id = as.integer(id)) |> 
     filter(between(id, 60, 200)) |> 
     ggplot(aes(id, n, colour = quadrant)) +
@@ -121,22 +124,26 @@ tib_quad |>
     scale_x_continuous(breaks = 0:200, expand = c(0, 0), position = "top", guide = guide_axis(n.dodge = 2)) +
     theme_bw()
 
-filter(tib_quad2, n > 200) |> arrange(desc(n))
-plot_robot(res[[6653]])
+filter(tib_quad3, n > 200) |> arrange(desc(n))
+plot_robot(res[[6753]])
+plot_robot(res[[6552]])
 
 
 write_rds(tib_quad2, "day14_tib_quad2.rds")
 ```
 
 7956 and 7955 too high
-6653 should be good but not right
+6653 not right
+6654 not right
+6753 not right
+6752 to test
 
 ## Animation
 
 ```{r}
 library(gganimate)
 
-map(res[6650:6660], \(x) map(x, pluck, "pos") |> 
+map(res[6750:6760], \(x) map(x, pluck, "pos") |> 
         enframe(value = "pos") |> 
         unnest_wider(pos, names_sep = "_")) |> 
     bind_rows(.id = "id") -> tib_plot
@@ -146,7 +153,7 @@ max_2 <- 103
 
 ggplot(tib_plot, aes(pos_1, pos_2, group = name)) +
     geom_point(size = 2, shape = 15) +
-    transition_states(as.integer(id) + 6650) +
+    transition_states(as.integer(id) + 6648) +
     #shadow_trail(max_frames = 1) +
     scale_y_reverse(expand = c(0, 0)) +
     scale_x_continuous(expand = c(0, 0), position = "top") +

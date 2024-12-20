@@ -5,7 +5,7 @@
 
 - Day14, Easter Egg
 
-![](2024/day14.gif)
+![](2024/d14.gif)
 
 - Day08, antinodes of antennas
 
