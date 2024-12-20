@@ -3,6 +3,10 @@
 
 ### 2024
 
+- Day14, Easter Egg
+
+![](2024/day14.gif)
+
 - Day08, antinodes of antennas
 
 ![](2024/test_d08.png)
