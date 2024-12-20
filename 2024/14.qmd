@@ -115,28 +115,22 @@ map(res[6000:7000], \(x) count_per_quadrant(x) |>
     bind_rows(.id = "id") -> tib_quad3
 toc() # 88 sec for 500, 1554 for 8000
 
-tib_quad2 |> 
+tib_quad3 |> 
     mutate(id = as.integer(id)) |> 
     filter(between(id, 60, 200)) |> 
     ggplot(aes(id, n, colour = quadrant)) +
     geom_line(aes(group = quadrant)) +
-    scale_y_reverse(breaks = 0:max_2, expand = c(0, 0)) +
     scale_x_continuous(breaks = 0:200, expand = c(0, 0), position = "top", guide = guide_axis(n.dodge = 2)) +
     theme_bw()
 
 filter(tib_quad3, n > 200) |> arrange(desc(n))
 plot_robot(res[[6753]])
-plot_robot(res[[6552]])
 
-
-write_rds(tib_quad2, "day14_tib_quad2.rds")
 ```
 
 7956 and 7955 too high
-6653 not right
-6654 not right
-6753 not right
-6752 to test
+
+6752 
 
 ## Animation
 
