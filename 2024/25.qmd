@@ -1,0 +1,96 @@
+---
+format: html
+---
+
+```{r}
+#| label: setup
+#| include: false
+library(tidyverse)
+```
+
+
+## Part 1
+
+
+```{r}
+read_lines("#####
+.####
+.####
+.####
+.#.#.
+.#...
+.....
+
+#####
+##.##
+.#.##
+...##
+...#.
+...#.
+.....
+
+.....
+#....
+#....
+#...#
+#.#.#
+#.###
+#####
+
+.....
+.....
+#.#..
+###..
+###.#
+###.#
+#####
+
+.....
+.....
+.....
+#....
+#.#..
+#.#.#
+#####
+
+") -> input
+
+input <- read_lines("input/25")
+
+
+parse_pins <- function(x) {
+    pinmat <- str_replace_all(x[-c(1, 7)], 
+                              c("#" = "1", "\\." = "0")) |> 
+      strsplit("")
+    do.call(rbind, pinmat) |> 
+      apply(2, as.numeric) |> 
+      colSums()
+}
+
+locks <- vector(mode = "list", length = length(which(input == "")))
+keys <- vector(mode = "list", length = length(which(input == "")))
+counter <- 1L
+for (key in which(input == "")) {
+  x <- input[(key - 7L):(key - 1L)]
+  if (x[1] == "#####" && x[7] == ".....") {
+    #print(paste(key, "locks"))
+    locks[[counter]] <- parse_pins(x)
+  } else if  (x[7] == "#####" && x[1] == ".....") {
+    #print(paste(key, "pins"))
+    keys[[counter]] <- parse_pins(x)
+  } else stop("should not happen!")
+  counter <- counter + 1L
+  
+}
+# remove NULL
+keys <- compact(keys)
+locks <- compact(locks)
+
+
+crossing(locks, keys) |> 
+  mutate(fit = map2_lgl(locks, keys, \(l, k) all((as.numeric(l) + as.numeric(k)) <= 5))) |> 
+  summarise(s = sum(fit))
+```
+
+
+## Part 2
