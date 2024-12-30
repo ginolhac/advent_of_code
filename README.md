@@ -3,6 +3,8 @@
 
 ### 2024
 
+TODO: d15p1, d13
+
 - Day14, Easter Egg
 
 ![](2024/d14.gif)
@@ -10,6 +12,10 @@
 - Day08, antinodes of antennas
 
 ![](2024/test_d08.png)
+
+- Day06, guard moves
+
+![](2024/d06.gif)
 
 ### 2023
 
