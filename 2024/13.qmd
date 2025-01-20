@@ -1,0 +1,118 @@
+---
+format: html
+---
+
+```{r}
+#| label: setup
+#| include: false
+library(tidyverse)
+```
+
+
+## Part 1
+
+linear equations:
+
+A * 94 + B * 22 = 8400
+A * 34 + B * 67 = 5400
+
+Two ways to solve in R
+
+```{r}
+A <- matrix(c(94, 22, 34, 67), 2, 2, byrow = TRUE)
+B <- c(8400, 5400)
+
+solve(A, B)
+.lm.fit(A, B)$coefficients
+```
+
+```{r}
+input <- "Button A: X+94, Y+34
+Button B: X+22, Y+67
+Prize: X=8400, Y=5400
+
+Button A: X+26, Y+66
+Button B: X+67, Y+21
+Prize: X=12748, Y=12176
+
+Button A: X+17, Y+86
+Button B: X+84, Y+37
+Prize: X=7870, Y=6450
+
+Button A: X+69, Y+23
+Button B: X+27, Y+71
+Prize: X=18641, Y=10279"
+
+input <- read_lines("input/13")
+#input <- read_lines(input)
+
+nb <- str_extract_all(input, "\\d+") |> 
+  unlist() |>
+  as.integer()
+
+machines <- vector(mode = "list", length = length(nb) / 6)
+counter <- 1
+
+is_close_int <- function(x) {
+  all(abs(x - round(x, 0)) < 0.001)
+}
+
+
+for (i in which(seq_along(nb) %% 6 == 0)) {
+  machines[[counter]]$A <- matrix(c(nb[i - 5], nb[i - 3], nb[i - 4], nb[i - 2]),
+                                  2, 2, byrow = TRUE)
+  machines[[counter]]$B <- c(nb[i - 1], nb[i])
+  machines[[counter]]$solve <- solve(machines[[counter]]$A, machines[[counter]]$B)
+  #machines[[counter]]$solve <- .lm.fit(machines[[counter]]$A, machines[[counter]]$B)$coefficients
+  # check if linear equations solutions are integers
+  machines[[counter]]$converged <-  if_else(is_close_int(machines[[counter]]$solve), TRUE, FALSE)
+  if (machines[[counter]]$converged) { #&& all(machines[[counter]]$solve <= 100)) {
+    machines[[counter]]$tokens <- machines[[counter]]$solve[1] * 3 + machines[[counter]]$solve[2] * 1
+  } else {
+    machines[[counter]]$tokens <- NA
+  }
+  counter <- counter + 1
+}
+# number of prizes
+keep(machines, \(x) !is.na(x$tokens)) |> length()
+# sum of tokens
+keep(machines, \(x) !is.na(x$tokens)) |> 
+  map(\(x) pluck(x, "tokens")) |> 
+  reduce(`+`)
+```
+
+122 too low
+24189 too low
+
+## Part 2
+
+
+```{r}
+machines <- vector(mode = "list", length = length(nb) / 6)
+counter <- 1
+
+for (i in which(seq_along(nb) %% 6 == 0)) {
+  machines[[counter]]$A <- matrix(c(nb[i - 5], nb[i - 3], nb[i - 4], nb[i - 2]),
+                                  2, 2, byrow = TRUE)
+  machines[[counter]]$B <- c(nb[i - 1], nb[i]) + 10000000000000
+  machines[[counter]]$solve <- solve(machines[[counter]]$A, machines[[counter]]$B)
+  #machines[[counter]]$solve <- .lm.fit(machines[[counter]]$A, machines[[counter]]$B)$coefficients
+  # check if linear equations solutions are integers
+  machines[[counter]]$converged <-  if_else(is_close_int(machines[[counter]]$solve), TRUE, FALSE)
+  if (machines[[counter]]$converged) { #&& all(machines[[counter]]$solve <= 100)) {
+    machines[[counter]]$tokens <- machines[[counter]]$solve[1] * 3 + machines[[counter]]$solve[2] * 1
+  } else {
+    machines[[counter]]$tokens <- NA
+  }
+  counter <- counter + 1
+}
+# number of prizes
+keep(machines, \(x) !is.na(x$tokens)) |> length()
+# sum of tokens
+keep(machines, \(x) !is.na(x$tokens)) |> 
+  map(\(x) pluck(x, "tokens")) |> 
+  reduce(`+`) -> part2
+sprintf("%f10", part2)
+```
+
+
