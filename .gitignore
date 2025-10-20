@@ -4,4 +4,6 @@
 .Ruserdata
 *.Rproj
 *.html
+*.json
 /renv/
+target/
