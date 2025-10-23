@@ -6,4 +6,7 @@
 *.html
 *.json
 /renv/
-target/
+serial*
+test*
+**/Cargo.lock
+**/target/
