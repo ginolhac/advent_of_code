@@ -1,0 +1,64 @@
+---
+title: "01"
+format: html
+---
+
+```{r}
+#| label: setup
+#| include: false
+library(tidyverse)
+```
+
+
+## Part 1
+
+```{r}
+input <- "L68
+L30
+R48
+L5
+R60
+L55
+L1
+L99
+R14
+L82"
+
+
+decode_click <- function(click) {
+  operator <- str_extract(click, "^[LR]") |> 
+    case_match("L" ~ "-",
+               "R" ~ "+")
+  digits <- str_extract(click, "\\d+") |> as.integer()
+  list(op = operator,
+       dg = digits)
+}
+
+dial <- function(digit) {
+  #if (digit < 0)  return((digit %% 99) + 1)
+  #if (digit > 99) return( (digit %% 99) - 1)
+  while (digit < 0) {
+    digit <- digit + 100
+  }
+  while (digit > 99) {
+    digit <- digit - 100
+  }
+  digit
+}
+
+start <- 50
+#safe_ops <- read_lines(input)
+safe_ops <- read_lines("input/01")
+res <- vector(mode = "integer", length = length(safe_ops))
+
+for (o in seq_along(safe_ops)) {
+  dc <- decode_click(safe_ops[o])
+  start <- get(dc[[1]])(start, dc[[2]]) |> dial()
+  print(start)
+  res[o] <- start
+}
+
+sum(res == 0L)
+```
+
+448 too low

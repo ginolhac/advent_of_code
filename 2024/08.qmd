@@ -142,13 +142,44 @@ tibble(x = input) |>
 
 A <- antennas$data[[1]]
 
- combn(A$id, 2L) |> 
-    t() |>
-    as_tibble() |> 
-    left_join(A, by = join_by(V1 == id)) |> 
-    left_join(A, by = join_by(V2 == id), suffix = c("_1", "_2")) |>
-    # Manhattan distance (useless)
-    mutate(distance = (abs(row_1 - row_2) + abs(col_1 - col_2)) - 1L) |> 
-    filter(distance > 0L) 
+
+row_anti <- function(d, r1, r2, dx) {
+  # anti left side
+  row_anti1 <- ifelse(d, min(r1, r2) - (abs(dx)*1:10), max(r1, r2) + (abs(dx)*1:10))
+  print(row_anti1)
+  #row_anti1[between(row_anti1, 1, matdim[1])]
+  list(row_anti1)
+}
+
+col_anti <- function(d, c1, c2, dy) {
+  # anti left side
+  col_anti1 <- min(c1, c2) - abs(dy)
+  list(col_anti1)
+}
+
+combn(A$id, 2L) |> 
+  t() |>
+  as_tibble() |> 
+  left_join(A, by = join_by(V1 == id)) |> 
+  left_join(A, by = join_by(V2 == id), suffix = c("_1", "_2")) |>
+  # Manhattan distance (useless)
+  mutate(distance = (abs(row_1 - row_2) + abs(col_1 - col_2)) - 1L) |> 
+  filter(distance > 0L) |> 
+  # create antinodes
+  mutate(delta_x = row_2 - row_1,
+         delta_y = col_2 - col_1,
+         # if delta x and y have different sign, treat them differently
+         diago = sign(delta_x) == sign(delta_y)) |>  
+  rowwise() |> 
+  mutate(row_anti1 = pmap(list(d = diago, r1 = row_1, r2 = row_2, dx = delta_x), row_anti),
+         col_anti1 = pmap(list(d = diago, c1 = col_1, c2 = col_2, dy = delta_y), col_anti))
+    
+   
+    mutate(row_anti1 = if_else(diago, min(row_1, row_2) - abs(delta_x), max(row_1, row_2) + abs(delta_x)),
+           col_anti1 = min(col_1, col_2) - abs(delta_y),
+           row_anti2 = if_else(diago, max(row_1, row_2) + abs(delta_x), min(row_1, row_2) - abs(delta_x)),
+           col_anti2 = if_else(diago, max(col_1, col_2) + abs(delta_y), max(col_1, col_2) + abs(delta_y))) |> 
+    # cleanup antinodes outside matrix
+    ungroup() -> ant
 ```
 

@@ -28,6 +28,9 @@ input <- read_lines("input/06")
 
 tibble(x = input) |> 
   grid_matrix(var = x) -> gmat
+
+gmat[4, 65] <- '#'
+
 # found the start
 find_start <- function(gmat) {
   for (i in seq_len(nrow(gmat))) {
@@ -56,7 +59,7 @@ distmat <- matrix(nrow = nrow(gmat), ncol = ncol(gmat))
 pos <- find_start(gmat)
 distance <- 1
 previous <- "b" # bottom
-for (i in seq_len(10000)) {
+for (i in seq_len(20000)) {
 
   # check if out
   if (is_out(pos, previous)) {
@@ -160,7 +163,7 @@ guard_moves |>
   scale_color_viridis_c(option = "turbo",na.value = 0L) +
   theme_void() -> p
 animate(p)
-anim_save("d06.gif")
+anim_save("d06_4-65.gif")
 ```
 
 
@@ -173,12 +176,12 @@ How many infinite loops
 ```{r}
 
 is_infinite_loop <- function(gmat, blocker) {
-  # add blacker
+  # add blocker
   gmat[blocker[1], blocker[2]] <- '#'
   # will register the last direction if visited
   pos <- suppressMessages(find_start(gmat))
   previous <- "b" # bottom
-  distmat <- matrix(nrow = nrow(gmat), ncol = ncol(gmat))
+  prevmat <- matrix(nrow = nrow(gmat), ncol = ncol(gmat))
   distance <- 0
   
   for (i in seq_len(10000)) {
@@ -191,12 +194,12 @@ is_infinite_loop <- function(gmat, blocker) {
     }
 
 
-    if (is.na(distmat[pos[1], pos[2]])) {
-      distmat[pos[1], pos[2]] <- previous
+    if (is.na(prevmat[pos[1], pos[2]])) {
+      prevmat[pos[1], pos[2]] <- previous
     } else {
       # check if infinite
-      if (distmat[pos[1], pos[2]] == previous && distance > 0) {
-        message("infinite! ", blocker, distance)
+      if (prevmat[pos[1], pos[2]] == previous && distance > 0) {
+        #message("infinite! ", blocker, distance)
         #return(distmat)
         return(TRUE)
       }
@@ -204,21 +207,19 @@ is_infinite_loop <- function(gmat, blocker) {
     distance <- distance + 1
 
     # start, go up
-    if (gmat[pos[1], pos[2]] == "^" && is.na(distmat[pos[1], pos[2]])) {
+    if (gmat[pos[1], pos[2]] == "^" && is.na(prevmat[pos[1], pos[2]])) {
       pos <- c(pos[1] - 1, pos[2])
       next
     }
     # check up
     if (previous == "b" && 
         gmat[pos[1] - 1, pos[2]] != "#") {
-      #message("up")
       pos <- c(pos[1] - 1, pos[2])
       previous <- "b"
       next
     }
     # turn right -> right
     if (previous == "b" && gmat[pos[1] - 1, pos[2]] == "#") {
-      #message("turn right right")
       pos <- c(pos[1], pos[2] + 1)
       previous <- "l"
       next
@@ -226,14 +227,12 @@ is_infinite_loop <- function(gmat, blocker) {
     # check right
     if (previous == "l" && 
         gmat[pos[1], pos[2] + 1] != "#") {
-      #message("right")
       pos <- c(pos[1], pos[2] + 1)
       previous <- "l"
       next
     }
     # turn right -> down
     if (previous == "l" && gmat[pos[1], pos[2] + 1] == "#") {
-      #message("turn right down")
       pos <- c(pos[1] + 1, pos[2])
       previous <- "t"
       next
@@ -241,14 +240,12 @@ is_infinite_loop <- function(gmat, blocker) {
     # check down
     if (previous == "t" && 
         gmat[pos[1] + 1, pos[2]] != "#") {
-      #message("down")
       pos <- c(pos[1] + 1, pos[2])
       previous <- "t"
       next
     }
     # turn right -> left
     if (previous == "t" && gmat[pos[1] + 1, pos[2]] == "#") {
-      #message("turn right left")
       pos <- c(pos[1], pos[2] - 1)
       previous <- "r"
       next
@@ -256,14 +253,12 @@ is_infinite_loop <- function(gmat, blocker) {
     # check left
     if (previous == "r" && 
         gmat[pos[1], pos[2] - 1] != "#") {
-      #message("left")
       pos <- c(pos[1], pos[2] - 1)
       previous <- "r"
       next
     }
     # turn right -> up
     if (previous == "r" && gmat[pos[1], pos[2] - 1] == "#") {
-      #message("turn right left")
       pos <- c(pos[1] - 1, pos[2])
       previous <- "b"
       next
@@ -277,7 +272,7 @@ res <- matrix(nrow = nrow(gmat), ncol = ncol(gmat))
 for (i in seq_len(nrow(gmat))) {
   for (j in seq_len(ncol(gmat))) {
     # don't test where the guard don't go, thanks to Hugues
-    if (gmat[i, j] == "#" | gmat[i, j] == "^" | is.na(distmat[i, j])) next
+    if (gmat[i, j] == "#" || gmat[i, j] == "^" || is.na(distmat[i, j])) next
     res[i, j] <- is_infinite_loop(gmat, c(i, j))
   }
   if (i %% 10 == 0) message("done row: ", i)
@@ -285,7 +280,7 @@ for (i in seq_len(nrow(gmat))) {
 toc()
 
 # 378.163 sec elapsed (6.3 min)
-# 73.102 sec elapsed (1.3 min)
+# 73.102 sec elapsed (1.3 min) with Hugues trick
 
 as_tibble(res) |> 
   rowid_to_column(var = "x") |> 
