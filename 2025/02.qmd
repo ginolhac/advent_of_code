@@ -47,18 +47,27 @@ is_invalid <- function(id, groups = 2L) {
 tic()
 ids |> 
   unnest_longer(col = IDs) |> 
-  mutate(check = map_chr(IDs, \(s) re::re_fullmatch("(\\d+)\\1", s)[[1]])) |> 
+  mutate(check = re::re_fullmatch("(\\d+)\\1", IDs)) |> 
+  mutate(check = unlist(check)) |> 
   drop_na(check)  -> checked_ids
 toc()
 summarise(checked_ids, sum(IDs))
 ```
 
 52 seconds for 29940924880
+2.4 seconds using regex
 
 ## Part 2
 
 ```{r}
-
+tic()
+ids |> 
+  unnest_longer(col = IDs) |> 
+  mutate(check = re::re_fullmatch("(\\d+)\\1+", IDs)) |> 
+  mutate(check = unlist(check)) |> 
+  drop_na(check)  -> checked_ids
+toc()
+summarise(checked_ids, sum(IDs))
 
 ```
 
