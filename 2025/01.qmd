@@ -35,8 +35,6 @@ decode_click <- function(click) {
 }
 
 dial <- function(digit) {
-  #if (digit < 0)  return((digit %% 99) + 1)
-  #if (digit > 99) return( (digit %% 99) - 1)
   while (digit < 0) {
     digit <- digit + 100
   }
@@ -47,18 +45,44 @@ dial <- function(digit) {
 }
 
 start <- 50
-#safe_ops <- read_lines(input)
+safe_ops <- read_lines(input)
 safe_ops <- read_lines("input/01")
 res <- vector(mode = "integer", length = length(safe_ops))
 
 for (o in seq_along(safe_ops)) {
   dc <- decode_click(safe_ops[o])
   start <- get(dc[[1]])(start, dc[[2]]) |> dial()
-  print(start)
   res[o] <- start
 }
 
 sum(res == 0L)
 ```
 
-448 too low
+448 too low. 1052 correct
+
+## Part 2
+
+brute force, test all clicks
+
+```{r}
+
+
+start <- 50
+zero_clicks <- 0L
+
+for (o in seq_along(safe_ops)) {
+  dc <- decode_click(safe_ops[o])
+
+  for (click in seq_len(dc[[2]])) {
+    start <-  get(dc[[1]])(start, 1)
+    start <- start %% 100
+    #print(start)
+    if (start == 0) zero_clicks <- zero_clicks + 1L
+  }
+}
+zero_clicks
+```
+
+
+6291 too low
+6714 too high
