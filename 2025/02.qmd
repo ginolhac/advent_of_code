@@ -21,10 +21,8 @@ input <- "input/02"
 tibble(input = read_lines(input) |> 
          str_split_1(',')) |> 
   separate_wider_delim(cols = input, delim = '-', names_sep = '_') |> 
-  mutate(rwo = row_number(),
-         IDs = map2(input_1, input_2, seq)) -> ids
-ids |> 
-  unnest_longer(col = IDs)
+  mutate(IDs = map2(input_1, input_2, seq)) -> ids
+ids
 ```
 
 
@@ -33,7 +31,7 @@ ids |>
 is_invalid <- function(id, groups = 2L) {
   n <- nchar(id)
   # must be even length
-  if (n %% 2 != 0) {
+  if (n %% groups != 0) {
     return(FALSE)
   }
   size <- n %/% groups
@@ -49,10 +47,18 @@ is_invalid <- function(id, groups = 2L) {
 tic()
 ids |> 
   unnest_longer(col = IDs) |> 
-  #slice_head(n = 3) |> 
-  mutate(check = map_lgl(IDs, is_invalid)) |> 
-  filter(check) -> checked_ids
+  mutate(check = map_chr(IDs, \(s) re::re_fullmatch("(\\d+)\\1", s)[[1]])) |> 
+  drop_na(check)  -> checked_ids
 toc()
 summarise(checked_ids, sum(IDs))
+```
+
+52 seconds for 29940924880
+
+## Part 2
+
+```{r}
+
+
 ```
 
