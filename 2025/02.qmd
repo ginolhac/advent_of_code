@@ -1,0 +1,58 @@
+---
+title: "02"
+format: html
+---
+
+```{r}
+#| label: setup
+#| include: false
+library(tidyverse)
+library(tictoc)
+```
+
+
+## Part 1
+
+```{r}
+input <- "11-22,95-115,998-1012,1188511880-1188511890,222220-222224,1698522-1698528,446443-446449,38593856-38593862,565653-565659,824824821-824824827,2121212118-2121212124\n"
+
+input <- "input/02"
+
+tibble(input = read_lines(input) |> 
+         str_split_1(',')) |> 
+  separate_wider_delim(cols = input, delim = '-', names_sep = '_') |> 
+  mutate(rwo = row_number(),
+         IDs = map2(input_1, input_2, seq)) -> ids
+ids |> 
+  unnest_longer(col = IDs)
+```
+
+
+```{r}
+
+is_invalid <- function(id, groups = 2L) {
+  n <- nchar(id)
+  # must be even length
+  if (n %% 2 != 0) {
+    return(FALSE)
+  }
+  size <- n %/% groups
+  target <- str_sub(id, 1, size)
+  for (i in seq(size + 1, n, size + 1)) {
+    #message(paste("sub ", str_sub(id, i, i + size), " target: ", target, " ", size, " ", i))
+    if (str_sub(id, i, i + size) != target)
+      return(FALSE)
+  }
+  TRUE
+}
+
+tic()
+ids |> 
+  unnest_longer(col = IDs) |> 
+  #slice_head(n = 3) |> 
+  mutate(check = map_lgl(IDs, is_invalid)) |> 
+  filter(check) -> checked_ids
+toc()
+summarise(checked_ids, sum(IDs))
+```
+
