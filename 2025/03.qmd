@@ -7,6 +7,8 @@ format: html
 #| label: setup
 #| include: false
 library(tidyverse)
+library(bit64) # because R limitation .Machine$integer.max -> 2147483647
+library(RcppAlgos)
 library(tictoc)
 ```
 
@@ -49,17 +51,16 @@ toc()
 ```{r}
 combi_max_banks2 <- function(b) {
   str_split_1(b, pattern = "") |> 
-  combn(12, simplify = FALSE) |> 
-  map(\(x) paste(x, collapse = "")) |> 
-  unlist() |> as.numeric() |> 
+  as.double() |> 
+  comboGeneral(12, Parallel = FALSE, FUN = \(x) paste(x, collapse = '') |> as.double(), FUN.VALUE = as.double(1)) |> 
   max()
 }
 
 tic()
-map(banks, combi_max_banks2) |> 
-  as.numeric() |> 
+map_dbl(banks, combi_max_banks2) |> 
   sum()
 toc()
 
-b = banks[1]
 ```
+
+Works on example, then too big for combination
