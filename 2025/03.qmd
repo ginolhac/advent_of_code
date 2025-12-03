@@ -10,6 +10,8 @@ library(tidyverse)
 library(bit64) # because R limitation .Machine$integer.max -> 2147483647
 library(RcppAlgos)
 library(tictoc)
+
+options(scipen = 999)
 ```
 
 
@@ -64,3 +66,40 @@ toc()
 ```
 
 Works on example, then too big for combination
+
+Using recursion following [**serialc**](https://github.com/serialc/AdventOfCode/blob/main/2025/day03/day03.py) idea
+
+
+```{r}
+largest_number <- function(nums, n_digits) {
+  if (n_digits < 1) return(0)
+  
+  
+  digit <- max(nums[1:(length(nums) - n_digits + 1)])
+  i <- which.max(nums[1:(length(nums) - n_digits + 1)])
+  
+  n_digits <- n_digits - 1
+  
+  # end recursion, format and coerce
+  if (n_digits == 1) {
+    return(paste(digit,  max(nums[(i + 1):length(nums)])))
+  }
+  
+  paste(digit, largest_number(nums[(i + 1):length(nums)], n_digits), collapse = '')
+}
+
+tic()
+banks |> 
+  map(\(b) str_split_1(b, '') |> 
+        as.integer() |> 
+        largest_number(12) ) |> 
+  str_replace_all(' ', '') |> 
+  as.double() |> 
+  sum()
+toc()
+
+```
+
+
+[1] 171990312704598
+0.06 sec elapsed
