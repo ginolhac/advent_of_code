@@ -1,0 +1,65 @@
+---
+title: "03"
+format: html
+---
+
+```{r}
+#| label: setup
+#| include: false
+library(tidyverse)
+library(tictoc)
+```
+
+
+## Part 1
+
+
+```{r}
+input <- "987654321111111
+811111111111119
+234234234234278
+818181911112111"
+
+banks <- read_lines(input)
+banks <- read_lines("input/03")
+head(banks)
+```
+
+
+```{r}
+combi_max_banks <- function(b) {
+  str_split_1(b, pattern = "") |> 
+  combn(2, simplify = FALSE) |> 
+  map_int(\(x) paste(x, collapse = "") |> as.integer()) |> 
+  max()
+}
+
+tic()
+map_int(banks, combi_max_banks) |> 
+  sum()
+toc()
+```
+
+
+1.88 sec 17405
+
+
+## Part 2
+
+```{r}
+combi_max_banks2 <- function(b) {
+  str_split_1(b, pattern = "") |> 
+  combn(12, simplify = FALSE) |> 
+  map(\(x) paste(x, collapse = "")) |> 
+  unlist() |> as.numeric() |> 
+  max()
+}
+
+tic()
+map(banks, combi_max_banks2) |> 
+  as.numeric() |> 
+  sum()
+toc()
+
+b = banks[1]
+```
