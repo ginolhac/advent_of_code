@@ -1,0 +1,85 @@
+---
+title: "03"
+format: html
+---
+
+```{r}
+#| label: setup
+#| include: false
+library(tidyverse)
+library(adventdrob)
+library(tictoc)
+```
+
+
+## Part 1
+
+
+```{r}
+input <- "..@@.@@@@.
+@@@.@.@.@@
+@@@@@.@.@@
+@.@@@@..@.
+@@.@@@@.@@
+.@@@@@@@.@
+.@.@.@.@@@
+@.@@@.@@@@
+.@@@@@@@@.
+@.@.@@@.@."
+
+rolls <- tibble(r = read_lines(input))
+rolls <- tibble(r = read_lines("input/04"))
+rolls
+```
+
+
+```{r}
+grid_tidy(rolls, r) |> 
+  adventdrob::adjacent_join(diagonal = TRUE) |> 
+  mutate(roll = if_else(value2 == "@", 1L, 0L)) |> 
+  summarise(sum_roll = sum(roll), .by = c(row, value, col)) |> 
+  filter(value == "@", sum_roll < 4)
+```
+
+## Part 2
+
+
+```{r}
+grid_tidy(rolls, r) |> 
+  adventdrob::adjacent_join(diagonal = TRUE) |> 
+  mutate(roll = if_else(value2 == "@", 1L, 0L)) -> troll # tibble roll!
+  
+  
+forkable_roll <- function(tib) {
+  tib |> 
+    summarise(sum_roll = sum(roll), .by = c(row, value, col)) |> 
+    filter(value == "@", sum_roll < 4) |> 
+    nrow()
+}
+
+remove_roll <- function(tib) {
+  tib |> 
+    mutate(sum_roll = sum(roll), .by = c(row, value, col)) |> 
+    mutate(value = if_else(value == "@" & sum_roll < 4, '.', value)) |> 
+    distinct(row, value, col) |> 
+     adventdrob::adjacent_join(diagonal = TRUE) |> 
+    mutate(roll = if_else(value2 == "@", 1L, 0L))
+}
+
+fr <- forkable_roll(troll)
+removed <- c(fr)
+tic()
+while (fr > 0) {
+  troll <- remove_roll(troll)
+  fr <- forkable_roll(troll)
+  removed <- c(removed, fr)
+  #message(paste("fr: ", fr))
+}
+sum(removed)
+toc()
+```
+
+
+
+6.344 secs 8538
+
