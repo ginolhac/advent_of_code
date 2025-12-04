@@ -9,6 +9,7 @@ format: html
 library(tidyverse)
 library(adventdrob)
 library(tictoc)
+library(gganimate)
 ```
 
 
@@ -47,7 +48,8 @@ grid_tidy(rolls, r) |>
 ```{r}
 grid_tidy(rolls, r) |> 
   adventdrob::adjacent_join(diagonal = TRUE) |> 
-  mutate(roll = if_else(value2 == "@", 1L, 0L)) -> troll # tibble roll!
+  mutate(roll = if_else(value2 == "@", 1L, 0L),
+         val = value) -> troll # tibble roll!
   
   
 forkable_roll <- function(tib) {
@@ -59,9 +61,11 @@ forkable_roll <- function(tib) {
 
 remove_roll <- function(tib) {
   tib |> 
-    mutate(sum_roll = sum(roll), .by = c(row, value, col)) |> 
-    mutate(value = if_else(value == "@" & sum_roll < 4, '.', value)) |> 
-    distinct(row, value, col) |> 
+    mutate(sum_roll = sum(roll), .by = c(row, value, col),
+           val = value) |> 
+    mutate(value = if_else(value == "@" & sum_roll < 4, '.', value),
+           val = if_else(val != value, "O", val)) |> 
+    distinct(row, value, col, val) |> 
      adventdrob::adjacent_join(diagonal = TRUE) |> 
     mutate(roll = if_else(value2 == "@", 1L, 0L))
 }
@@ -92,14 +96,14 @@ toc()
 Animation (previous takes 10.9 seconds with `anitroll`)
 
 ```{r}
-library(gganimate)
-count(anitroll, run)
 
-distinct(anitroll, row, value, col, run) |> 
-  ggplot(aes(x = row, y = col, fill = value)) +
+count(anitroll, val)
+
+distinct(anitroll, row, val, col, run) |> 
+  ggplot(aes(x = row, y = col, fill = val)) +
   geom_tile() +
-  transition_states(states = run) +
-  scale_fill_manual(values = c("grey90", "gold")) +
+  transition_states(states = run, state_length = 2) +
+  scale_fill_manual(values = c("grey90",  "gold", "orange")) +
   theme_void(18) +
   coord_fixed() + 
   labs(title = "{closest_state}",
