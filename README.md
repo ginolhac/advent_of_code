@@ -1,6 +1,13 @@
 
 ## Advent Of Code
 
+### 2025
+
+- Day04, "Printing Department"
+
+![](2025/d04_2025.gif)
+
+
 ### 2024
 
 TODO: d15p1, d13

@@ -67,13 +67,19 @@ remove_roll <- function(tib) {
 }
 
 fr <- forkable_roll(troll)
-removed <- c(fr)
+n_run <- 1L
+anitroll <- mutate(troll, run = n_run)
+removed <- fr
 tic()
 while (fr > 0) {
   troll <- remove_roll(troll)
   fr <- forkable_roll(troll)
-  removed <- c(removed, fr)
+  removed <- append(removed, fr)
   #message(paste("fr: ", fr))
+  n_run <- n_run + 1L
+  anitroll <- bind_rows(anitroll,
+                        mutate(troll, run = n_run)
+  )
 }
 sum(removed)
 toc()
@@ -82,4 +88,23 @@ toc()
 
 
 6.344 secs 8538
+
+Animation (previous takes 10.9 seconds with `anitroll`)
+
+```{r}
+library(gganimate)
+count(anitroll, run)
+
+distinct(anitroll, row, value, col, run) |> 
+  ggplot(aes(x = row, y = col, fill = value)) +
+  geom_tile() +
+  transition_states(states = run) +
+  scale_fill_manual(values = c("grey90", "gold")) +
+  theme_void(18) +
+  coord_fixed() + 
+  labs(title = "{closest_state}",
+       fill = NULL) -> p
+animate(p)
+anim_save("d04_2025.gif")
+```
 
