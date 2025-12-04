@@ -64,6 +64,7 @@ remove_roll <- function(tib) {
     mutate(sum_roll = sum(roll), .by = c(row, value, col),
            val = value) |> 
     mutate(value = if_else(value == "@" & sum_roll < 4, '.', value),
+           # highlight disappearing rolls at each run (thanks Hugues Escoffier!)
            val = if_else(val != value, "O", val)) |> 
     distinct(row, value, col, val) |> 
      adventdrob::adjacent_join(diagonal = TRUE) |> 
