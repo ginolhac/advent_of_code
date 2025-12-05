@@ -10,6 +10,8 @@ library(tidyverse)
 library(adventdrob)
 library(tictoc)
 library(GenomicRanges)
+
+options(scipen = 999)
 ```
 
 
@@ -41,13 +43,13 @@ freshs <- tibble(inter = ingredients[seq_len(idx_split - 1L)]) |>
          end = as.double(end),
          strand = '+',
          seqnames = "chr1")
-freshs |> 
-  select(seqnames, start, end) |> 
-  write_tsv("freshs.bed", col_names = FALSE)
-
-ingredients_ids |> 
-  select(seqnames, start, end) |> 
-  write_tsv("ingredients_ids.bed", col_names = FALSE)
+# freshs |> 
+#   select(seqnames, start, end) |> 
+#   write_tsv("freshs.bed", col_names = FALSE)
+# 
+# ingredients_ids |> 
+#   select(seqnames, start, end) |> 
+#   write_tsv("ingredients_ids.bed", col_names = FALSE)
 ```
 
 Convert to Genomic Ranges, does not work with int32
@@ -77,3 +79,29 @@ ingredients_ids |>
 toc()
 ```
 
+607 in 1.2 sec
+
+
+## Part 2
+
+```{r}
+
+
+tic()
+# great solution by tinygreen https://stackoverflow.com/a/73507369/1395352
+library(data.table)
+freshs <- mutate(freshs, start = start + 1) 
+setDT(freshs)
+freshs[
+  order(start),
+  .(start = start[1], end = max(end)),
+  by = .(group = cumsum(start > cummax(shift(end, fill = -Inf))))
+][,
+  .(range = end - start + 1)
+][,
+  .(sum_ranges = sum(range))
+]
+toc()
+```
+
+342433357243918 in 0.028 sec
