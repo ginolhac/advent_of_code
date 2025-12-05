@@ -85,12 +85,12 @@ toc()
 ## Part 2
 
 ```{r}
+freshs <- mutate(freshs, start = start + 1) 
 
 
 tic()
 # great solution by tinygreen https://stackoverflow.com/a/73507369/1395352
 library(data.table)
-freshs <- mutate(freshs, start = start + 1) 
 setDT(freshs)
 freshs[
   order(start),
@@ -105,3 +105,29 @@ toc()
 ```
 
 342433357243918 in 0.028 sec
+
+dplyr version:
+
+```{r}
+tic()
+freshs |> 
+  arrange(start) |> 
+  # to understand it
+  # 0. must be sorted in ascending order
+  # 1. lag for comparison between start and previous end
+  # 2. cummax(reports the max value observed)
+  # 3. cumsum create groups by summing booleans
+  # 4. per group we take smallest and highest values
+  mutate(lag = lag(end, default = first(end)),
+         cummax = cummax(lag),
+         cummaxstart = cummax < start,
+         cums = cumsum(cummaxstart)) |> 
+  # group_by necessary because takes an expression
+  group_by(group = cumsum(cummax(lag(end, default = first(end))) < start)) |> 
+  summarise(start = min(start), end = max(end)) |> 
+  mutate(range = end - start + 1) |> 
+  summarise(sum(range))
+toc()
+```
+
+
