@@ -1,0 +1,79 @@
+---
+title: "05"
+format: html
+---
+
+```{r}
+#| label: setup
+#| include: false
+library(tidyverse)
+library(adventdrob)
+library(tictoc)
+library(GenomicRanges)
+```
+
+
+## Part 1
+
+```{r}
+input <- "3-5
+10-14
+16-20
+12-18
+
+1
+5
+8
+11
+17
+32"
+
+ingredients <- read_lines(input)
+ingredients <- read_lines("input/05")
+idx_split <- which(ingredients == "")
+ingredients_ids <- tibble(end = ingredients[(idx_split + 1L):length(ingredients)] |> as.double(),
+                          start = end - 1,
+                          strand = '+',
+                          seqnames = "chr1")
+freshs <- tibble(inter = ingredients[seq_len(idx_split - 1L)]) |> 
+  separate_wider_delim(cols = inter, delim = '-', names = c("start", "end")) |> 
+  mutate(start = as.double(start) -1,
+         end = as.double(end),
+         strand = '+',
+         seqnames = "chr1")
+freshs |> 
+  select(seqnames, start, end) |> 
+  write_tsv("freshs.bed", col_names = FALSE)
+
+ingredients_ids |> 
+  select(seqnames, start, end) |> 
+  write_tsv("ingredients_ids.bed", col_names = FALSE)
+```
+
+Convert to Genomic Ranges, does not work with int32
+
+```{r}
+freshs_gr <- makeGRangesFromDataFrame(freshs)
+ingredients_ids_gr <- makeGRangesFromDataFrame(ingredients_ids)
+
+subsetByOverlaps(ingredients_ids_gr, freshs_gr)
+```
+
+
+```{r}
+is_fresh <- function(i, tib) {
+  tib |> 
+    mutate(i = i,
+           fresh = between(i, start + 1, end)) |> 
+    summarise(any(fresh)) |> 
+    pull()
+}
+tic()
+ingredients_ids |> 
+  select(end) |> 
+  mutate(intervals = list(select(freshs, start, end)),
+         is_fresh = map2_lgl(end, intervals, is_fresh)) |> 
+  summarise(sum(is_fresh))
+toc()
+```
+
