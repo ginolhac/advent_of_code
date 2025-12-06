@@ -1,0 +1,45 @@
+---
+title: "06"
+format: html
+---
+
+```{r}
+#| label: setup
+#| include: false
+library(tidyverse)
+library(tictoc)
+options(scipen = 999)
+```
+
+
+## Part 1
+
+
+```{r}
+input <- "123 328  51 64 
+ 45 64  387 23 
+  6 98  215 314
+*   +   *   + "
+
+input <- "input/06"
+
+n_lines <- read_table(input, col_names = FALSE, show_col_types = FALSE) |> nrow()
+mpoulpe <- read_table(input, col_names = FALSE, show_col_types = FALSE, n_max = n_lines - 1L) |> 
+  select(where(is.double))
+operations <- read_table(input, col_names = FALSE, show_col_types = FALSE, skip = nrow(mpoulpe))|> 
+  select(where(is.character))
+```
+
+
+```{r}
+tic()
+imap_dbl(mpoulpe, \(i, j) reduce(i, get(operations[[j]]))) |> 
+  reduce(`+`)
+toc()
+```
+
+7326876294741
+0.031 sec elapsed
+
+## Part 2
+

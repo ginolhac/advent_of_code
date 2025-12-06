@@ -94,12 +94,14 @@ library(data.table)
 setDT(freshs)
 freshs[
   order(start),
-  .(start = start[1], end = max(end)),
+  # .N reports nb of obs per group
+  .(start = min(start), end = max(end), n = .N),
   by = .(group = cumsum(start > cummax(shift(end, fill = -Inf))))
 ][,
-  .(range = end - start + 1)
+  # .() is an alias for list() to keep the data.table structure
+  .(group, nobs = n, start, end, range = end - start + 1)
 ][,
-  .(sum_ranges = sum(range))
+  sum(range) # no .() to obtain a vector
 ]
 toc()
 ```
