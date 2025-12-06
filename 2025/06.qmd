@@ -43,3 +43,31 @@ toc()
 
 ## Part 2
 
+```{r}
+
+read_lines(input)[-n_lines] |> 
+  map(str_split_1, '') |> 
+  enframe(value = "v") |> 
+  unnest_wider(v, names_sep = '_') |> 
+  select(-name) |> 
+  map(\(x) paste0(x, collapse = '') |> as.numeric()) -> rpoulpe
+
+right_left <- vector(mode = "list", length = length(operations))
+i <- 1L
+
+for (ri in seq_along(rpoulpe)) {
+  if (is.na(rpoulpe[[ri]])) {
+    i <- i + 1L
+    next
+  }
+  #message(paste("ri ", ri, " i ", i, " ", rpoulpe[[ri]]))
+  right_left[[i]] <- append(right_left[[i]], rpoulpe[[ri]])
+}
+
+imap_dbl(right_left, \(i, j) reduce(i, get(operations[[j]]))) |> 
+  reduce(`+`)
+```
+
+10756006415204
+
+
