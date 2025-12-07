@@ -1,0 +1,69 @@
+---
+title: "07"
+format: html
+---
+
+```{r}
+#| label: setup
+#| include: false
+library(tidyverse)
+library(adventdrob)
+```
+
+
+```{r}
+input <- ".......S.......
+...............
+.......^.......
+...............
+......^.^......
+...............
+.....^.^.^.....
+...............
+....^.^...^....
+...............
+...^.^...^.^...
+...............
+..^...^.....^..
+...............
+.^.^.^.^.^...^.
+...............
+"
+
+input <- "input/07"
+
+pmat <- tibble(x = read_lines(input)) |> 
+  grid_matrix(var = x)
+beamer <- vector(mode = "list", length = nrow(pmat))
+pos <- 1
+                   # row, col
+beamer[[pos]] <- list(c(pos, which(pmat[1,] == "S")))
+nb_split <- 0
+
+beamer_split <- function(pos) {
+  # check if blocker are present for every beamer on this row
+  for (beam in beamer[[pos - 1]]) {
+    #message(paste("beam ", str(beam), " pos ", pos))
+    if (pmat[pos, beam[2]] == '^') {
+      #message(paste("split ", pos, beam))
+      beamer[[pos]] <<- append(beamer[[pos]], list(c(pos, beam[2] - 1), c(pos, beam[2] + 1)))
+      # remove duplicates
+      beamer[[pos]] <<- unique(beamer[[pos]])
+      nb_split <<- nb_split + 1
+      
+    } else { # we just go down but each beam from above
+      #message(paste("else", pos, "length ", length(beamer[[pos - 1]])))
+      #message(paste("beam else ", str(beam), " pos ", pos, " ", str(beamer[[pos]])))
+      beamer[[pos]] <<- append(beamer[[pos]], list(c(pos, beam[2])))
+    }
+  }
+}
+
+while (pos < nrow(pmat) - 1) {
+  pos <- pos + 1
+  beamer_split(pos)
+ # message(paste("row ", pos))
+}
+nb_split
+```
+

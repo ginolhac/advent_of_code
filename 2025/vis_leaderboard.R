@@ -19,7 +19,7 @@ pluck(lstats, "members") |>
     names_from = c(s_value_id, s_part),
     values_from = s_value
   ) |>
-  mutate(across(contains("ts"), as_datetime)) |>
+  mutate(across(contains("ts"), \(ts) as_datetime(ts) - lstats$day1_ts)) |>
   select(-id, -starts_with("star_index")) |>
   pivot_longer(
     cols = starts_with("get_star"),
