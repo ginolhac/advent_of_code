@@ -8,6 +8,8 @@ format: html
 #| include: false
 library(tidyverse)
 library(adventdrob)
+library(tictoc)
+options(scipen = 999)
 ```
 
 
@@ -30,7 +32,7 @@ input <- ".......S.......
 ...............
 "
 
-#input <- "input/07"
+input <- "input/07"
 
 pmat <- tibble(x = read_lines(input)) |> 
   grid_matrix(var = x)
@@ -40,7 +42,8 @@ pos <- 1
                    # row, col
 beamer[[pos]] <- list(c(pos, which(pmat[1,] == "S")))
 nb_split <- 0
-nb_dup <- 0L
+nb_dup <- 0L # useless actually
+
 
 beamer_split <- function(pos) {
   # check if blocker are present for every beamer on this row
@@ -59,12 +62,40 @@ beamer_split <- function(pos) {
     }
   }
 }
-
+tic()
 while (pos < nrow(pmat) - 1) {
   pos <- pos + 1
   beamer_split(pos)
  # message(paste("row ", pos))
 }
+toc()
 nb_split
 ```
 
+1562 1.138 sec
+
+## Part 2
+
+```{r}
+
+# count number of paths for part 2
+beam_paths <- matrix(data = 0, nrow = nrow(pmat), ncol = ncol(pmat))
+beam_paths[1, which(pmat[1,] == "S")] <- 1L
+
+tic()
+for (i in 2:nrow(pmat)) {
+  for (j in seq_len(ncol(pmat))) {
+    b <- beam_paths[i - 1, j]
+    if (pmat[i, j] == '^') {
+      beam_paths[i, j - 1] <-  b + beam_paths[i, j - 1]
+      beam_paths[i, j + 1] <-  b + beam_paths[i, j + 1]
+    } else {
+      beam_paths[i, j] <-  b + beam_paths[i, j]
+    }
+  }
+}
+sum(beam_paths[nrow(beam_paths),])
+toc()
+```
+
+24292631346665 0.044
