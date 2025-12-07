@@ -8,6 +8,10 @@
 ![](2025/d04_2025.gif)
 
 
+- Day07, "Laboratories"
+
+![](2025/d07.png)
+
 ### 2024
 
 TODO: d15p1, d13

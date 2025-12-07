@@ -42,7 +42,8 @@ pos <- 1
                    # row, col
 beamer[[pos]] <- list(c(pos, which(pmat[1,] == "S")))
 nb_split <- 0
-nb_dup <- 0L # useless actually
+
+
 
 
 beamer_split <- function(pos) {
@@ -53,8 +54,6 @@ beamer_split <- function(pos) {
       lgt <- length(beamer[[pos]])
       # remove duplicates
       beamer[[pos]] <<- unique(beamer[[pos]])
-      # how many replicates we got
-      nb_dup <<- nb_dup + (lgt - length(beamer[[pos]]))
       nb_split <<- nb_split + 1
       
     } else { # we just go down but each beam from above
@@ -77,10 +76,27 @@ nb_split
 ## Part 2
 
 ```{r}
+# for animation
+
+grid2tib <- function(m, pos) {
+   m |> 
+    as_tibble(.name_repair = \(x) paste0("c", seq_len(ncol(m)))) |> 
+    mutate(run = pos,
+           x = row_number(), .before = c1) |> 
+    pivot_longer(cols = starts_with("c"),
+                 names_to = "y",
+                 names_prefix = "c",
+                 names_transform = list(y = as.numeric),
+                 values_to = "paths")
+}
+
 
 # count number of paths for part 2
 beam_paths <- matrix(data = 0, nrow = nrow(pmat), ncol = ncol(pmat))
 beam_paths[1, which(pmat[1,] == "S")] <- 1L
+
+tpath <- vector(mode = "list", length = nrow(pmat))
+tpath[[1]] <- grid2tib(beam_paths, 1)
 
 tic()
 for (i in 2:nrow(pmat)) {
@@ -92,10 +108,27 @@ for (i in 2:nrow(pmat)) {
     } else {
       beam_paths[i, j] <-  b + beam_paths[i, j]
     }
+  tpath[[i]] <- grid2tib(beam_paths, i)
   }
 }
 sum(beam_paths[nrow(beam_paths),])
 toc()
 ```
 
-24292631346665 0.044
+24292631346665 0.044 secs
+
+```{r}
+library(gganimate)
+
+bind_rows(tpath) |> 
+  filter(run == max(run)) |> 
+  ggplot(aes(y, x, fill = log(paths))) +
+  geom_tile() +
+  #transition_reveal(run) +
+  scale_fill_viridis_c(option = "turbo", na.value = "white") +
+  scale_y_reverse() +
+  theme_void() -> p
+#animate(p)
+ggsave("d07.png", plot = p, width = 11, height = 8.5, dpi = 250)
+```
+

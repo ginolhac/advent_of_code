@@ -92,7 +92,7 @@ toc()
 
 
 
-6.344 secs 8538
+6.344 secs 8538 (23.75 on P14s)
 
 Animation (previous takes 10.9 seconds with `anitroll`)
 
@@ -110,6 +110,6 @@ distinct(anitroll, row, val, col, run) |>
   labs(title = "{closest_state}",
        fill = NULL) -> p
 animate(p)
-anim_save("d04_2025.gif")
+#anim_save("d04_2025.gif")
 ```
 
