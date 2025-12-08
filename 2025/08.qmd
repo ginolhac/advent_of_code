@@ -77,12 +77,9 @@ Qunion <- R6Class(
   list(
     id = NULL,
     sz = NULL,
-    state = NULL,
     initialize = function(size = 10L) {
       self$id <- seq_len(size)
       self$sz <- rep(1, size)
-      self$state <- rep(FALSE, size) # open or closed, default -> closed
-      #self$init()
     },
     init = function() {
       message("New quick-union of size ", length(self$id))
@@ -95,7 +92,6 @@ Qunion <- R6Class(
       cat("   i:  ", str_pad(seq_along(self$id), 2L), "\n", sep = " ")
       cat("   id: ", str_pad(self$id, 2L), "\n", sep = " ")
       cat("   sz: ", str_pad(self$sz, 2L), "\n", sep = " ")
-      cat("state: ", str_pad(as.integer(self$state), 2L), "\n", sep = " ")
       invisible(self)
     },
     find_root = function(p) {
@@ -106,22 +102,11 @@ Qunion <- R6Class(
       }
       p
     },
-    open = function(p) {
-      self$state[p] <- TRUE
-    },
     connected = function(p, q) {
       self$find_root(p) == self$find_root(q)
     },
-    quick_union = function(p, q, auto_open = FALSE) {
-      if (auto_open) {
-        self$state[p] <- TRUE
-        self$state[q] <- TRUE
-      }
-      # connect only open sites
-      if (!all(self$state[p], self$state[q])) {
-        #cat("p ", p, " q ", q, " not open", self$state[p], self$state[p], "\n")
-        return(invisible(self))
-      }
+    quick_union = function(p, q) {
+
       if (self$connected(p, q)) {
         #cat("p ", p, " q ", q, " already connected\n")
         return(invisible(self))
@@ -147,7 +132,7 @@ tic()
 clusters <- Qunion$new(size = flatten_int(select(ten_closests, -value)) |> max())
 for (i in seq_along(ten_closests$row)) {
   # open site to connect them
-  clusters$quick_union(ten_closests$row[i], ten_closests$col[i], auto_open = TRUE)
+  clusters$quick_union(ten_closests$row[i], ten_closests$col[i])
 }
 sort(clusters$sz, decreasing = TRUE)[1:3] |> prod()
 toc()
@@ -170,7 +155,7 @@ tic()
 clusters2 <- Qunion$new(size = flatten_int(select(closests, -value)) |> max())
 for (i in seq_along(closests$row)) {
   # open site to connect them
-  clusters2$quick_union(closests$row[i], closests$col[i], auto_open = TRUE)
+  clusters2$quick_union(closests$row[i], closests$col[i])
   # the moment we connect everything!
   if (max(clusters2$sz) == clusters2$size()) {
     message(paste("connect ", closests$row[i], closests$col[i], " size max:", max(clusters2$sz)))
@@ -195,6 +180,6 @@ dend |>
   #set("branches_col", ifelse(seq_len(nrow(coords)) %in% c(102, 827), "red", "grey")) |> 
  # set("labels_col", ifelse(seq_len(nrow(coords)) %in% c(102, 827), "red", "white")) |> 
  plot()
-  circlize_dendrogram(labels_track_height = NA, dend_track_height = .3) 
+  #circlize_dendrogram(labels_track_height = NA, dend_track_height = .3) 
 ```
 
