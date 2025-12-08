@@ -182,4 +182,19 @@ coords[ids, "e_1"]$e_1 |> prod()
 toc()
 ```
 
+`102` and `827` are the two nodes that connect everyone
+
+```{r}
+library(dendextend)
+library(circlize)
+dend <- as.dendrogram(hclust(dist_dots))
+col_p <- ifelse(labels(dend) == c(102, 827), "purple", "black")
+dend2 <- assign_values_to_leaves_edgePar(dend = dend, value = col_p, edgePar = "col")
+dend |> 
+  set("by_labels_branches_col", value =  c(102, 827), type = "any") |> 
+  #set("branches_col", ifelse(seq_len(nrow(coords)) %in% c(102, 827), "red", "grey")) |> 
+ # set("labels_col", ifelse(seq_len(nrow(coords)) %in% c(102, 827), "red", "white")) |> 
+ plot()
+  circlize_dendrogram(labels_track_height = NA, dend_track_height = .3) 
+```
 
