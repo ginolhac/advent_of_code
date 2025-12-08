@@ -9,7 +9,6 @@ format: html
 library(tidyverse)
 library(tictoc)
 library(plotly)
-library(reshape2)
 library(R6)
 options(scipen = 999)
 ```
@@ -40,7 +39,7 @@ input <- "162,817,812
 425,690,689"
 
 
-input <- "input/08"
+#input <- "input/08"
 
 tibble(e = read_lines(input)) |> 
   separate_wider_delim(cols = e, delim = ",", names_sep = "_") |> 
@@ -60,11 +59,14 @@ plot_ly(coords, x = ~ e_1, y = ~ e_2, z = ~ e_3) |>
 as.matrix(coords) |> 
   dist() -> dist_dots
 #plot(hclust(dist_dots))
+mdist <- as.matrix(dist_dots)
 
-
-melt(as.matrix(dist_dots), varnames = c("row", "col")) |> 
+tibble(
+  row = rep(seq_len(nrow(mdist)), ncol(mdist)), 
+  col = rep(seq_len(ncol(mdist)), each = nrow(mdist)), 
+  value = c(mdist)) |> 
   filter(row < col) |> 
-  slice_min(value, n = 1000) -> ten_closests
+  slice_min(value, n = 10) -> ten_closests
 ten_closests
 ```
 
@@ -147,7 +149,13 @@ toc()
 as.matrix(coords) |> 
   dist() -> dist_dots
 
-melt(as.matrix(dist_dots), varnames = c("row", "col")) |> 
+
+mdist <- as.matrix(dist_dots)
+
+tibble(
+  row = rep(seq_len(nrow(mdist)), ncol(mdist)), 
+  col = rep(seq_len(ncol(mdist)), each = nrow(mdist)), 
+  value = c(mdist)) |> 
   filter(row < col) |> 
   arrange(value, row) -> closests
 
