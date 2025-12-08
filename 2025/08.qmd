@@ -9,6 +9,8 @@ format: html
 library(tidyverse)
 library(tictoc)
 library(plotly)
+library(reshape2)
+library(R6)
 options(scipen = 999)
 ```
 
@@ -47,6 +49,7 @@ coords
 ```
 
 ```{r}
+#| eval: false
 plot_ly(coords, x = ~ e_1, y = ~ e_2, z = ~ e_3) |> 
   layout(scene = list(xaxis = list(title = 'X'),
                       yaxis = list(title = 'Y'),
@@ -59,8 +62,6 @@ as.matrix(coords) |>
 #plot(hclust(dist_dots))
 
 
-library(reshape2)
-
 melt(as.matrix(dist_dots), varnames = c("row", "col")) |> 
   filter(row < col) |> 
   slice_min(value, n = 1000) -> ten_closests
@@ -70,7 +71,6 @@ ten_closests
 ## Quick Union as a R6 Class
 
 ```{r}
-library(R6)
 
 Qunion <- R6Class(
   "Qunion",
@@ -154,3 +154,32 @@ toc()
 ```
 
 66912  0.388 sec elapsed
+
+
+## Part 2
+
+```{r}
+as.matrix(coords) |> 
+  dist() -> dist_dots
+
+melt(as.matrix(dist_dots), varnames = c("row", "col")) |> 
+  filter(row < col) |> 
+  arrange(value, row) -> closests
+
+tic()
+clusters2 <- Qunion$new(size = flatten_int(select(closests, -value)) |> max())
+for (i in seq_along(closests$row)) {
+  # open site to connect them
+  clusters2$quick_union(closests$row[i], closests$col[i], auto_open = TRUE)
+  # the moment we connect everything!
+  if (max(clusters2$sz) == clusters2$size()) {
+    message(paste("connect ", closests$row[i], closests$col[i], " size max:", max(clusters2$sz)))
+    ids <- c(closests$row[i], closests$col[i])
+    break
+  } 
+}
+coords[ids, "e_1"]$e_1 |> prod()
+toc()
+```
+
+
