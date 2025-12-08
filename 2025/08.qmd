@@ -1,0 +1,156 @@
+---
+title: "08"
+format: html
+---
+
+```{r}
+#| label: setup
+#| include: false
+library(tidyverse)
+library(tictoc)
+library(plotly)
+options(scipen = 999)
+```
+
+## Part 1
+
+
+```{r}
+input <- "162,817,812
+57,618,57
+906,360,560
+592,479,940
+352,342,300
+466,668,158
+542,29,236
+431,825,988
+739,650,466
+52,470,668
+216,146,977
+819,987,18
+117,168,530
+805,96,715
+346,949,466
+970,615,88
+941,993,340
+862,61,35
+984,92,344
+425,690,689"
+
+
+input <- "input/08"
+
+tibble(e = read_lines(input)) |> 
+  separate_wider_delim(cols = e, delim = ",", names_sep = "_") |> 
+  mutate(across(everything(), as.numeric)) -> coords
+coords
+```
+
+```{r}
+plot_ly(coords, x = ~ e_1, y = ~ e_2, z = ~ e_3) |> 
+  layout(scene = list(xaxis = list(title = 'X'),
+                      yaxis = list(title = 'Y'),
+                      zaxis = list(title = 'Z')))
+```
+
+```{r}
+as.matrix(coords) |> 
+  dist() -> dist_dots
+#plot(hclust(dist_dots))
+
+
+library(reshape2)
+
+melt(as.matrix(dist_dots), varnames = c("row", "col")) |> 
+  filter(row < col) |> 
+  slice_min(value, n = 1000) -> ten_closests
+ten_closests
+```
+
+## Quick Union as a R6 Class
+
+```{r}
+library(R6)
+
+Qunion <- R6Class(
+  "Qunion",
+  list(
+    id = NULL,
+    sz = NULL,
+    state = NULL,
+    initialize = function(size = 10L) {
+      self$id <- seq_len(size)
+      self$sz <- rep(1, size)
+      self$state <- rep(FALSE, size) # open or closed, default -> closed
+      #self$init()
+    },
+    init = function() {
+      message("New quick-union of size ", length(self$id))
+    },
+    size = function() {
+      length(self$id)
+    },
+    print = function(...) {
+      cat("Quick-union: \n")
+      cat("   i:  ", str_pad(seq_along(self$id), 2L), "\n", sep = " ")
+      cat("   id: ", str_pad(self$id, 2L), "\n", sep = " ")
+      cat("   sz: ", str_pad(self$sz, 2L), "\n", sep = " ")
+      cat("state: ", str_pad(as.integer(self$state), 2L), "\n", sep = " ")
+      invisible(self)
+    },
+    find_root = function(p) {
+      while (p != self$id[p]) {
+        # path compression
+        self$id[p] <- self$id[self$id[p]]
+        p <- self$id[p]
+      }
+      p
+    },
+    open = function(p) {
+      self$state[p] <- TRUE
+    },
+    connected = function(p, q) {
+      self$find_root(p) == self$find_root(q)
+    },
+    quick_union = function(p, q, auto_open = FALSE) {
+      if (auto_open) {
+        self$state[p] <- TRUE
+        self$state[q] <- TRUE
+      }
+      # connect only open sites
+      if (!all(self$state[p], self$state[q])) {
+        #cat("p ", p, " q ", q, " not open", self$state[p], self$state[p], "\n")
+        return(invisible(self))
+      }
+      if (self$connected(p, q)) {
+        #cat("p ", p, " q ", q, " already connected\n")
+        return(invisible(self))
+      }
+      root_p <- self$find_root(p)
+      root_q <- self$find_root(q)
+      #  Connect the smaller tree to the larger tree
+      if (self$sz[root_p] < self$sz[root_q]) {
+        self$id[root_p] <-  root_q
+        self$sz[root_q] <- self$sz[root_p] + self$sz[root_q]
+      } else {
+        self$id[root_q] <-  root_p
+        self$sz[root_p] <-  self$sz[root_q] + self$sz[root_p]
+      }
+      # R6 method called for its side-effects (usually modifying the object) should return this:
+      invisible(self)
+    }
+  )
+)
+
+
+tic()
+clusters <- Qunion$new(size = flatten_int(select(ten_closests, -value)) |> max())
+for (i in seq_along(ten_closests$row)) {
+  # open site to connect them
+  clusters$quick_union(ten_closests$row[i], ten_closests$col[i], auto_open = TRUE)
+}
+sort(clusters$sz, decreasing = TRUE)[1:3] |> prod()
+toc()
+```
+
+66912  0.388 sec elapsed

@@ -6,6 +6,7 @@
 *.html
 *.json
 /renv/
+/.Rprofile
 serial*
 test*
 **/Cargo.lock
