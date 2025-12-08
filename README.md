@@ -10,7 +10,8 @@
 
 - Day07, "Laboratories"
 
-![](2025/d07.png)
+![Static](2025/d07.png)
+![GIF](2025/d07_2025.gif)
 
 ### 2024
 

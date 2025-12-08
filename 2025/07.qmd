@@ -71,7 +71,7 @@ toc()
 nb_split
 ```
 
-1562 1.138 sec
+1562 1.138 sec (0.619 on X1)
 
 ## Part 2
 
@@ -115,20 +115,22 @@ sum(beam_paths[nrow(beam_paths),])
 toc()
 ```
 
-24292631346665 0.044 secs
+24292631346665 0.044 secs (111.7 secs with tibbles for animation)
 
 ```{r}
 library(gganimate)
 
 bind_rows(tpath) |> 
-  filter(run == max(run)) |> 
-  ggplot(aes(y, x, fill = log(paths))) +
+  #filter(run == max(run)) |> 
+  filter(run %% 5 == 0) |> 
+  ggplot(aes(y, x, fill = log(paths + 1))) +
   geom_tile() +
-  #transition_reveal(run) +
+  transition_states(run) +
   scale_fill_viridis_c(option = "turbo", na.value = "white") +
   scale_y_reverse() +
   theme_void() -> p
-#animate(p)
-ggsave("d07.png", plot = p, width = 11, height = 8.5, dpi = 250)
+animate(p)
+anim_save("d07_2025.gif")
+#ggsave("d07.png", plot = p, width = 11, height = 8.5, dpi = 250)
 ```
 
