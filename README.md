@@ -13,6 +13,10 @@
 ![Static](2025/d07.png)
 ![GIF](2025/d07_2025.gif)
 
+- Day08, "Playground"
+
+![](2025/d08.png)
+
 ### 2024
 
 TODO: d15p1, d13

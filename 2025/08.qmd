@@ -10,6 +10,8 @@ library(tidyverse)
 library(tictoc)
 library(plotly)
 library(R6)
+library(dendextend)
+library(circlize)
 options(scipen = 999)
 ```
 
@@ -39,7 +41,7 @@ input <- "162,817,812
 425,690,689"
 
 
-#input <- "input/08"
+input <- "input/08"
 
 tibble(e = read_lines(input)) |> 
   separate_wider_delim(cols = e, delim = ",", names_sep = "_") |> 
@@ -149,7 +151,6 @@ toc()
 as.matrix(coords) |> 
   dist() -> dist_dots
 
-
 mdist <- as.matrix(dist_dots)
 
 tibble(
@@ -178,16 +179,15 @@ toc()
 `102` and `827` are the two nodes that connect everyone
 
 ```{r}
-library(dendextend)
-library(circlize)
 dend <- as.dendrogram(hclust(dist_dots))
-col_p <- ifelse(labels(dend) == c(102, 827), "purple", "black")
-dend2 <- assign_values_to_leaves_edgePar(dend = dend, value = col_p, edgePar = "col")
+res <- 300
+ragg::agg_png("d08.png", width = 8 * res, height = 6 * res, res = res)
 dend |> 
-  set("by_labels_branches_col", value =  c(102, 827), type = "any") |> 
-  #set("branches_col", ifelse(seq_len(nrow(coords)) %in% c(102, 827), "red", "grey")) |> 
- # set("labels_col", ifelse(seq_len(nrow(coords)) %in% c(102, 827), "red", "white")) |> 
- plot()
-  #circlize_dendrogram(labels_track_height = NA, dend_track_height = .3) 
+  set("labels_cex", ifelse(labels(dend) %in% ids, 2, 0.1)) |> 
+  color_labels(col = "purple", labels = ids) |> 
+  set("by_labels_branches_col", value =  ids, type = "any", TF_values = c("purple", "black")) |> 
+  set("by_labels_branches_lwd", value =  ids, type = "any", TF_values = c(5, 1)) |> 
+  circlize_dendrogram() 
+dev.off()
 ```
 
