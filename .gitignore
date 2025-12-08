@@ -11,3 +11,4 @@ serial*
 test*
 **/Cargo.lock
 **/target/
+/.Renviron

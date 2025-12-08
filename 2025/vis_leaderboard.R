@@ -1,6 +1,14 @@
 library(tidyverse)
+library(httr2)
 
-lstats <- jsonlite::read_json("2025/1029538.json")
+#jsonlite::read_json("2025/1029538.json")
+
+lstats <- request(
+  "https://adventofcode.com/2025/leaderboard/private/view/1029538.json"
+) |>
+  req_cookies_set(session = Sys.getenv("AOC_COOKIE")) |>
+  req_perform() |>
+  resp_body_json()
 
 pluck(lstats, "members") |>
   map(as_tibble) |>
@@ -15,12 +23,12 @@ pluck(lstats, "members") |>
   select(-completion_day_level) |>
   unnest(s, names_sep = '_') |>
   pivot_wider(
-    id_cols = c(stars:id, s_day),
+    id_cols = c(stars, name, local_score, s_day),
     names_from = c(s_value_id, s_part),
     values_from = s_value
   ) |>
   mutate(across(starts_with("get_star_ts"), \(ts) as_datetime(ts))) |>
-  select(-id, -starts_with("star_index")) |>
+  select(-starts_with("star_index")) |>
   mutate(
     ts_day1 = as_datetime(lstats$day1_ts) + days(as.integer(s_day) - 1L),
     time_solve_1 = get_star_ts_1 - ts_day1,
