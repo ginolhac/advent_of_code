@@ -1,0 +1,146 @@
+---
+title: "09"
+format: html
+---
+
+```{r}
+#| label: setup
+#| include: false
+library(tidyverse)
+library(tictoc)
+library(sp)
+library(sf)
+options(scipen = 999)
+```
+
+## Part 1
+
+```{r}
+input <- "7,1
+11,1
+11,7
+9,7
+9,5
+2,5
+2,3
+7,3"
+
+
+input <- "input/09"
+
+parse_coord <- function(r) {
+  str_split_1(r, ',') |> as.numeric()
+}
+
+compute_area <- function(a, b) {
+  abs(a[1] - b[1] + 1) * abs(a[2] - b[2] + 1)
+}
+
+tic()
+combn(read_lines(input), 2, simplify = FALSE) |> 
+  map(\(x) list(parse_coord(x[1]), parse_coord(x[2]))) |> 
+  enframe() |> 
+  mutate(c1 = map(value, 1),
+         c2 = map(value, 2)) -> rectangles
+mutate(rectangles, area = map2_dbl(c1, c2, compute_area)) |> 
+  slice_max(area, n = 1)
+toc()
+
+```
+
+4781377701
+
+4.211 sec elapsed
+
+## Part 2
+
+max_x 98240
+max_y 98457
+
+Sort the area from part 1 from large to small and test if overlap with green areas.
+As soon as one is valid, break.
+
+
+```{r}
+tibble(coord = read_lines(input)) |> 
+  mutate(cc = map(coord, parse_coord)) |> 
+  unnest_wider(col = cc, names_sep = "_") |> 
+  rename(x = cc_1, y = cc_2) -> red_tiles
+
+red_tiles
+```
+```
+# A tibble: 28 × 7     x1    y1    x2    y2
+    name value       c1_1  c1_2  c2_1  c2_2  area
+   <int> <list>     <dbl> <dbl> <dbl> <dbl> <dbl>
+ 1    17 <list [2]>    11     7     2     3    50  (11 - 2 + 1) * ( 7 - 3 + 1)
+      21 <list [2]>	    9	    7	    2	    3    40
+```
+
+Trying out using range of x and y but then should merge both. To be forgotten
+
+```{r}
+#| eval: false
+red_tiles |> 
+  mutate(range = map(x, \(xval) filter(red_tiles, x == xval) |> 
+                        pull(y) |> 
+                        range())) |> 
+  distinct(x, range) |> 
+  unnest_wider(range, names_sep = "_") |> 
+  # generate all missing x values
+  full_join(tibble(x = seq(min(red_tiles$x), max(red_tiles$x)))) |> 
+  # sort for filling from above
+  arrange(x) |> 
+  fill(starts_with("range"))
+
+
+red_tiles |> 
+  mutate(range = map(y, \(yval) filter(red_tiles, y == yval) |> 
+                        pull(x) |> 
+                        range())) |> 
+  distinct(y, range) |> 
+  unnest_wider(range, names_sep = "_") |> 
+  # generate all missing x values
+  full_join(tibble(y = seq(min(red_tiles$y), max(red_tiles$y)))) |> 
+  # sort for filling from above
+  arrange(y) |> 
+  fill(starts_with("range"))
+```
+
+
+Using fancy `{sp}` instead and smart **Polygon**
+
+```{r}
+select(red_tiles, x, y) |> 
+  as.matrix() |> 
+  Polygon() -> green_area
+
+green_area <- SpatialPolygons(list(Polygons(list(green_area), ID = 1)))
+
+tic()
+mutate(rectangles, area = map2_dbl(c1, c2, compute_area)) |> 
+  arrange(desc(area)) |> 
+  unnest_wider(col = c(c1, c2), names_sep = "_") -> part2
+
+for (i in seq_len(nrow(part2))) {
+  matrect <- tibble(x = c(part2$c1_1[i], part2$c2_1[i],
+                          part2$c1_1[i], part2$c2_1[i]),
+                    y = c(part2$c1_2[i], part2$c2_2[i],
+                          part2$c2_2[i], part2$c1_2[i])) |> 
+    arrange(x) |> 
+    as.matrix()
+  rect_sp <- SpatialPolygons(list(Polygons(list(Polygon(matrect)), ID = 1)))
+  
+  ll <- st_contains(st_as_sf(rect_sp), st_as_sf(green_area))
+  
+  if (i %% 10000 == 0) message(paste(i, " rectangles evaluated so far, area: ", part2[i, "area"]))
+  
+  if(length(ll[[1]]) != 0) break
+}
+toc()
+
+plot(green_area)
+plot(rect_sp) # plot(rect_sp, add = TRUE) in console to superpose
+```
+4767548688 too high
+4602347920 too high

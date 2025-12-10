@@ -2,6 +2,7 @@ library(tidyverse)
 library(httr2)
 
 #jsonlite::read_json("2025/1029538.json")
+# Tanguy 752300
 
 lstats <- request(
   "https://adventofcode.com/2025/leaderboard/private/view/1029538.json"
@@ -46,7 +47,7 @@ ggplot(aoc_stats, aes(x = s_day, y = timestamp, colour = name, group = name)) +
   geom_line() +
   scale_y_continuous(
     labels = scales::label_timespan(unit = "secs"),
-    breaks = seq(0, 3600 * 24, 3600 * 4),
+    breaks = seq(0, 3600 * 24, 3600 * 10),
   ) +
   facet_wrap(vars(part), labeller = "label_both") +
   theme_bw() +
@@ -55,4 +56,30 @@ ggplot(aoc_stats, aes(x = s_day, y = timestamp, colour = name, group = name)) +
     colour = NULL,
     title = "AoC 2025",
     y = "Time to solve (Part 1: from puzzle release, Part 2: from part 1)"
+  )
+
+aoc_stats |>
+  filter(str_detect(name, "Cyrille|Hugues")) |>
+  select(name, s_day, part, timestamp) |>
+  pivot_wider(
+    id_cols = c(part, s_day),
+    names_from = name,
+    values_from = timestamp
+  ) |>
+  mutate(diff_esc = `Hugues Esc_` - `Cyrille Medard de Chardon`) |>
+  ggplot(aes(x = s_day, y = diff_esc, colour = part, group = part)) +
+  geom_point() +
+  geom_line() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  scale_y_continuous(
+    labels = scales::label_timespan(unit = "secs"),
+    breaks = seq(-3600 * 3, 3600 * 3, 3600),
+  ) +
+  coord_cartesian(ylim = c(-12000, 12000)) +
+  theme_bw() +
+  labs(
+    x = "Day",
+    colour = "Part",
+    title = "AoC 2025",
+    y = "difference Hugues / Cyrille time to solve"
   )
