@@ -28,8 +28,8 @@ input <- "[.##.] (3) (1,3) (2) (2,3) (0,2) (0,1) {3,5,4,7}
 [...#.] (0,2,3,4) (2,3) (0,4) (0,1,2) (1,2,3,4) {7,5,12,7,2}
 [.###.#] (0,1,2,3,4) (0,3,4) (0,1,2,4,5) (1,2) {10,11,11,5,10,5}"
 
+input <- "input/10"
 instructions <- read_lines(input)
-#input <- "input/10"
 
 parse_factory <- function(line) {
   lights <- str_extract(line, "\\[(.+)\\]", group = 1) |> 
@@ -55,8 +55,8 @@ parse_factory <- function(line) {
        buttons = buttons,
        joltages = joltages)
 }
-ll <- parse_factory(instructions[1])
-ll
+switches <- map(instructions, parse_factory)
+length(switches)
 ```
 
 
@@ -68,37 +68,58 @@ ll
 
 Trying than [`{ompr}`](https://dirkschumacher.github.io/ompr/) by **Dirk Schumacher**
 
+Thanks **Hugues esc_** for the help the binary answers for the lights!
+
 ```{r}
 
 
-A <- matrix(c(c(1, 0, 0, 1),
-              c(0, 1, 0, 1),
-              c(0, 0, 1, 0),
-              c(0, 0, 1, 1),
-              c(1, 0, 1, 0),
-              c(1, 1, 0, 0)), nrow = 4)
-A
-
-goal <- c(0, 1, 1, 0)
-
-A
-
-model <- MIPModel() |> 
-  # buttons
-  add_variable(x[i], i = 1:6, type = "binary") |> 
-  # expected results
-  add_variable(k[i], i = 1:4, type = "integer") |> 
-  # button (5, 6) for a even result (0)
-  add_constraint(sum_over(x[i], i = c(5, 6)) == 2 * k[1]) |> 
-  # odd result (1)
-  add_constraint(sum_over(x[i], i = c(2, 6)) == 2 * k[2] + 1) |> 
-  add_constraint(sum_over(x[i], i = c(3, 4, 5)) == 2 * k[3] + 1) |> 
-  add_constraint(sum_over(x[i], i = c(1, 2, 4)) == 2 * k[4]) |> 
-  set_objective( sum_over(x[i], i = 1:6), sense = "min") |> 
-  solve_model(with_ROI(solver = "glpk", verbose = TRUE))
-get_solution(model, k[i])
-
+build_model_part1 <- function(switches) {
+  
+  mat <- switches$buttons |> 
+    flatten_int() |> 
+    matrix(nrow = length(switches$lights), byrow = FALSE)
+  
+  
+  model <- MIPModel() |> 
+    # buttons
+    add_variable(x[i], i = seq_along(switches$buttons), type = "binary") |> 
+    # expected results
+    add_variable(k[i], i = seq_along(switches$lights), type = "integer", lb = 0)
+  
+  for (button in seq_along(switches$lights)) {
+    if (switches$lights[button] == 0) {
+      model <- add_constraint(model, sum_over(x[i], i = which(mat[button, ] == 1)) == 2 * k[button])
+    } else {
+      model <- add_constraint(model, sum_over(x[i], i = which(mat[button, ] == 1)) == 2 * k[button] + 1)
+    }
+  }
+  
+  model <- set_objective(model, sum_over(x[i], i = seq_along(switches$buttons)), sense = "min") |> 
+    solve_model(with_ROI(solver = "glpk", verbose = FALSE))
+  #get_solution(model, x[i])
+  objective_value(model)
+}
+tic()
+map_int(switches, build_model_part1) |> sum()
+toc()
 ```
 
+547 10.674 secs
 
 
+example of output of `extract_constraints(model)` for first example
+```
+$matrix
+4 x 10 sparse Matrix of class "dgCMatrix"
+                            
+[1,] . . . . 1 1 -2  .  .  .
+[2,] . 1 . . . 1  . -2  .  .
+[3,] . . 1 1 1 .  .  . -2  .
+[4,] 1 1 . 1 . .  .  .  . -2
+
+$sense
+[1] "==" "==" "==" "=="
+
+$rhs
+[1] 0 1 1 0
+```
