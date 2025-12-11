@@ -123,3 +123,33 @@ $sense
 $rhs
 [1] 0 1 1 0
 ```
+
+## Part 2
+
+```{r}
+build_model_part2 <- function(switches) {
+  
+  mat <- switches$buttons |> 
+    flatten_int() |> 
+    matrix(nrow = length(switches$lights), byrow = FALSE)
+  
+  
+  model <- MIPModel() |> 
+    # buttons
+    add_variable(x[i], i = seq_along(switches$buttons), type = "integer", lb = 0)
+  
+  for (button in seq_along(switches$lights)) {
+      model <- add_constraint(model, sum_over(x[i], i = which(mat[button, ] == 1)) == switches$joltages[button])
+  }
+  
+  model <- set_objective(model, sum_over(x[i], i = seq_along(switches$buttons)), sense = "min") |> 
+    solve_model(with_ROI(solver = "glpk", verbose = FALSE))
+  #get_solution(model, x[i])
+  objective_value(model)
+}
+tic()
+map_int(switches, build_model_part2) |> sum()
+toc()
+```
+
+21111 9.666 sec elapsed
