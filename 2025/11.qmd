@@ -1,0 +1,112 @@
+---
+title: "11"
+format: html
+---
+
+```{r}
+#| label: setup
+#| include: false
+library(tidyverse)
+library(tictoc)
+library(igraph)
+library(tidygraph)
+options(scipen = 999)
+```
+
+**Reactor**
+
+
+## Part 1
+
+
+
+```{r}
+input <- "aaa: you hhh
+you: bbb ccc
+bbb: ddd eee
+ccc: ddd eee fff
+ddd: ggg
+eee: out
+fff: out
+ggg: out
+hhh: ccc fff iii
+iii: out"
+
+input <- "input/11"
+tibble(x = read_lines(input)) |> 
+  separate_wider_delim(cols = x, names = c("from", "to"), delim = ':') |> 
+  mutate(to = trimws(to)) |> 
+  separate_rows(to) -> graph_str
+graph_str
+```
+
+
+
+```{r}
+tic()
+devices_fct <- sort(unique(c(graph_str$from, graph_str$to))) |> as.factor()
+
+
+tbl_graph(nodes = tibble(name = levels(devices_fct)), 
+          edges = tibble(from = as.integer(factor(graph_str$from, levels = devices_fct)),
+                         to = as.integer(factor(graph_str$to, levels = devices_fct)))
+) -> device_graph
+plot(device_graph)
+
+all_simple_paths(device_graph, "you", "out") |> length()
+toc()
+```
+
+668
+0.442 sec elapsed
+
+## Part 2
+
+Work on example, takes too long on real data. To be updated one day
+
+```{r}
+input <- "svr: aaa bbb
+aaa: fft
+fft: ccc
+bbb: tty
+tty: ccc
+ccc: ddd eee
+ddd: hub
+hub: fff
+eee: dac
+dac: fff
+fff: ggg hhh
+ggg: out
+hhh: out"
+
+tic(msg = "create graph")
+input <- "input/11"
+tibble(x = read_lines(input)) |> 
+  separate_wider_delim(cols = x, names = c("from", "to"), delim = ':') |> 
+  mutate(to = trimws(to)) |> 
+  separate_rows(to) -> graph_str
+graph_str
+
+devices_fct <- sort(unique(c(graph_str$from, graph_str$to))) |> as.factor()
+
+
+tbl_graph(nodes = tibble(name = levels(devices_fct)), 
+          edges = tibble(from = as.integer(factor(graph_str$from, levels = devices_fct)),
+                         to = as.integer(factor(graph_str$to, levels = devices_fct)))
+) -> device_graph
+#plot(device_graph)
+
+tic("ap1")
+ap1 <- all_simple_paths(device_graph, "svr", "fft")
+toc()
+tic("ap2")
+ap3 <- all_simple_paths(device_graph, "fft", "dac")
+toc()
+tic("ap3")
+ap3 <- all_simple_paths(device_graph, "dac", "out")
+
+
+prod(length(ap1), length(ap2), length(ap3))
+toc()
+```
+
