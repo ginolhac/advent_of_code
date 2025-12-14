@@ -1,0 +1,41 @@
+---
+title: "12"
+format: html
+---
+
+```{r}
+#| label: setup
+#| include: false
+library(tidyverse)
+library(tictoc)
+options(scipen = 999)
+```
+
+**Christmas Tree Farm**
+
+Sum up the number of '#' so the area of each shape
+
+```{r}
+shapes_lines <- read_lines("input/12", n_max = 24, skip_empty_rows = TRUE)
+idx <- 0
+shapes_area <- vector(mode = "integer", length = str_count(shapes_lines, "\\d") |> sum())
+for (shape in seq_along(shapes_lines)) {
+  if (str_detect(shapes_lines[shape], "\\d")) idx <- idx + 1
+  shapes_area[idx] <-  shapes_area[idx] + str_count(shapes_lines[shape], "#")
+}
+```
+
+
+```{r}
+tibble(x = read_lines("input/12", skip = 29, skip_empty_rows = TRUE)) |> 
+  mutate(width = str_extract(x, "^\\d+") |> as.integer(),
+         height = str_extract(x, "x(\\d+)\\:", group = 1) |> as.integer(),
+         area_available = width * height,
+         shapes = str_extract(x, " \\d+.+$") |> trimws(),
+         shapes_nb = map(shapes, \(x) str_split_1(x, ' ') |> as.integer()),
+         area_required = map_int(shapes_nb, \(x) sum(x * shapes_area))) |> 
+  filter(area_available >= area_required) |> 
+  nrow()
+```
+
+575
