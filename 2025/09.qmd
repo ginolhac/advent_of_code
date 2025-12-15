@@ -131,11 +131,14 @@ for (i in seq_len(nrow(part2))) {
     as.matrix()
   rect_sp <- SpatialPolygons(list(Polygons(list(Polygon(matrect)), ID = 1)))
   
-  ll <- st_contains(st_as_sf(rect_sp), st_as_sf(green_area))
+  inters <- st_intersection(st_as_sf(green_area), st_as_sf(rect_sp))
   
   if (i %% 10000 == 0) message(paste(i, " rectangles evaluated so far, area: ", part2[i, "area"]))
-  
-  if(length(ll[[1]]) != 0) break
+  # rect fully contained
+  if (st_area(st_as_sf(inters)) == st_area(st_as_sf(rect_sp))) {
+    message(paste(i, " rectangles evaluated so far, area: ", part2[i, "area"]))
+    break
+  }
 }
 toc()
 
@@ -144,3 +147,30 @@ plot(rect_sp) # plot(rect_sp, add = TRUE) in console to superpose
 ```
 4767548688 too high
 4602347920 too high
+1470584154 not correct
+
+Playing with https://stackoverflow.com/a/62450167/1395352
+
+```{r}
+rectover <- structure(c(20000, 20000, 60000, 60000, 10000, 14000, 14000, 
+                        10000), dim = c(4L, 2L), dimnames = list(NULL, c("x", "y")))
+rectin <- structure(c(30000, 30000, 60000, 60000, 10000, 14000, 14000, 
+                      10000), dim = c(4L, 2L), dimnames = list(NULL, c("x", "y")))
+rect_sp <- SpatialPolygons(list(Polygons(list(Polygon(rectin)), ID = 1)))
+interin = ll
+
+inters <- st_intersection(st_as_sf(green_area), st_as_sf(rect_sp))
+
+plot(green_area, col = "green3")
+plot(rect_sp, col = "tomato2", add = TRUE)
+plot(inters, add = TRUE, col = "orange")
+```
+
+List of 1
+ $ : int 1
+ - attr(*, "predicate")= chr "overlaps"
+ - attr(*, "region.id")= chr "1"
+ - attr(*, "remove_self")= logi FALSE
+ - attr(*, "retain_unique")= logi FALSE
+ - attr(*, "ncol")= int 1
+ - attr(*, "class")= chr [1:2] "sgbp" "list"
