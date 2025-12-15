@@ -42,12 +42,20 @@ pluck(lstats, "members") |>
     values_to = "timestamp"
   ) -> aoc_stats
 
-ggplot(aoc_stats, aes(x = s_day, y = timestamp, colour = name, group = name)) +
+ggplot(
+  aoc_stats,
+  aes(
+    x = fct_reorder(s_day, as.integer(s_day)),
+    y = timestamp,
+    colour = name,
+    group = name
+  )
+) +
   geom_point() +
   geom_line() +
   scale_y_continuous(
     labels = scales::label_timespan(unit = "secs"),
-    breaks = seq(0, 3600 * 24, 3600 * 10),
+    breaks = seq(0, 3600 * 46, 3600 * 10),
   ) +
   facet_wrap(vars(part), labeller = "label_both") +
   theme_bw() +
@@ -67,7 +75,12 @@ aoc_stats |>
     values_from = timestamp
   ) |>
   mutate(diff_esc = `Hugues Esc_` - `Cyrille Medard de Chardon`) |>
-  ggplot(aes(x = s_day, y = diff_esc, colour = part, group = part)) +
+  ggplot(aes(
+    x = fct_reorder(s_day, as.integer(s_day)),
+    y = diff_esc,
+    colour = part,
+    group = part
+  )) +
   geom_point() +
   geom_line() +
   geom_hline(yintercept = 0, linetype = "dashed") +
@@ -75,7 +88,7 @@ aoc_stats |>
     labels = scales::label_timespan(unit = "secs"),
     breaks = seq(-3600 * 3, 3600 * 3, 3600),
   ) +
-  coord_cartesian(ylim = c(-12000, 12000)) +
+  coord_cartesian(ylim = c(-22000, 22000)) +
   theme_bw() +
   labs(
     x = "Day",
