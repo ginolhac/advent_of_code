@@ -33,7 +33,7 @@ parse_coord <- function(r) {
 }
 
 compute_area <- function(a, b) {
-  abs(a[1] - b[1] + 1) * abs(a[2] - b[2] + 1)
+  (abs(a[1] - b[1]) + 1) * (abs(a[2] - b[2]) + 1)
 }
 
 tic()
@@ -77,36 +77,6 @@ red_tiles
       21 <list [2]>	    9	    7	    2	    3    40
 ```
 
-Trying out using range of x and y but then should merge both. To be forgotten
-
-```{r}
-#| eval: false
-red_tiles |> 
-  mutate(range = map(x, \(xval) filter(red_tiles, x == xval) |> 
-                        pull(y) |> 
-                        range())) |> 
-  distinct(x, range) |> 
-  unnest_wider(range, names_sep = "_") |> 
-  # generate all missing x values
-  full_join(tibble(x = seq(min(red_tiles$x), max(red_tiles$x)))) |> 
-  # sort for filling from above
-  arrange(x) |> 
-  fill(starts_with("range"))
-
-
-red_tiles |> 
-  mutate(range = map(y, \(yval) filter(red_tiles, y == yval) |> 
-                        pull(x) |> 
-                        range())) |> 
-  distinct(y, range) |> 
-  unnest_wider(range, names_sep = "_") |> 
-  # generate all missing x values
-  full_join(tibble(y = seq(min(red_tiles$y), max(red_tiles$y)))) |> 
-  # sort for filling from above
-  arrange(y) |> 
-  fill(starts_with("range"))
-```
-
 
 Using fancy `{sp}` instead and smart **Polygon**
 
@@ -140,12 +110,14 @@ for (i in seq_len(nrow(part2))) {
   
   areas[[i]] <- c(st_area(st_as_sf(rect_sp)), st_area(st_as_sf(inters)))
   # rect fully contained
-  # if (st_area(st_as_sf(inters)) == st_area(st_as_sf(rect_sp))) {
-  #   message(paste(i, " rectangles evaluated so far, area: ", part2[i, "area"]))
-  #   break
-  # }
+  if (st_area(st_as_sf(inters)) == st_area(st_as_sf(rect_sp))) {
+    message(paste(i, " rectangles evaluated so far, area: ", part2[i, "area"]))
+    break
+  }
 }
 toc()
+
+
 
 plot(green_area)
 plot(rect_sp) # plot(rect_sp, add = TRUE) in console to superpose
@@ -154,13 +126,18 @@ plot(rect_sp) # plot(rect_sp, add = TRUE) in console to superpose
 4602347920 too high
 1470584154 not correct
 1470511006 not correct
+1470616992 <- 
+
+50831  rectangles evaluated so far, area:  1470616992 (sp computes (94821 - 5254)*(66490 - 50072) = 1470511006)
+
+
 
 ```{r}
 part2 |> 
   mutate(ll = areas) |> 
   unnest_wider(ll, names_sep = "_") |> 
   filter(ll_1 == ll_2) |> 
-  slice_max(ll_1, n = 10)
+  slice_max(ll_1, n = 1)
 ```
 
 
