@@ -10,6 +10,7 @@ library(tidyverse)
 library(tictoc)
 library(igraph)
 library(tidygraph)
+library(memoise)
 options(scipen = 999)
 ```
 
@@ -32,7 +33,7 @@ ggg: out
 hhh: ccc fff iii
 iii: out"
 
-input <- "input/11"
+#input <- "input/11"
 tibble(x = read_lines(input)) |> 
   separate_wider_delim(cols = x, names = c("from", "to"), delim = ':') |> 
   mutate(to = trimws(to)) |> 
@@ -58,7 +59,7 @@ toc()
 ```
 
 668
-0.442 sec elapsed
+0.442 sec elapsed (0.012 sec elapsed with recursion)
 
 ## Part 2
 
@@ -94,13 +95,13 @@ tbl_graph(nodes = tibble(name = levels(devices_fct)),
           edges = tibble(from = as.integer(factor(graph_str$from, levels = devices_fct)),
                          to = as.integer(factor(graph_str$to, levels = devices_fct)))
 ) -> device_graph
-#plot(device_graph)
+plot(device_graph)
 
 tic("ap1")
 ap1 <- all_simple_paths(device_graph, "svr", "fft")
 toc()
 tic("ap2")
-ap3 <- all_simple_paths(device_graph, "fft", "dac")
+ap2 <- all_simple_paths(device_graph, "fft", "dac")
 toc()
 tic("ap3")
 ap3 <- all_simple_paths(device_graph, "dac", "out")
@@ -110,3 +111,72 @@ prod(length(ap1), length(ap2), length(ap3))
 toc()
 ```
 
+Does not scale. New strategy:
+
+
+```{r}
+input <- "svr: aaa bbb
+aaa: fft
+fft: ccc
+bbb: tty
+tty: ccc
+ccc: ddd eee
+ddd: hub
+hub: fff
+eee: dac
+dac: fff
+fff: ggg hhh
+ggg: out
+hhh: out"
+
+input <- "input/11"
+
+lines_input <- read_lines(input)
+reactors <- hashtab()
+
+for (i in seq_along(lines_input)) {
+  start <- str_split_i(lines_input[i], ':', 1)
+  links <- str_split_i(lines_input[i], ':', 2) |> 
+    trimws() |> 
+    str_split_1(' ')
+  sethash(reactors, start, links)
+}
+reactors
+
+mandatory_nodes <- c("dac" = FALSE, "fft" = FALSE)
+
+find_el <- function(h, el, end = "out", mn) {
+  #message(paste("el ", el,  " links: ", 
+  #              gethash(h, el), " manda: ", paste(mn, collapse = " ")))
+  if (el == end) {
+    if (all(mn)) {
+      return(1)
+    }
+    else {
+      return(0)
+    }
+  }
+  
+  # mark we visit the mandatory nodes
+  if (el %in% names(mn)) mn[el] <- TRUE
+  
+  path_sum <- 0
+  
+  for (l in gethash(h, el)) {
+    path_sum <- path_sum + find_el(h, l, end = end, mn)
+  }
+  path_sum
+}
+# cache results
+find_el <- memoise(find_el)
+
+tic()
+find_el(h = reactors, el = "svr", mn = mandatory_nodes)
+toc()
+
+
+```
+
+71728959974630347505664 too high. Total number of paths
+1286055889768392 too high
+ 294310962265680 in 1.021 seconds. Wrongly counted mandatory nodes
