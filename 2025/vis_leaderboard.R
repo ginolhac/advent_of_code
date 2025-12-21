@@ -39,14 +39,21 @@ pluck(lstats, "members") |>
     cols = starts_with("time_solve"),
     names_to = "part",
     names_prefix = "time_solve_",
-    values_to = "timestamp"
+    values_to = "time_tosolve"
+  ) |>
+  mutate(
+    time_tosolve = if_else(
+      time_tosolve > 30 * 3600,
+      as.duration(30 * 3600),
+      time_tosolve
+    )
   ) -> aoc_stats
 
 ggplot(
   aoc_stats,
   aes(
     x = fct_reorder(s_day, as.integer(s_day)),
-    y = timestamp,
+    y = time_tosolve,
     colour = name,
     group = name
   )
@@ -63,16 +70,17 @@ ggplot(
     x = "Day",
     colour = NULL,
     title = "AoC 2025",
+    subtitle = "Time cap to 30 hours",
     y = "Time to solve (Part 1: from puzzle release, Part 2: from part 1)"
   )
 
 aoc_stats |>
   filter(str_detect(name, "Cyrille|Hugues")) |>
-  select(name, s_day, part, timestamp) |>
+  select(name, s_day, part, time_tosolve) |>
   pivot_wider(
     id_cols = c(part, s_day),
     names_from = name,
-    values_from = timestamp
+    values_from = time_tosolve
   ) |>
   mutate(diff_esc = `Hugues Esc_` - `Cyrille Medard de Chardon`) |>
   ggplot(aes(
