@@ -2,6 +2,8 @@
 format: html
 ---
 
+With Hugues and Cyrille: https://h-escoffier.github.io/advent_of_code/soc.html
+
 
 ```{r}
 #| label: setup
@@ -18,10 +20,10 @@ library(tidyverse)
 input <- read_lines("input/01")
 
 input |>
-    str_split_1('') |>
-    str_replace_all(fixed(c('(' = "1", ')' = "-1"))) |> 
-    as.integer() |> 
-    sum()
+  str_split_1('') |>
+  str_replace_all(fixed(c('(' = "1", ')' = "-1"))) |>
+  as.integer() |>
+  sum()
 ```
 
 74
@@ -34,10 +36,10 @@ input |>
 
 ```{r}
 input |>
-    str_split_1('') |>
-    str_replace_all(fixed(c('(' = "1", ')' = "-1"))) |> 
-    as.integer() |> 
-    cumsum() -> result
+  str_split_1('') |>
+  str_replace_all(fixed(c('(' = "1", ')' = "-1"))) |>
+  as.integer() |>
+  cumsum() -> result
 which(result == -1)[1]
 ```
 

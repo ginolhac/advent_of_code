@@ -1,0 +1,73 @@
+---
+format: html
+---
+
+
+```{r}
+#| label: setup
+#| include: false
+
+library(tidyverse)
+```
+
+
+## Part 1
+
+2*l*w + 2*w*h + 2*h*l
+
+```{r}
+paper_area <- function(dims) {
+  area <- 2 * (dims[1] * dims[2] + dims[2] * dims[3] + dims[1] * dims[3])
+  area + min(c(dims[1] * dims[2], dims[2] * dims[3], dims[1] * dims[3]))
+}
+
+
+input <- read_lines("input/02")
+
+input <- read_lines(
+  "2x3x4
+1x1x10"
+)
+
+input |>
+  map(\(d) str_split_1(d, 'x') |> as.integer()) |>
+  map_int(paper_area) |>
+  sum()
+```
+
+1586300
+
+
+
+## Part 2
+
+The ribbon required to wrap a present is the shortest distance around its sides, or the smallest perimeter of any one face. Each present also requires a bow made out of ribbon as well; the feet of ribbon required for the perfect bow is equal to the cubic feet of volume of the present.
+
+```{r}
+ribbon_area <- function(dims) {
+  # for the bow
+  bow_volume <- dims[1] * dims[2] * dims[3]
+  # smallest perimeter
+  small_perim <- min(c(
+    (dims[1] * 2 + dims[2] * 2),
+    (dims[2] * 2 + dims[3] * 2),
+    (dims[1] * 2 + dims[3] * 2)
+  ))
+  small_perim + bow_volume
+}
+
+input <- read_lines("input/02")
+
+input <- read_lines(
+  "2x3x4
+1x1x10"
+)
+
+input |>
+  map(\(d) str_split_1(d, 'x') |> as.integer()) |>
+  map_int(ribbon_area) |>
+  sum()
+```
+
+3742732 too high
+3737498
