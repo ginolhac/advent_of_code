@@ -1,0 +1,45 @@
+---
+format: html
+---
+
+
+```{r}
+#| label: setup
+#| include: false
+
+library(tidyverse)
+```
+
+
+## Part 1
+
+
+```{r}
+input <- read_lines("input/01")
+
+input |>
+    str_split_1('') |>
+    str_replace_all(fixed(c('(' = "1", ')' = "-1"))) |> 
+    as.integer() |> 
+    sum()
+```
+
+74
+
+
+
+## Part 2
+
+
+
+```{r}
+input |>
+    str_split_1('') |>
+    str_replace_all(fixed(c('(' = "1", ')' = "-1"))) |> 
+    as.integer() |> 
+    cumsum() -> result
+which(result == -1)[1]
+```
+
+
+1795
