@@ -1,0 +1,97 @@
+---
+format: html
+---
+
+
+```{r}
+#| label: setup
+#| include: false
+
+library(tidyverse)
+library(fastmap)
+```
+
+
+## Part 1
+
+using a hashtable https://r-lib.github.io/fastmap/
+
+```{r}
+coord2str <- function(coord) paste(coord, collapse = '|')
+str2coord <- function(str) str_split_1(str, fixed('|')) |> as.numeric()
+
+santa_travel <- function(h, move, prev) {
+  new <- switch(
+    move,
+    '^' = c(0, 1),
+    '<' = c(-1, 0),
+    '>' = c(1, 0),
+    'v' = c(0, -1),
+    stop("Unknown input")
+  ) +
+    prev
+  new <- coord2str(new)
+  if (h$has(new)) {
+    h$set(new, h$get(new) + 1)
+  } else {
+    h$set(new, 1)
+  }
+  #message(paste("move ", move, "new ", new, "h ", h$get(new)))
+  str2coord(new)
+}
+```
+
+```{r}
+houses <- fastmap()
+
+input <- read_lines("input/03") # "^v^v^v^v^v"
+
+start <- c(0, 0)
+
+houses$set(coord2str(start), 1)
+
+for (m in str_split_1(input, '')) {
+  start <- santa_travel(houses, m, start)
+}
+```
+
+
+```{r}
+#| eval: false
+for (k in houses$keys()) {
+  message("key: ", k, ": ", houses$get(k))
+}
+```
+
+
+```{r}
+houses$size()
+```
+
+2081
+
+## Part 2
+
+
+```{r}
+houses2 <- fastmap()
+
+input <- read_lines("input/03") # "^v^v^v^v^v" 
+
+start <- c(0, 0)
+
+houses2$set(coord2str(start), 2)
+
+# santa travel, odd indices
+for (m in str_split_1(input, '')[seq(1, nchar(input), 2)]) {
+  start <- santa_travel(houses2, m, start)
+}
+# robot-santa travel, even indices
+start <- c(0, 0)
+for (m in str_split_1(input, '')[seq(2, nchar(input), 2)]) {
+  start <- santa_travel(houses2, m, start)
+}
+
+houses2$size()
+```
+
