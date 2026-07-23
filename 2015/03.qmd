@@ -70,13 +70,50 @@ houses$size()
 
 2081
 
+
+### Animation
+
+```{r}
+library(gganimate)
+
+houses <- fastmap()
+
+input <- read_lines("input/03") # "^v^v^v^v^v"
+
+start <- c(0, 0)
+
+houses$set(coord2str(start), 1)
+
+directions <- str_split_1(input, '')
+travel <- vector(mode = "list", length = length(directions) + 1L)
+travel[[1]] <- start
+
+for (i in seq_along(directions)) {
+  m <- directions[i]
+  start <- santa_travel(houses, m, start)
+  travel[[i + 1L]] <- start
+}
+
+enframe(travel) |>
+  unnest_wider(value, names_sep = '_') |>
+  #slice_head(n = 500) |>
+  ggplot(aes(value_1, value_2)) +
+  geom_point(alpha = 0.2, size = 1.2, colour = "firebrick1") +
+  transition_states(as.factor(name)) +
+  shadow_mark() +
+  theme_void() +
+  labs(subtitle = 'Frame {frame} of {nframes}') -> santa_trip
+santa_anim <- animate(santa_trip)
+save_animation(santa_anim, "santa_trip.gif")
+```
+
 ## Part 2
 
 
 ```{r}
 houses2 <- fastmap()
 
-input <- read_lines("input/03") # "^v^v^v^v^v" 
+input <- read_lines("input/03") # "^v^v^v^v^v"
 
 start <- c(0, 0)
 
@@ -94,4 +131,5 @@ for (m in str_split_1(input, '')[seq(2, nchar(input), 2)]) {
 
 houses2$size()
 ```
+
 
