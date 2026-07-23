@@ -1,0 +1,71 @@
+---
+format: html
+---
+
+
+```{r}
+#| label: setup
+#| include: false
+
+library(tidyverse)
+```
+
+
+## Part 1
+
+```{r}
+
+input <- "bgvyzdsv"
+#input <- "abcdef"
+
+five_zeroes_start <- function(i, n) {
+  paste0(i, n) |>
+    charToRaw() |>
+    tools::md5sum(bytes = _) |>
+    str_detect("^00000", negate = TRUE)
+}
+
+five_zeroes_start(input, 609043)
+
+counter <- 0
+
+while (five_zeroes_start(input, counter) && counter < 1e6) {
+  if (counter %% 50000 == 0) {
+    message(counter)
+  }
+  counter <- counter + 1
+}
+counter
+```
+
+5.2 seconds
+
+254575
+
+## Part 2
+
+```{r}
+
+input <- "bgvyzdsv"
+#input <- "abcdef"
+
+six_zeroes_start <- function(i, n) {
+  paste0(i, n) |>
+    charToRaw() |>
+    tools::md5sum(bytes = _) |>
+    str_detect("^000000", negate = TRUE)
+}
+
+counter <- 0
+
+while (six_zeroes_start(input, counter) && counter < 10e6) {
+  if (counter %% 100000 == 0) {
+    message(counter)
+  }
+  counter <- counter + 1
+}
+counter
+```
+
+
+1038736 28.4 seconds
