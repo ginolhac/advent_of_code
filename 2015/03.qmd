@@ -133,3 +133,62 @@ houses2$size()
 ```
 
 
+### Animation
+
+```{r}
+library(gganimate)
+
+houses2 <- fastmap()
+
+input <- read_lines("input/03") # "^v^v^v^v^v"
+
+start <- c(0, 0)
+
+houses2$set(coord2str(start), 2)
+
+directions <- str_split_1(input, '')
+travel_santa <- vector(mode = "list", length = (length(directions) + 1L))
+travel_robot <- vector(mode = "list", length = (length(directions) + 1L))
+travel_santa[[1]] <- start
+travel_robot[[1]] <- start
+
+# santa travel, odd indices
+for (i in seq(1, nchar(input), 2)) {
+  m <- directions[i]
+  start <- santa_travel(houses2, m, start)
+  travel_santa[[i + 1L]] <- start
+}
+# robot-santa travel, even indices
+start <- c(0, 0)
+for (i in seq(2, nchar(input), 2)) {
+  m <- directions[i]
+  start <- santa_travel(houses2, m, start)
+  travel_robot[[i + 1L]] <- start
+}
+
+
+bind_rows(
+  discard(travel_santa, is.null) |>
+    enframe() |>
+    unnest_wider(value, names_sep = '_') |>
+    mutate(who = "santa"),
+  discard(travel_robot, is.null) |>
+    enframe() |>
+    unnest_wider(value, names_sep = '_') |>
+    mutate(who = "robot")
+) |>
+  #filter(name < 500) |>
+  ggplot(aes(value_1, value_2, colour = who)) +
+  geom_point(alpha = 0.2, size = 1.2) +
+  transition_states(as.factor(name)) +
+  shadow_mark() +
+  theme_void() +
+  scale_colour_manual(values = c(santa = "firebrick1", robot = "grey50")) +
+  labs(
+    subtitle = 'Frame {frame} of {nframes}',
+    colour = NULL
+  ) -> santa_robot_trip
+santa_robot_anim <- animate(santa_robot_trip)
+santa_robot_anim <- animate(santa_robot_trip)
+save_animation(santa_robot_anim, "santa_robot_trip.gif")
+```
