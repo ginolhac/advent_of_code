@@ -20,7 +20,7 @@ library(tidyverse)
 
 ```{r}
 input <- read_lines("input/05")
-strings <- c(
+s <- c(
   "ugknbfddgicrmopn",
   "aaa",
   "jchzalrnumimnmhp",
@@ -43,3 +43,31 @@ tibble(s = input) |>
 
 
 ## Part 2
+
+- It contains a pair of any two letters that appears at least twice in the string without overlapping, like `xyxy` (`xy`) or `aabcdefgaa` (`aa`), but not like `aaa` (`aa`, but it overlaps).
+- It contains at least one letter which repeats with exactly one letter between them, like `xyx`, `abcdefeghi` (`efe`), or even `aaa`.
+
+
+```{r}
+input <- read_lines("input/05")
+s <- c(
+  "qjhvhtzxzqqjkmpb",
+  "xxyxx",
+  "uurcxstgmygtbstg",
+  "ieodomkazucvgmuy",
+  "xyxy",
+  "aabcdefgaa",
+  "aaa"
+)
+
+tibble(s = input) |>
+  mutate(
+    pairs = str_detect(s, "([a-z][a-z])[a-z]*\\1"),
+    repeated = str_detect(s, "([a-z])[a-z]\\1"),
+    nice = (pairs + repeated) == 2L
+  ) |>
+  summarise(sum(nice))
+```
+
+42 wrong
+55
