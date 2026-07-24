@@ -1,0 +1,45 @@
+---
+format: html
+---
+
+
+```{r}
+#| label: setup
+#| include: false
+
+library(tidyverse)
+```
+
+
+## Part 1
+
+
+- It contains at least **three vowels** (`aeiou` only), like aei, xazegov, or aeiouaeiouaeiou.
+- It contains at least **one letter that appears twice in a row**, like `xx`, abcdde (dd), or aabbccdd (aa, bb, cc, or dd).
+- It does **not** contain the strings `ab, cd, pq, or xy`, even if they are part of one of the other requirements.
+
+```{r}
+input <- read_lines("input/05")
+strings <- c(
+  "ugknbfddgicrmopn",
+  "aaa",
+  "jchzalrnumimnmhp",
+  "haegwjzuvuyypxyu",
+  "dvszwmarrgswjxmb"
+)
+
+tibble(s = input) |>
+  mutate(
+    vowels = str_count(s, "[aeiou]") >= 3,
+    repeated = str_detect(s, "([a-z])\\1"),
+    forbidden = str_detect(s, "ab|cd|pq|xy", negate = TRUE),
+    nice = (vowels + repeated + forbidden) == 3L
+  ) |>
+  summarise(sum(nice))
+```
+
+
+255
+
+
+## Part 2
