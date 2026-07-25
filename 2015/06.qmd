@@ -1,0 +1,77 @@
+---
+format: html
+---
+
+
+```{r}
+#| label: setup
+#| include: false
+
+library(tidyverse)
+```
+
+
+## Part 1
+
+
+```{r}
+lights <- matrix(vector(length = 1000), nrow = 1000, ncol = 1000)
+
+parse_instructions <- function(mat, line) {
+  pos <- str_extract_all(line, "\\d+", )[[1]] |> as.integer()
+  pos <- pos + 1L # R 1-based
+  if (str_detect(line, "^turn on")) {
+    mat[pos[1]:pos[3], pos[2]:pos[4]] <- TRUE
+  } else if (str_detect(line, "^turn off")) {
+    mat[pos[1]:pos[3], pos[2]:pos[4]] <- FALSE
+  } else {
+    mat[pos[1]:pos[3], pos[2]:pos[4]] <- !mat[pos[1]:pos[3], pos[2]:pos[4]]
+  }
+  mat
+}
+
+
+input <- read_lines(I("turn on 0,0 through 999,999
+toggle 0,0 through 999,0
+turn off 499,499 through 500,500"))
+input <- read_lines("input/06")
+for (instructions in input) {
+  lights <- parse_instructions(lights, instructions)
+}
+sum(lights)
+```
+
+543903
+
+## Part 2
+
+```{r}
+lights2 <- matrix(vector(mode = "integer", length = 1000), nrow = 1000, ncol = 1000)
+
+parse_instructions <- function(mat, line) {
+  pos <- str_extract_all(line, "\\d+", )[[1]] |> as.integer()
+  pos <- pos + 1L # R 1-based
+  if (str_detect(line, "^turn on")) {
+    mat[pos[1]:pos[3], pos[2]:pos[4]] <- mat[pos[1]:pos[3], pos[2]:pos[4]] + 1L
+  } else if (str_detect(line, "^turn off")) {
+    mat[pos[1]:pos[3], pos[2]:pos[4]] <- mat[pos[1]:pos[3], pos[2]:pos[4]] - 1L
+    # check which is < 0
+    submat <-  mat[pos[1]:pos[3], pos[2]:pos[4]]
+    submat[submat < 0] <- 0
+    mat[pos[1]:pos[3], pos[2]:pos[4]] <- submat
+  } else {
+    # toggle
+    mat[pos[1]:pos[3], pos[2]:pos[4]] <- mat[pos[1]:pos[3], pos[2]:pos[4]] + 2L
+  }
+  mat
+}
+
+input <- read_lines(I("turn on 0,0 through 999,999
+toggle 0,0 through 999,0
+turn off 499,499 through 500,500"))
+input <- read_lines("input/06")
+for (instructions in input) {
+  lights2 <- parse_instructions(lights2, instructions)
+}
+sum(lights2)
+```
