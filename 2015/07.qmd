@@ -1,0 +1,91 @@
+---
+format: html
+---
+
+
+```{r}
+#| label: setup
+#| include: false
+
+library(tidyverse)
+library(fastmap)
+```
+
+
+## Part 1
+
+bitwNot(a)
+bitwAnd(a, b)
+bitwOr(a, b)
+bitwXor(a, b)
+
+bitwShiftL(a, n)
+bitwShiftR(a, n)
+
+```{r}
+parse_circuit <- function(dict, line) {
+  assg <- str_split_1(line, " -> ")
+  if (str_detect(line, "^\\d+")) {
+    dict$set(assg[2], as.numeric(assg[1]))
+  } else {
+    op <- str_extract(line, "[A-Z]+")
+    switch(op,
+      "OR" = {
+        l <- dict$get(str_extract(assg[1], "^[a-z]+"))
+        r <- dict$get(str_extract(assg[1], "[a-z]+$"))
+        dict$set(assg[2], bitwOr(l, r))
+      },
+      "AND" = {
+        l <- dict$get(str_extract(assg[1], "^[a-z]+"))
+        r <- dict$get(str_extract(assg[1], "[a-z]+$"))
+        dict$set(assg[2], bitwAnd(l, r))
+      },
+      "NOT" = {
+        r <- dict$get(str_extract(assg[1], "[a-z]+$"))
+        # integers are 16 bits and we emulate unsigned integers
+        dict$set(assg[2], (bitwNot(r) + 2^16))
+      },
+      "LSHIFT" = {
+        l <- dict$get(str_extract(assg[1], "^[a-z]+"))
+        r <- str_extract(assg[1], "[0-9]+$") |> as.integer()
+        dict$set(assg[2], bitwShiftL(l, r))
+      },
+      "RSHIFT" = {
+        l <- dict$get(str_extract(assg[1], "^[a-z]+"))
+        r <- str_extract(assg[1], "[0-9]+$") |> as.integer()
+        dict$set(assg[2], bitwShiftR(l, r))
+      },
+      stop("Unknown input")
+    )
+  }
+  dict
+}
+
+input <- read_lines(I("123 -> x
+456 -> y
+x AND y -> d
+x OR y -> e
+x LSHIFT 2 -> f
+y RSHIFT 2 -> g
+NOT x -> h
+NOT y -> i"))
+
+
+input <- read_lines("input/07")
+str_subset(input, "^[0-9]")
+str_subset(input, "a")
+
+circuit <- fastmap()
+for (l in input) {
+  message(l)
+  parse_circuit(circuit, l)
+}
+
+```
+
+
+```{r}
+for (c in circuit$keys()) {
+  message("key: ", c, ": ", circuit$get(c))
+}
+```
