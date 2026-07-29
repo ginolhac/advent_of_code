@@ -25,62 +25,119 @@ bitwShiftR(a, n)
 ```{r}
 parse_circuit <- function(dict, line) {
   assg <- str_split_1(line, " -> ")
-  if (str_detect(line, "^\\d+")) {
-    dict$set(assg[2], as.numeric(assg[1]))
-  } else {
-    op <- str_extract(line, "[A-Z]+")
-    switch(op,
-      "OR" = {
+  op <- str_extract(line, "[A-Z]+")
+  switch(
+    op,
+    "OR" = {
+      if (str_detect(assg[1], "^\\d+")) {
+        l <- as.integer(assg[1])
+      } else {
         l <- dict$get(str_extract(assg[1], "^[a-z]+"))
-        r <- dict$get(str_extract(assg[1], "[a-z]+$"))
-        dict$set(assg[2], bitwOr(l, r))
-      },
-      "AND" = {
+      }
+      r <- dict$get(str_extract(assg[1], "[a-z]+$"))
+      dict$set(assg[2], bitwOr(l, r))
+    },
+    "AND" = {
+      if (str_detect(assg[1], "^\\d+")) {
+        l <- as.integer(str_extract(assg[1], "^\\d+"))
+      } else {
         l <- dict$get(str_extract(assg[1], "^[a-z]+"))
-        r <- dict$get(str_extract(assg[1], "[a-z]+$"))
-        dict$set(assg[2], bitwAnd(l, r))
-      },
-      "NOT" = {
-        r <- dict$get(str_extract(assg[1], "[a-z]+$"))
-        # integers are 16 bits and we emulate unsigned integers
-        dict$set(assg[2], (bitwNot(r) + 2^16))
-      },
-      "LSHIFT" = {
-        l <- dict$get(str_extract(assg[1], "^[a-z]+"))
-        r <- str_extract(assg[1], "[0-9]+$") |> as.integer()
-        dict$set(assg[2], bitwShiftL(l, r))
-      },
-      "RSHIFT" = {
-        l <- dict$get(str_extract(assg[1], "^[a-z]+"))
-        r <- str_extract(assg[1], "[0-9]+$") |> as.integer()
-        dict$set(assg[2], bitwShiftR(l, r))
-      },
-      stop("Unknown input")
-    )
-  }
-  dict
+      }
+      r <- dict$get(str_extract(assg[1], "[a-z]+$"))
+      dict$set(assg[2], bitwAnd(l, r))
+    },
+    "NOT" = {
+      r <- dict$get(str_extract(assg[1], "[a-z]+$"))
+      # integers are 16 bits and we emulate unsigned integers
+      dict$set(assg[2], (bitwNot(r) + 2^16))
+    },
+    "LSHIFT" = {
+      l <- dict$get(str_extract(assg[1], "^[a-z]+"))
+      r <- str_extract(assg[1], "[0-9]+$") |> as.integer()
+      dict$set(assg[2], bitwShiftL(l, r))
+    },
+    "RSHIFT" = {
+      l <- dict$get(str_extract(assg[1], "^[a-z]+"))
+      r <- str_extract(assg[1], "[0-9]+$") |> as.integer()
+      dict$set(assg[2], bitwShiftR(l, r))
+    },
+    stop("Unknown input")
+  )
+  invisible(dict)
 }
 
-input <- read_lines(I("123 -> x
+input <- read_lines(I(
+  "123 -> x
 456 -> y
 x AND y -> d
 x OR y -> e
 x LSHIFT 2 -> f
 y RSHIFT 2 -> g
 NOT x -> h
-NOT y -> i"))
+NOT y -> i"
+))
+# real input is not sorted and has lines like: digit AND id -> id2
+realistic_example <- read_lines(I(
+  "123 -> x
+y RSHIFT 2 -> g
+1 AND x -> j
+x OR y -> e
+456 -> y
+x AND y -> d
+x LSHIFT 2 -> f
+NOT x -> h
+j -> v
+NOT y -> i"
+))
 
 
 input <- read_lines("input/07")
-str_subset(input, "^[0-9]")
-str_subset(input, "a")
 
 circuit <- fastmap()
+instructions <- fastmap()
+
+# instructions are not giving in order like in the example
+#for (l in realistic_example) {
 for (l in input) {
-  message(l)
-  parse_circuit(circuit, l)
+  instructions$set(l, 1)
 }
 
+counter <- 0L
+while (instructions$size() > 0) {
+  for (line in instructions$keys()) {
+    assg <- str_split_1(line, " -> ")
+    #message(paste("treating ", line))
+    # pure assignment of a signal to an id
+    if (
+      str_detect(assg[1], "^\\d+$") && str_detect(line, "[A-Z]", negate = TRUE)
+    ) {
+      circuit$set(assg[2], as.numeric(assg[1]))
+      #message(paste("remove", line, "left:", instructions$size()))
+      instructions$remove(line)
+    } else {
+      # we cannot proceed yet if we don't have all values
+      vals <- str_extract_all(assg[1], "[a-z]+")[[1]]
+      if (!all(circuit$has(vals))) {
+        next
+      } else {
+        # another corner case like 'j -> v'
+        if (str_detect(line, "[A-Z]", negate = TRUE)) {
+          #message(paste("corner ", circuit$get(assg[2]), " ", circuit$get(assg[1])))
+          circuit$set(assg[2], circuit$get(assg[1]))
+        } else {
+          parse_circuit(circuit, line)
+          #message(paste(" parse remove", line, "left:", instructions$size()))
+        }
+        instructions$remove(line)
+      }
+    }
+  }
+  counter <- counter + 1L
+  if (counter %% 100 == 0) {
+    message(paste(counter, "left: ", instructions$size()))
+  }
+}
+circuit$get('a')
 ```
 
 
@@ -89,3 +146,52 @@ for (c in circuit$keys()) {
   message("key: ", c, ": ", circuit$get(c))
 }
 ```
+
+
+## Part 2
+
+
+
+```{r}
+# previous 1674 -> b
+instructions <- fastmap()
+for (l in c("46065 -> b", str_subset(input, "\\d+ -> b$", negate = TRUE))) {
+  instructions$set(l, 1)
+}
+
+while (instructions$size() > 0) {
+  for (line in instructions$keys()) {
+    assg <- str_split_1(line, " -> ")
+    #message(paste("treating ", line))
+    # pure assignment of a signal to an id
+    if (
+      str_detect(assg[1], "^\\d+$") && str_detect(line, "[A-Z]", negate = TRUE)
+    ) {
+      circuit$set(assg[2], as.numeric(assg[1]))
+      #message(paste("remove", line, "left:", instructions$size()))
+      instructions$remove(line)
+    } else {
+      # we cannot proceed yet if we don't have all values
+      vals <- str_extract_all(assg[1], "[a-z]+")[[1]]
+      if (!all(circuit$has(vals))) {
+        next
+      } else {
+        # another corner case like 'j -> v'
+        if (str_detect(line, "[A-Z]", negate = TRUE)) {
+          #message(paste("corner ", circuit$get(assg[2]), " ", circuit$get(assg[1])))
+          circuit$set(assg[2], circuit$get(assg[1]))
+        } else {
+          parse_circuit(circuit, line)
+          #message(paste(" parse remove", line, "left:", instructions$size()))
+        }
+        instructions$remove(line)
+      }
+    }
+  }
+}
+circuit$get('a')
+```
+
+
+
+14134

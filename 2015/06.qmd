@@ -15,7 +15,7 @@ library(tidyverse)
 
 
 ```{r}
-lights <- matrix(vector(length = 1000), nrow = 1000, ncol = 1000)
+lights <- matrix(vector(mode = "logical", length = 1000), nrow = 1000, ncol = 1000)
 
 parse_instructions <- function(mat, line) {
   pos <- str_extract_all(line, "\\d+", )[[1]] |> as.integer()
@@ -25,6 +25,7 @@ parse_instructions <- function(mat, line) {
   } else if (str_detect(line, "^turn off")) {
     mat[pos[1]:pos[3], pos[2]:pos[4]] <- FALSE
   } else {
+    # toggle
     mat[pos[1]:pos[3], pos[2]:pos[4]] <- !mat[pos[1]:pos[3], pos[2]:pos[4]]
   }
   mat
