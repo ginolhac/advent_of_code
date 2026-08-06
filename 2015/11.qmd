@@ -1,0 +1,96 @@
+---
+format: html
+---
+
+
+```{r}
+#| label: setup
+#| include: false
+
+library(tidyverse)
+```
+
+
+## Part 1
+
+
+```{r}
+triad_pattern <- vector(mode = "character", length = length(letters) - 2L)
+for (i in 1:(length(letters) - 2L)) {
+  triad <- paste0(letters[i], letters[i + 1L], letters[i + 2L])
+  triad_pattern[i] <- triad
+}
+
+next_letter <- function(l) {
+  if ((which(letters == l)) == 26) {
+    return("a")
+  } else {
+    return(letters[(which(letters == l)) + 1L])
+  }
+}
+```
+
+
+```{r}
+check_pairs <- function(p) {
+  pairs <- str_extract_all(p, "([a-z])\\1")[[1]]
+  length(pairs) >= 2
+}
+
+
+check_password <- function(passwd) {
+  straight <- str_detect(passwd, paste(triad_pattern, collapse = '|'))
+  forbidden <- str_detect(passwd, "[iol]", negate = TRUE)
+  pairs <- check_pairs(passwd)
+  all(straight, forbidden, pairs)
+}
+
+check_password("hijklmmn") # FALSE
+check_password("abbceffg") # FALSE
+
+rotate_passwd <- function(passwd, old, rightmost) {
+  p <- str_split_1(passwd, '')
+  new <- p
+  new[rightmost] <- next_letter(p[rightmost])
+  if (
+    paste0(
+      new,
+      collapse = ''
+    ) ==
+      old
+  ) {
+    rightmost <- rightmost - 1L
+    new <- p
+    new[rightmost] <- next_letter(p[rightmost])
+    old <- paste0(new, collapse = '')
+    message(paste("old ", old))
+  }
+  list(
+    input = paste0(
+      new,
+      collapse = ''
+    ),
+    rightmost = rightmost,
+    old = old
+  )
+}
+
+counter <- 0
+input <- "abcdefgh"
+old <- input
+rightmost <- nchar(input)
+while (!check_password(input)) {
+  counter <- counter + 1
+  if (counter %% 10 == 0) {
+    message(paste(old, input, counter, rightmost))
+  }
+  out <- rotate_passwd(input, old, rightmost)
+  rightmost <- out$rightmost
+  input <- out$input
+  old <- out$old
+  #if (check_password(input)) break
+}
+
+
+input <- "vzbxkghb"
+```
