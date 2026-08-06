@@ -1,0 +1,78 @@
+---
+format: html
+---
+
+
+```{r}
+#| label: setup
+#| include: false
+
+library(tidyverse)
+```
+
+
+## Part 1
+
+
+```{r}
+
+look_and_say <- function(line) {
+  str_split_1(line, '') |>
+    rle() -> tmp
+  fst <- as.character(tmp$lengths)
+  sec <- tmp$values
+  res <- as.vector(rbind(fst, sec))
+  paste(res, collapse = '')
+}
+look_and_say("111221")
+look_and_say("1211")
+```
+
+
+```{r}
+input <- "3113322113"
+
+counter <- 0
+while (counter < 40) {
+  input <- look_and_say(input)
+  counter <- counter + 1L
+}
+nchar(input)
+```
+
+429204 too high
+
+329356
+
+
+## Part 2
+
+
+```{r}
+input <- "3113322113"
+
+counter <- 0
+len <- vector(mode = "numeric", length = 50)
+len[1] <- nchar(input)
+while (counter < 50) {
+  input <- look_and_say(input)
+  counter <- counter + 1L
+  len[counter + 1] <- nchar(input)
+}
+nchar(input)
+```
+
+
+4666278
+
+
+
+
+```{r}
+#| fig-height: 5
+#| fig-width: 6
+tibble(lg = len, x = seq_along(len)) |>
+  ggplot(aes(x, lg)) +
+  geom_line() +
+  labs(x = "iteration", y = "length")
+```
