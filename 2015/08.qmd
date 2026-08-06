@@ -1,0 +1,50 @@
+---
+format: html
+---
+
+
+```{r}
+#| label: setup
+#| include: false
+
+library(tidyverse)
+```
+
+
+## Part 1
+
+
+```{r}
+read_lines_raw("input/08_test") |> 
+  map_chr(rawToChar) -> test8
+cat(test8[5])
+print(test8[5]) # add escape chars
+stringi::stri_unescape_unicode(test8[5]) |> nchar()
+```
+
+\x1babcd -> bcd because \x1b = escape character
+
+```{r}
+tibble(
+  input = read_lines_raw("input/08") |> map_chr(rawToChar),
+  nchar = nchar(input),
+  replace = map_chr(input, \(x) {
+    str_replace_all(x, "\\\\x[:xdigit:]{2}", "A")
+  }),
+  memory = map_int(input, \(x) {
+    stringi::stri_unescape_unicode(x) |>
+      nchar()
+  })
+) -> tib_sum
+tib_sum
+summarise(tib_sum, char = sum(nchar), mem = sum(memory)) |>
+  mutate(res = char - mem)
+```
+
+
+2469 too high
+1111 too low with "\\\\x[:xdigit:]", "A"
+1236 too low with  "\\\\x[:xdigit:]{2}", "A"
+1238 is wrong
+
+1371
