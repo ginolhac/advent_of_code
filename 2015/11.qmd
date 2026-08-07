@@ -28,10 +28,7 @@ next_letter <- function(l) {
     return(letters[(which(letters == l)) + 1L])
   }
 }
-```
 
-
-```{r}
 check_pairs <- function(p) {
   pairs <- str_extract_all(p, "([a-z])\\1")[[1]]
   length(pairs) >= 2
@@ -48,49 +45,110 @@ check_password <- function(passwd) {
 check_password("hijklmmn") # FALSE
 check_password("abbceffg") # FALSE
 
-rotate_passwd <- function(passwd, old, rightmost) {
-  p <- str_split_1(passwd, '')
-  new <- p
-  new[rightmost] <- next_letter(p[rightmost])
-  if (
-    paste0(
-      new,
-      collapse = ''
-    ) ==
-      old
-  ) {
-    rightmost <- rightmost - 1L
-    new <- p
-    new[rightmost] <- next_letter(p[rightmost])
-    old <- paste0(new, collapse = '')
-    message(paste("old ", old))
+# counting in base 26 from Hugues!
+
+dec_to_base_26 <- function(n) {
+  if (n == 0) {
+    return('a')
   }
-  list(
-    input = paste0(
-      new,
-      collapse = ''
-    ),
-    rightmost = rightmost,
-    old = old
-  )
+  result <- c()
+
+  while (n > 0) {
+    # idx <- if (n %% 27 == 0 && n > 27) {
+    #   idx <- (n %% 27) + 1L
+    # } else if (n %% 27 == 0) {
+    #   idx <- 1L
+    # } else {
+    #   idx <- n %% 27
+    # }
+    idx <- ifelse(n %% 26 == 0, 26L, n %% 26) #((n %% 27) + (n %/% 27)))
+    result <- append(letters[idx], result)
+    #message(paste(idx, paste(result, collapse = ''), n %/% 27))
+    n <- ifelse(n %% 26 == 0, (n %/% 26) - 1L, n %/% 26)
+  }
+  paste(result, collapse = '')
 }
 
+
+base_26_to_dec <- function(input) {
+  input_chars <- str_split_1(input, '')
+  digit <- 0
+
+  for (char in input_chars) {
+    # match() finds the 1-based index
+    value <- match(char, letters)
+    # Accumulate the value
+    digit <- (digit * 26) + value
+  }
+  digit
+}
+
+# Count in base 26
+for (i in 1:1000) {
+  print(glue::glue(
+    "Decimal {i} = Base 26: {dec_to_base_26(i)} and back: {base_26_to_dec(dec_to_base_26(i))}"
+  ))
+}
+```
+
+
+```{r}
 counter <- 0
-input <- "abcdefgh"
-old <- input
-rightmost <- nchar(input)
+input <- "vzbxkghb"
+
 while (!check_password(input)) {
   counter <- counter + 1
-  if (counter %% 10 == 0) {
-    message(paste(old, input, counter, rightmost))
+  if (counter %% 1000 == 0) {
+    message(paste(input, counter))
   }
-  out <- rotate_passwd(input, old, rightmost)
-  rightmost <- out$rightmost
-  input <- out$input
-  old <- out$old
-  #if (check_password(input)) break
+  input <- dec_to_base_26(base_26_to_dec(input) + 1)
 }
+message(paste(input, "in", counter))
+```
 
 
-input <- "vzbxkghb"
+vzbxxyzz in 241148 runs
+
+
+From Hugues:
+
+```{python}
+ALPHABET = "abcdefghijklmnopqrstuvwxyz"
+
+def incrementString(password): 
+    newPassword = ""
+    nextLetter = True
+    for letter in reversed(password):
+        if nextLetter: 
+            newLetter = incrementLetter(letter)
+            increment = True
+        else: 
+            newLetter = letter
+            increment = False        
+        nextLetter = False
+        if newLetter == 'a' and increment:
+            nextLetter = True
+        newPassword += newLetter
+    return newPassword[::-1]
+
+
+def incrementLetter(letter):
+    return ALPHABET[(ALPHABET.index(letter) + 1) % 26]
+
+cts = 0
+passwd = "abc"
+while cts < 90:
+  passwd = incrementString(passwd)
+  print(cts, passwd)
+  cts += 1
+
+```
+
+
+
+
+```{python}
+for i in range(0, 30):
+  print(i, i // 26)
+
 ```
