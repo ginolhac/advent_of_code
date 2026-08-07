@@ -84,7 +84,7 @@ base_26_to_dec <- function(input) {
 }
 
 # Count in base 26
-for (i in 1:1000) {
+for (i in 1:100) {
   print(glue::glue(
     "Decimal {i} = Base 26: {dec_to_base_26(i)} and back: {base_26_to_dec(dec_to_base_26(i))}"
   ))
@@ -98,7 +98,7 @@ input <- "vzbxkghb"
 
 while (!check_password(input)) {
   counter <- counter + 1
-  if (counter %% 1000 == 0) {
+  if (counter %% 10000 == 0) {
     message(paste(input, counter))
   }
   input <- dec_to_base_26(base_26_to_dec(input) + 1)
@@ -109,6 +109,25 @@ message(paste(input, "in", counter))
 
 vzbxxyzz in 241148 runs
 
+
+## Part 2
+
+```{r}
+counter <- 0
+input <- "vzbxxyzz"
+input <- dec_to_base_26(base_26_to_dec(input) + 1)
+
+while (!check_password(input)) {
+  counter <- counter + 1
+  if (counter %% 10000 == 0) {
+    message(paste(input, counter))
+  }
+  input <- dec_to_base_26(base_26_to_dec(input) + 1)
+}
+message(paste(input, "in", counter))
+```
+
+vzcaabcc in 950510 1m40
 
 From Hugues:
 
