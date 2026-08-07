@@ -1,0 +1,43 @@
+---
+format: html
+---
+
+
+```{r}
+#| label: setup
+#| include: false
+
+library(tidyverse)
+library(jsonlite)
+```
+
+
+## Part 1
+
+
+```{r}
+input <- read_json("input/12")
+input |>
+  unlist() |>
+  str_subset("\\d+") |>
+  as.integer() |>
+  sum()
+```
+
+111754
+
+
+## Part 2
+
+
+```{r}
+pluck_depth(input)
+```
+
+
+
+```{r}
+inp <- read_lines("input/12")
+str_view(inp, "\\[.*?red.*?\\]")
+str_remove_all(inp, "\\[.*?red.*?\\],*") |> fromJSON()
+```
