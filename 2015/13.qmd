@@ -21,7 +21,7 @@ parse_seating <- function(line) {
   stopifnot(length(people) == 2L)
   score <- str_extract(line, "\\d+")
   plusminus <- if_else(str_detect(line, "gain"), '+', '-')
-  message(paste(people[1], people[2], plusminus, score))
+  #message(paste(people[1], people[2], plusminus, score))
   list(people = people, score = eval(parse(text = paste0(plusminus, score))))
 }
 
@@ -73,11 +73,17 @@ sum_happiness <- function(l, m) {
   happiness
 }
 
-permutations <- gtools::permutations(
-  v = firstnames,
-  r = length(firstnames),
-  n = length(firstnames)
+
+others <- setdiff(firstnames, firstnames[1])
+
+perms_others <- gtools::permutations(
+  v = others,
+  r = length(others),
+  n = length(others)
 )
+
+# Reattach the fixed person to get full circular arrangements
+permutations <- cbind(firstnames[1], perms_others)
 
 res <- vector(mode = "integer", length = nrow(permutations))
 
@@ -88,7 +94,7 @@ max(res)
 ```
 
 
-733 1.2 secs
+733 1.2 secs (195ms with optimized permutations)
 
 ## Part 2
 
@@ -103,11 +109,15 @@ rownames(new_mat)[nrow(new_mat)] <- "AG"
 
 firstnames <- append(firstnames, "AG")
 
-permutations <- gtools::permutations(
-  v = firstnames,
-  r = length(firstnames),
-  n = length(firstnames)
+others <- setdiff(firstnames, firstnames[1])
+
+perms_others <- gtools::permutations(
+  v = others,
+  r = length(others),
+  n = length(others)
 )
+
+permutations <- cbind(firstnames[1], perms_others)
 
 res <- vector(mode = "integer", length = nrow(permutations))
 
@@ -117,4 +127,4 @@ for (i in seq_len(nrow(permutations))) {
 max(res)
 ```
 
-725 10 sec
+725 10 sec (1.3s with optimization)
