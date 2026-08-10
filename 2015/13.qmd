@@ -1,0 +1,120 @@
+---
+format: html
+---
+
+
+```{r}
+#| label: setup
+#| include: false
+
+library(tidyverse)
+```
+
+
+## Part 1
+
+
+
+```{r}
+parse_seating <- function(line) {
+  people <- str_extract_all(line, "[A-Z][a-z]+")[[1]]
+  stopifnot(length(people) == 2L)
+  score <- str_extract(line, "\\d+")
+  plusminus <- if_else(str_detect(line, "gain"), '+', '-')
+  message(paste(people[1], people[2], plusminus, score))
+  list(people = people, score = eval(parse(text = paste0(plusminus, score))))
+}
+
+input <- read_lines(I(
+  "Alice would gain 54 happiness units by sitting next to Bob.
+Alice would lose 79 happiness units by sitting next to Carol.
+Alice would lose 2 happiness units by sitting next to David.
+Bob would gain 83 happiness units by sitting next to Alice.
+Bob would lose 7 happiness units by sitting next to Carol.
+Bob would lose 63 happiness units by sitting next to David.
+Carol would lose 62 happiness units by sitting next to Alice.
+Carol would gain 60 happiness units by sitting next to Bob.
+Carol would gain 55 happiness units by sitting next to David.
+David would gain 46 happiness units by sitting next to Alice.
+David would lose 7 happiness units by sitting next to Bob.
+David would gain 41 happiness units by sitting next to Carol."
+))
+
+input <- read_lines("input/13")
+
+map(input, parse_seating) -> seats
+
+map(seats, pluck, "people") |>
+  flatten_chr() |>
+  unique() -> firstnames
+
+
+# create matrix with names
+mseat <- matrix(
+  numeric(length(firstnames)**2),
+  nrow = length(firstnames),
+  ncol = length(firstnames)
+)
+rownames(mseat) <- firstnames
+colnames(mseat) <- firstnames
+
+for (l in seats) {
+  mseat[l$people[1], l$people[2]] <- l$score
+}
+
+
+sum_happiness <- function(l, m) {
+  happiness <- 0L
+  for (i in seq_len((length(l) - 1L))) {
+    happiness <- happiness + m[l[i], l[i + 1L]] + m[l[i + 1L], l[i]]
+  }
+  # need to loop last person with first
+  happiness <- happiness + m[l[1], l[length(l)]] + m[l[length(l)], l[1]]
+  happiness
+}
+
+permutations <- gtools::permutations(
+  v = firstnames,
+  r = length(firstnames),
+  n = length(firstnames)
+)
+
+res <- vector(mode = "integer", length = nrow(permutations))
+
+for (i in seq_len(nrow(permutations))) {
+  res[i] <- sum_happiness(permutations[i, ], mseat)
+}
+max(res)
+```
+
+
+733 1.2 secs
+
+## Part 2
+
+
+
+```{r}
+
+new_mat <- cbind(mseat, vector(mode = "integer", length = nrow(mseat))) |>
+  rbind(vector(mode = "integer", length = ncol(mseat) + 1L))
+colnames(new_mat)[ncol(new_mat)] <- "AG"
+rownames(new_mat)[nrow(new_mat)] <- "AG"
+
+firstnames <- append(firstnames, "AG")
+
+permutations <- gtools::permutations(
+  v = firstnames,
+  r = length(firstnames),
+  n = length(firstnames)
+)
+
+res <- vector(mode = "integer", length = nrow(permutations))
+
+for (i in seq_len(nrow(permutations))) {
+  res[i] <- sum_happiness(permutations[i, ], new_mat)
+}
+max(res)
+```
+
+725 10 sec
