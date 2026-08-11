@@ -31,13 +31,38 @@ input |>
 
 
 ```{r}
-pluck_depth(input)
+inp <- read_lines("input/12")
+
+str_view(
+  #r"([1,{"c":"red","b":2},3])",
+  inp,
+  "\\{[^\\{\\}]*\"red\"[^\\{\\}]*\\},?"
+)
+
+
+str_remove_all(
+  inp,
+  "\"[^\"]+\":\\{[^\\{\\}]*\"red\"[^\\{\\}]*\\},?"
+) |>
+  fromJSON() |>
+  unlist() |>
+  str_subset("\\d+") |>
+  as.integer() |>
+  sum()
 ```
 
 
+106951 too high
+103653 too high, expected 65402
+
 
 ```{r}
-inp <- read_lines("input/12")
-str_view(inp, "\\[.*?red.*?\\]")
-str_remove_all(inp, "\\[.*?red.*?\\],*") |> fromJSON()
+str_remove_all(
+  "[1,{\"c\":\"red\",\"b\":2},3]",
+  pattern = "\"[^\"]+\"\\s*:\\s*\\{[^\\{\\}]*\"red\"[^\\{\\}]*\\},\\s*"
+) |>
+  fromJSON() |>
+  unlist() |>
+  str_subset("\\d+") |>
+  as.integer()
 ```

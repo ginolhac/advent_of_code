@@ -1,0 +1,112 @@
+---
+format: html
+---
+
+
+```{r}
+#| label: setup
+#| include: false
+
+library(tidyverse)
+```
+
+
+## Part 1
+
+
+
+```{r}
+
+input <- read_lines(I(
+  "Comet can fly 14 km/s for 10 seconds, but then must rest for 127 seconds.
+Dancer can fly 16 km/s for 11 seconds, but then must rest for 162 seconds."
+))
+
+
+input <- read_lines("input/14")
+
+reindeer <- vector(mode = "list", length = length(input))
+names(reindeer) <- str_extract_all(input, "^\\w+") |> unlist()
+# parse input
+for (i in seq_along(input)) {
+  reindeer[[i]]$rest <- str_extract(
+    input[i],
+    "(\\d+) seconds\\.$",
+    group = 1L
+  ) |>
+    as.integer()
+  reindeer[[i]]$duration <- str_extract(
+    input[i],
+    "(\\d+) seconds",
+    group = 1L
+  ) |>
+    as.integer()
+  reindeer[[i]]$speed <- str_extract(input[i], "(\\d+) km/s", group = 1L) |>
+    as.integer()
+}
+```
+
+Travel
+
+```{r}
+time_goal <- 2503
+
+for (r in seq_along(reindeer)) {
+  flight_unit <- c(
+    rep(reindeer[[r]]$speed, reindeer[[r]]$duration),
+    rep(0, reindeer[[r]]$rest)
+  )
+  nb_cycles <- time_goal / length(flight_unit)
+  flight <- rep(flight_unit, ceiling(nb_cycles))
+  message(paste(r, names(reindeer)[r], sum(flight[seq_len(time_goal)])))
+}
+```
+
+
+Rudolph 2640
+
+
+## Part 2
+
+Important thing I missed:
+
+> (If there are multiple reindeer tied for the lead, they each get one point.)
+
+```{r}
+time_goal <- 2503
+
+for (r in seq_along(reindeer)) {
+  flight_unit <- c(
+    rep(reindeer[[r]]$speed, reindeer[[r]]$duration),
+    rep(0, reindeer[[r]]$rest)
+  )
+  nb_cycles <- time_goal / length(flight_unit)
+  flight <- rep(flight_unit, ceiling(nb_cycles))
+  # add info for flight
+  reindeer[[r]]$travel <- flight[seq_len(time_goal)]
+  reindeer[[r]]$travel_cs <- cumsum(flight[seq_len(time_goal)])
+  message(paste(r, names(reindeer)[r], sum(flight[seq_len(time_goal)])))
+}
+
+map(reindeer, pluck, "travel_cs") |>
+  transpose() |>
+  enframe(value = "travel_cs") |>
+  mutate(travel_cs = map(travel_cs, unlist)) |>
+  mutate(
+    win_idx = map(travel_cs, \(x) {
+      is_ties <- sum(max(x) == x) > 1L
+      if (is_ties) {
+        # ties leader get a point
+        set_names(which(x == max(x)), names(reindeer)[which(x == max(x))])
+      } else {
+        which.max(x)
+      }
+    })
+  ) -> travels
+
+unnest_longer(travels, win_idx) |>
+  count(win_idx_id, sort = TRUE)
+```
+
+1063 too low
+1229 too high (1102)
