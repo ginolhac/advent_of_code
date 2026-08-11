@@ -119,9 +119,39 @@ unnest_longer(travels, win_idx) |>
 ```{r}
 #| fig-width: 7
 #| fig-height: 6
-unnest_longer(travels, travel_cs) |> 
+unnest_longer(travels, travel_cs) |>
   ggplot(aes(x = name, y = travel_cs, colour = travel_cs_id)) +
   geom_line() +
   theme_bw(14) +
   labs(x = "seconds", y = "distance (km)", colour = "Reindeer")
+```
+
+
+
+```{r}
+library(gganimate)
+
+
+travels |>
+  #slice_head(n = 1000) |>
+  slice_sample(prop = 0.25) |> 
+  unnest_longer(travel_cs) |>
+  mutate(
+    winner = map_chr(win_idx, \(i) names(reindeer)[i] |> paste(collapse = ' '))
+  ) |>
+  ggplot(aes(x = name, y = travel_cs, colour = travel_cs_id)) +
+  geom_line(aes(group = travel_cs_id)) +
+  geom_label(
+    data = \(x) filter(x, travel_cs_id == winner),
+    aes(label = winner, colour = travel_cs_id),
+    nudge_y = 10,
+    nudge_x = -5,
+    show.legend = FALSE
+  ) +
+  transition_reveal(along = name) +
+  theme_bw(14) +
+  coord_cartesian(clip = 'off') +
+  labs(x = "seconds", y = "distance (km)", colour = "Reindeer") -> p
+ap <- animate(p)
+save_animation(ap, "reindeer.gif")
 ```
