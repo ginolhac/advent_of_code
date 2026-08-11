@@ -110,3 +110,18 @@ unnest_longer(travels, win_idx) |>
 
 1063 too low
 1229 too high (1102)
+
+
+
+
+
+
+```{r}
+#| fig-width: 7
+#| fig-height: 6
+unnest_longer(travels, travel_cs) |> 
+  ggplot(aes(x = name, y = travel_cs, colour = travel_cs_id)) +
+  geom_line() +
+  theme_bw(14) +
+  labs(x = "seconds", y = "distance (km)", colour = "Reindeer")
+```
