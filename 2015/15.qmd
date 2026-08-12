@@ -96,6 +96,8 @@ V1 V2 V3 V4
 
 Using https://cran.r-project.org/web/packages/partitions/refman/partitions.html#parts
 
+map/transpose/reduce is slower but works for but example and real input
+
 ```{r}
 comp <- partitions::compositions(100, length(input)) |> as.matrix()
 
@@ -103,30 +105,24 @@ comp <- partitions::compositions(100, length(input)) |> as.matrix()
 scores2 <- vector(mode = "double", length = ncol(comp))
 
 for (c in seq_len(ncol(comp))) {
-  sum_recipe <- (comp[1, c] * recipe[[1]]) +
-    (comp[2, c] * recipe[[2]]) +
-    (comp[3, c] * recipe[[3]]) +
-    (comp[4, c] * recipe[[4]])
+  sum_recipe <- map(seq_along(recipe), \(i) {
+    comp[i, c] * recipe[[i]]
+  }) |>
+    transpose() |>
+    map_int(reduce, `+`)
+
   calories <- sum_recipe[5]
   sum_recipe <- sum_recipe[-5]
   if (any(sum_recipe < 0) || calories != 500) {
     sum_recipe <- 0
   }
-  # message(paste(
-  #   mat_prop[i, perms[p, 1]],
-  #   mat_prop[i, perms[p, 2]],
-  #   mat_prop[i, perms[p, 3]],
-  #   mat_prop[i, perms[p, 4]]
-  #   prod(sum_recipe),
-  #   collapse = ' '
-  # ))
   scores2[c] <- prod(sum_recipe)
 }
 max(scores2)
 comp[, which.max(scores2)]
 ```
 
-1766400 193ms
+1766400 193ms 10 sec with map/reduce
 
 composition:
 [1] 46 14 30 10
