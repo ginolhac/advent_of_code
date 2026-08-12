@@ -13,9 +13,6 @@ library(tidyverse)
 
 ## Part 1
 
-
-
-
 ```{r}
 input <- read_lines(I(
   "Sprinkles: capacity 2, durability 0, flavor -2, texture 0, calories 3
@@ -35,7 +32,7 @@ recipe <- vector(mode = "list", length = 0L)
 parse_ingredients <- function(line, r) {
   ing <- str_extract(line, "^\\w+")
   nbs <- str_extract_all(line, "-?\\d+")[[1]] |> as.integer()
-  r[[ing]] <- nbs[-length(nbs)]
+  r[[ing]] <- nbs
   r
 }
 
@@ -62,11 +59,11 @@ t(perms) |>
   as.data.frame() |>
   map(\(x) mat_prop[, x] |> as.data.frame()) |>
   list_rbind() |>
-  as.matrix(ll) |>
+  as.matrix() |>
   t() -> comp_ag
 
 # all above can be done in one go with that:
-comp <- partitions::compositions(100, 4) |> as.matrix()
+#comp <- partitions::compositions(100, 4) |> as.matrix()
 
 # now test it all and store in scores
 scores <- vector(mode = "double", length = ncol(comp))
@@ -76,31 +73,20 @@ for (c in seq_len(ncol(comp_ag))) {
     (comp_ag[2, c] * recipe[[2]]) +
     (comp_ag[3, c] * recipe[[3]]) +
     (comp_ag[4, c] * recipe[[4]])
+  # remove calories for now
+  sum_recipe <- sum_recipe[-5]
   if (any(sum_recipe < 0)) {
     sum_recipe <- 0
   }
-  # message(paste(
-  #   mat_prop[i, perms[p, 1]],
-  #   mat_prop[i, perms[p, 2]],
-  #   mat_prop[i, perms[p, 3]],
-  #   mat_prop[i, perms[p, 4]]
-  #   prod(sum_recipe),
-  #   collapse = ' '
-  # ))
   scores[c] <- prod(sum_recipe)
 }
 max(scores)
 comp_ag[, which.max(scores)]
 ```
 
-[1]  -44  -88  264  132  352
-[1]  198  297 -198  -99  297
-
-
-
 18734912 too low
 19150560 too low
-correct: 21367368
+correct: 21367368 2 sec
 
 recipe propotions:
 V1 V2 V3 V4 
@@ -111,25 +97,10 @@ V1 V2 V3 V4
 Using https://cran.r-project.org/web/packages/partitions/refman/partitions.html#parts
 
 ```{r}
-recipe <- vector(mode = "list", length = 0L)
-
-parse_ingredients <- function(line, r) {
-  ing <- str_extract(line, "^\\w+")
-  nbs <- str_extract_all(line, "-?\\d+")[[1]] |> as.integer()
-  r[[ing]] <- nbs
-  r
-}
-
-for (l in input) {
-  recipe <- parse_ingredients(l, recipe)
-}
-recipe
-
-
 comp <- partitions::compositions(100, length(input)) |> as.matrix()
 
 # now test it all and store in scores
-scores <- vector(mode = "double", length = ncol(comp))
+scores2 <- vector(mode = "double", length = ncol(comp))
 
 for (c in seq_len(ncol(comp))) {
   sum_recipe <- (comp[1, c] * recipe[[1]]) +
@@ -149,12 +120,13 @@ for (c in seq_len(ncol(comp))) {
   #   prod(sum_recipe),
   #   collapse = ' '
   # ))
-  scores[c] <- prod(sum_recipe)
+  scores2[c] <- prod(sum_recipe)
 }
-max(scores)
-comp[, which.max(scores)]
+max(scores2)
+comp[, which.max(scores2)]
 ```
+
 1766400 193ms
 
-
+composition:
 [1] 46 14 30 10
