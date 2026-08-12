@@ -1,0 +1,85 @@
+---
+format: html
+---
+
+
+```{r}
+#| label: setup
+#| include: false
+
+library(tidyverse)
+```
+
+
+## Part 1
+
+
+
+
+```{r}
+input <- read_lines(I(
+  "Sprinkles: capacity 2, durability 0, flavor -2, texture 0, calories 3
+Butterscotch: capacity 0, durability 5, flavor -3, texture 0, calories 3
+Chocolate: capacity 0, durability 0, flavor 5, texture -1, calories 8
+Candy: capacity 0, durability -1, flavor 0, texture 5, calories 8"
+))
+
+
+# input <- read_lines(I(
+#   "Butterscotch: capacity -1, durability -2, flavor 6, texture 3, calories 8
+# Cinnamon: capacity 2, durability 3, flavor -2, texture -1, calories 3"
+# ))
+
+recipe <- vector(mode = "list", length = 0L)
+
+parse_ingredients <- function(line, r) {
+  ing <- str_extract(line, "^\\w+")
+  nbs <- str_extract_all(line, "-?\\d+")[[1]] |> as.integer()
+  r[[ing]] <- nbs[-length(nbs)]
+  r
+}
+
+for (l in input) {
+  recipe <- parse_ingredients(l, recipe)
+}
+recipe
+```
+
+Generate combinations and permutations of them
+
+```{r}
+max_p <- 100 - (length(input) - 1L)
+mat_prop <- gtools::combinations(
+  v = seq_len(max_p),
+  r = length(input),
+  n = max_p
+)
+mat_prop <- mat_prop[rowSums(mat_prop) == 100, ]
+
+
+perms <- gtools::permutations(length(input), r = length(input))
+
+scores <- vector(mode = "list", length = nrow(perms))
+
+for (p in seq_len(nrow(perms))) {
+  res <- vector(mode = "double", length = nrow(mat_prop))
+  for (i in seq_len(nrow(mat_prop))) {
+    sum_recipe <- (mat_prop[i, perms[p, 1]] * recipe[[perms[p, 1]]]) +
+      (mat_prop[i, perms[p, 2]] * recipe[[perms[p, 2]]])
+    if (any(sum_recipe < 0)) {
+      sum_recipe <- 0
+    }
+    # message(paste(
+    #   mat_prop[i, perms[p, 1]],
+    #   mat_prop[i, perms[p, 2]],
+    #   prod(sum_recipe),
+    #   collapse = ' '
+    # ))
+    res[i] <- prod(sum_recipe)
+  }
+  scores[[p]] <- res
+}
+```
+
+[1]  -44  -88  264  132  352
+[1]  198  297 -198  -99  297
