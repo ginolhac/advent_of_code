@@ -48,38 +48,113 @@ recipe
 Generate combinations and permutations of them
 
 ```{r}
-max_p <- 100 - (length(input) - 1L)
+max_p <- 100 #- (length(input) - 1L)
 mat_prop <- gtools::combinations(
-  v = seq_len(max_p),
+  v = seq(0, max_p),
   r = length(input),
-  n = max_p
+  n = max_p,
+  repeats.allowed = TRUE
 )
 mat_prop <- mat_prop[rowSums(mat_prop) == 100, ]
 
-
 perms <- gtools::permutations(length(input), r = length(input))
+t(perms) |>
+  as.data.frame() |>
+  map(\(x) mat_prop[, x] |> as.data.frame()) |>
+  list_rbind() |>
+  as.matrix(ll) |>
+  t() -> comp_ag
 
-scores <- vector(mode = "list", length = nrow(perms))
+# all above can be done in one go with that:
+comp <- partitions::compositions(100, 4) |> as.matrix()
 
-for (p in seq_len(nrow(perms))) {
-  res <- vector(mode = "double", length = nrow(mat_prop))
-  for (i in seq_len(nrow(mat_prop))) {
-    sum_recipe <- (mat_prop[i, perms[p, 1]] * recipe[[perms[p, 1]]]) +
-      (mat_prop[i, perms[p, 2]] * recipe[[perms[p, 2]]])
-    if (any(sum_recipe < 0)) {
-      sum_recipe <- 0
-    }
-    # message(paste(
-    #   mat_prop[i, perms[p, 1]],
-    #   mat_prop[i, perms[p, 2]],
-    #   prod(sum_recipe),
-    #   collapse = ' '
-    # ))
-    res[i] <- prod(sum_recipe)
+# now test it all and store in scores
+scores <- vector(mode = "double", length = ncol(comp))
+
+for (c in seq_len(ncol(comp_ag))) {
+  sum_recipe <- (comp_ag[1, c] * recipe[[1]]) +
+    (comp_ag[2, c] * recipe[[2]]) +
+    (comp_ag[3, c] * recipe[[3]]) +
+    (comp_ag[4, c] * recipe[[4]])
+  if (any(sum_recipe < 0)) {
+    sum_recipe <- 0
   }
-  scores[[p]] <- res
+  # message(paste(
+  #   mat_prop[i, perms[p, 1]],
+  #   mat_prop[i, perms[p, 2]],
+  #   mat_prop[i, perms[p, 3]],
+  #   mat_prop[i, perms[p, 4]]
+  #   prod(sum_recipe),
+  #   collapse = ' '
+  # ))
+  scores[c] <- prod(sum_recipe)
 }
+max(scores)
+comp_ag[, which.max(scores)]
 ```
 
 [1]  -44  -88  264  132  352
 [1]  198  297 -198  -99  297
+
+
+
+18734912 too low
+19150560 too low
+correct: 21367368
+
+recipe propotions:
+V1 V2 V3 V4 
+17 19 38 26 
+
+## Part 2
+
+Using https://cran.r-project.org/web/packages/partitions/refman/partitions.html#parts
+
+```{r}
+recipe <- vector(mode = "list", length = 0L)
+
+parse_ingredients <- function(line, r) {
+  ing <- str_extract(line, "^\\w+")
+  nbs <- str_extract_all(line, "-?\\d+")[[1]] |> as.integer()
+  r[[ing]] <- nbs
+  r
+}
+
+for (l in input) {
+  recipe <- parse_ingredients(l, recipe)
+}
+recipe
+
+
+comp <- partitions::compositions(100, length(input)) |> as.matrix()
+
+# now test it all and store in scores
+scores <- vector(mode = "double", length = ncol(comp))
+
+for (c in seq_len(ncol(comp))) {
+  sum_recipe <- (comp[1, c] * recipe[[1]]) +
+    (comp[2, c] * recipe[[2]]) +
+    (comp[3, c] * recipe[[3]]) +
+    (comp[4, c] * recipe[[4]])
+  calories <- sum_recipe[5]
+  sum_recipe <- sum_recipe[-5]
+  if (any(sum_recipe < 0) || calories != 500) {
+    sum_recipe <- 0
+  }
+  # message(paste(
+  #   mat_prop[i, perms[p, 1]],
+  #   mat_prop[i, perms[p, 2]],
+  #   mat_prop[i, perms[p, 3]],
+  #   mat_prop[i, perms[p, 4]]
+  #   prod(sum_recipe),
+  #   collapse = ' '
+  # ))
+  scores[c] <- prod(sum_recipe)
+}
+max(scores)
+comp[, which.max(scores)]
+```
+1766400 193ms
+
+
+[1] 46 14 30 10
