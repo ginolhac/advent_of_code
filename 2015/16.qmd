@@ -1,0 +1,79 @@
+---
+format: html
+---
+
+
+```{r}
+#| label: setup
+#| include: false
+
+library(tidyverse)
+```
+
+
+## Part 1
+
+
+
+```{r}
+input <- read_lines("input/16")
+
+tibble(input = str_remove(input, "^Sue \\d+: ")) |>
+  mutate(aunt = row_number(), .before = 1L) |>
+  separate_rows(input, sep = ',') |>
+  mutate(input = trimws(input)) |>
+  separate_wider_delim(input, names = c("type", "number"), delim = ': ') |>
+  mutate(number = as.integer(number)) -> aunts
+
+
+aunts |>
+  pivot_wider(names_from = type, values_from = number) -> wide_aunts
+
+filter_out(
+  wide_aunts,
+  when_any(
+    children != 3,
+    cats != 7,
+    samoyeds != 2,
+    pomeranians != 3,
+    akitas != 0,
+    vizslas != 0,
+    goldfish != 5,
+    trees != 3,
+    cars != 2,
+    perfumes != 1
+  )
+)
+```
+
+
+213
+
+
+
+## Part 2
+
+
+
+```{r}
+
+filter_out(
+  wide_aunts,
+  when_any(
+    children != 3,
+    cats < 7,
+    samoyeds != 2,
+    pomeranians > 3,
+    akitas != 0,
+    vizslas != 0,
+    goldfish > 5,
+    trees < 3,
+    cars != 2,
+    perfumes != 1
+  )
+)
+```
+
+
+389 too high
+323
