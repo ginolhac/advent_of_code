@@ -1,0 +1,241 @@
+---
+format: html
+---
+
+
+```{r}
+#| label: setup
+#| include: false
+library(tidyverse)
+library(adventdrob) # dgrtwo/adventdrob
+```
+
+## Part One
+
+
+
+
+```{r}
+input <- read_lines(I(
+  "30373
+25512
+65332
+33549
+35390"
+))
+
+input <- read_lines("input/08")
+
+# tree matrix
+tmat <- tibble(x = input) |>
+  grid_matrix(var = x)
+tmat
+```
+
+
+
+
+```{r}
+# for a pair of coordinate, can the tree be visible
+is_visible <- function(cd) {
+  val <- tmat[cd[1], cd[2]]
+  left <- all(tmat[cd[1], 1:(cd[2] - 1)] < val)
+  right <- all(tmat[cd[1], (cd[2] + 1):ncol(tmat)] < val)
+  top <- all(tmat[1:(cd[1] - 1), cd[2]] < val)
+  bottom <- all(tmat[(cd[1] + 1):nrow(tmat), cd[2]] < val)
+  any(left, right, top, bottom)
+}
+
+res <- logical(0)
+
+for (i in 2:(nrow(tmat) - 1L)) {
+  for (j in 2:(ncol(tmat) - 1L)) {
+    #message(paste(i, j, tmat[i, j], is_visible(c(i, j))))
+    res <- append(res, is_visible(c(i, j)))
+  }
+}
+# sum exterior tree + interior
+nrow(tmat) * 2 + 2 * ncol(tmat) - 4 + sum(res)
+```
+
+
+10912 too high
+1700
+
+
+## Part 2
+
+```{r}
+lg_visible <- function(x, val) {
+  first_idx_of_taller <- which(x >= val)[1]
+  lg <- ifelse(
+    is.na(first_idx_of_taller),
+    length(x),
+    length(x[1:first_idx_of_taller])
+  )
+  lg
+}
+
+compute_scenic <- function(cd) {
+  val <- tmat[cd[1], cd[2]]
+  left <- lg_visible(tmat[cd[1], (cd[2] - 1):1], val)
+  right <- lg_visible(tmat[cd[1], (cd[2] + 1):ncol(tmat)], val)
+  top <- lg_visible(tmat[(cd[1] - 1):1, cd[2]], val)
+  bottom <- lg_visible(tmat[(cd[1] + 1):nrow(tmat), cd[2]], val)
+  prod(left, right, top, bottom)
+}
+
+
+res <- logical(0)
+
+
+for (i in 2:(nrow(tmat) - 1L)) {
+  for (j in 2:(ncol(tmat) - 1L)) {
+    #message(paste(i, j, tmat[i, j], is_visible(c(i, j))))
+    res <- append(res, compute_scenic(c(i, j)))
+  }
+}
+max(res)
+```
+
+
+
+
+
+
+
+
+
+
+```{r}
+# Titre : day08.R
+# Auteur : Tanguy
+
+##############
+##  DAY 08  ##
+##############
+
+# Import data ------------------------------------------------------------------
+
+forest <- readLines("input/08")
+#forest_example <- readLines("./2022/Day08/forest_example.txt")
+
+# Déclaration fonction ---------------------------------------------------------
+
+complete_matrix <- function(matrix_forest) {
+  n <- nrow(matrix_forest)
+  mat <- matrix(FALSE, nrow = n, ncol = n)
+  mat[seq_len(n), c(1, n)] <- TRUE
+  mat[c(1, n), seq_len(n)] <- TRUE
+
+  for (i in 2:(n - 1)) {
+    # horizontal vers droite
+    col <- 2
+    maxi <- matrix_forest[i, 1]
+    while (col <= n) {
+      if (matrix_forest[i, col] > maxi) {
+        mat[i, col] <- TRUE
+        maxi <- matrix_forest[i, col]
+      }
+      col <- col + 1
+    }
+
+    # horizontal vers gauche
+    col <- n - 1
+    maxi <- matrix_forest[i, n]
+    while (col > 0) {
+      if (matrix_forest[i, col] > maxi) {
+        mat[i, col] <- TRUE
+        maxi <- matrix_forest[i, col]
+      }
+      col <- col - 1
+    }
+
+    # vertical vers bas
+    row <- 2
+    maxi <- matrix_forest[1, i]
+    while (row <= n) {
+      if (matrix_forest[row, i] > maxi) {
+        mat[row, i] <- TRUE
+        maxi <- matrix_forest[row, i]
+      }
+      row <- row + 1
+    }
+
+    # vertical vers haut
+    row <- n - 1
+    maxi <- matrix_forest[n, i]
+    while (row > 0) {
+      if (matrix_forest[row, i] > maxi) {
+        mat[row, i] <- TRUE
+        maxi <- matrix_forest[row, i]
+      }
+      row <- row - 1
+    }
+  }
+
+  return(sum(mat))
+}
+
+traitement <- function(data_forest) {
+  data_forest <- data_forest |>
+    strsplit("") |>
+    do.call(what = rbind)
+  matrix_forest <- matrix(as.numeric(data_forest), nrow = nrow(data_forest))
+  return(matrix_forest)
+}
+
+get_viewing_distance <- function(val, v) {
+  if (length(v) == 0) {
+    return(0)
+  }
+  return(min(which(c(v, val) >= val), length(v)))
+}
+
+get_scenic_score <- function(matrix_forest, x, y) {
+  n <- nrow(matrix_forest)
+  if (any(c(x, y) %in% c(1, n))) {
+    return(0)
+  }
+
+  height <- matrix_forest[x, y]
+  all_viewing_distance <- c(
+    get_viewing_distance(v = matrix_forest[(x + 1):n, y], val = height),
+    get_viewing_distance(v = matrix_forest[(x - 1):1, y], val = height),
+    get_viewing_distance(v = matrix_forest[x, (y + 1):n], val = height),
+    get_viewing_distance(v = matrix_forest[x, (y - 1):1], val = height)
+  )
+
+  return(prod(all_viewing_distance))
+}
+
+get_best_view <- function(matrix_forest) {
+  n <- nrow(matrix_forest)
+  vapply(
+    X = seq_len(n),
+    FUN = function(x1) {
+      vapply(
+        X = seq_len(n),
+        FUN = get_scenic_score,
+        matrix_forest = matrix_forest,
+        x = x1,
+        FUN.VALUE = numeric(1)
+      )
+    },
+    FUN.VALUE = numeric(n)
+  ) |>
+    max()
+}
+
+
+# Execution --------------------------------------------------------------------
+
+forest |>
+  traitement() |>
+  complete_matrix()
+
+
+forest |>
+  traitement() |>
+  get_best_view()
+```
