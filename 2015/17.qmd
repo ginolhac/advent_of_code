@@ -1,0 +1,70 @@
+---
+format: html
+---
+
+
+```{r}
+#| label: setup
+#| include: false
+
+library(tidyverse)
+library(partitions)
+```
+
+
+## Part 1
+
+Fitting 150L of eegnog
+
+```{r}
+input <- read_lines(I(
+  "50
+44
+11
+49
+42
+46
+18
+32
+26
+40
+21
+7
+18
+43
+10
+47
+36
+24
+22
+40"
+)) |>
+  as.integer()
+
+#input <- c(20L, 15L, 10L, 5L, 5L)
+
+map(seq_along(input), \(x) combn(input, x, simplify = FALSE)) |>
+  flatten() |>
+  map_int(sum) -> sums
+sum(sums == 150L)
+```
+
+
+28467274 too high 1.3s (used indices!)
+654 
+
+## Part 2
+
+
+```{r}
+tibble(
+  comb = map(seq_along(input), \(x) combn(input, x, simplify = FALSE)) |>
+    flatten()
+) |>
+  mutate(right_sum = map_int(comb, sum), containers = lengths(comb)) |>
+  filter(right_sum == 150L) |>
+  slice_min(containers)
+```
+
+
+57 1.1s
