@@ -1,0 +1,98 @@
+---
+format: html
+---
+
+
+```{r}
+#| label: setup
+#| include: false
+
+library(tidyverse)
+library(adventdrob)
+```
+
+
+## Part 1
+
+
+
+
+```{r}
+input <- read_lines(I(
+  ".#.#.#
+...##.
+#....#
+..#...
+#.#..#
+####.."
+))
+
+input <- read_lines("input/18")
+
+tibble(x = str_replace_all(input, c('#' = '1', '\\.' = '0'))) |>
+  grid_tidy(var = x) -> light_grid
+light_grid
+```
+
+
+
+
+```{r}
+update_light <- function(d) {
+  d |>
+    adjacent_join(diagonal = TRUE) |>
+    summarise(on_neighbor = sum(value2), .by = c(row, value, col)) |>
+    mutate(
+      new_value = case_when(
+        value == 1 & (on_neighbor == 2 | on_neighbor == 3) ~ 1,
+        value == 1 ~ 0,
+        value == 0 & on_neighbor == 3 ~ 1,
+        value == 0 ~ 0,
+        .unmatched = "error"
+      )
+    ) |>
+    select(-on_neighbor) |>
+    right_join(d, by = join_by(row, value, col)) |>
+    mutate(value = new_value) |>
+    select(-new_value)
+}
+
+
+cycles <- 1
+
+res <- vector(mode = "list", length = 4L)
+
+while (cycles <= 5) {
+  message(paste(
+    "cycle",
+    cycles,
+    summarise(light_grid, s = sum(value)) |>
+      pull(s)
+  ))
+  res[[cycles]] <- light_grid
+  light_grid <- update_light(light_grid)
+  cycles <- cycles + 1
+
+}
+```
+
+
+2569 too high
+2330 too high
+
+
+
+```{r}
+list_rbind(res, names_to = "cycle") |> 
+  ggplot(aes(y = -row, x = col, fill = factor(value))) +
+  geom_tile() +
+  facet_wrap(~ cycle, labeller = label_both) +
+  scale_fill_manual(values = c("0" = "grey95", "1" = "purple")) +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0), labels = \(x) abs(x)) +
+  theme_classic() +
+  theme(panel.grid.major = element_line(colour = "grey")) +
+  coord_equal() +
+  labs(fill = "light", y = "row")
+ggsave("d18.pdf", width = 8, height = 8)
+```
