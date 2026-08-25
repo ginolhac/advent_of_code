@@ -12,3 +12,4 @@ test*
 **/Cargo.lock
 **/target/
 /.Renviron
+*.pdf

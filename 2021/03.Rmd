@@ -15,24 +15,24 @@ library(tidyverse)
 
 ```{r}
 d03_test <- tribble(
-  ~ rates,
-   "00100",
-   "11110",
-   "10110",
-   "10111",
-   "10101",
-   "01111",
-   "00111",
-   "11100",
-   "10000",
-   "11001",
-   "00010",
-   "01010"
-  )
+  ~rates  ,
+  "00100" ,
+  "11110" ,
+  "10110" ,
+  "10111" ,
+  "10101" ,
+  "01111" ,
+  "00111" ,
+  "11100" ,
+  "10000" ,
+  "11001" ,
+  "00010" ,
+  "01010"
+)
 
 
-d03 <- read_table("input/03", col_names = "rates")
-
+d03 <- read_table("input/03", col_names = "rates", show_col_types = FALSE)
+d03
 ```
 
 
@@ -44,12 +44,11 @@ gamma:
 ```{r}
 lg <- str_length(d03$rates[1])
 
-d03 |> 
-  separate(rates, letters[1:lg], sep = 1:lg, 
-           convert = TRUE) |> 
-  map_dbl(sum) |> 
-  map_int(~ .x > nrow(d03) / 2) |> 
-  paste0(collapse = "") |> 
+d03 |>
+  separate(rates, letters[1:lg], sep = 1:lg, convert = TRUE) |>
+  map_dbl(sum) |>
+  map_int(~ .x > nrow(d03) / 2) |>
+  paste0(collapse = "") |>
   base::strtoi(base = 2) -> gamma
 gamma
 ```
@@ -57,12 +56,11 @@ gamma
 epsilon:
 
 ```{r}
-d03 |> 
-  separate(rates, letters[1:lg], sep = 1:lg,
-           convert = TRUE) |> 
-  map_dbl(sum) |> 
-  map_int(~ .x < nrow(d03) / 2) |> 
-  paste0(collapse = "") |> 
+d03 |>
+  separate(rates, letters[1:lg], sep = 1:lg, convert = TRUE) |>
+  map_dbl(sum) |>
+  map_int(~ .x < nrow(d03) / 2) |>
+  paste0(collapse = "") |>
   base::strtoi(base = 2) -> epsilon
 epsilon
 ```
@@ -71,88 +69,82 @@ answer: `r epsilon * gamma`
 
 ### Part 2
 
-```{r}
-lg <- str_length(d03_test$rates[1])
 
-most_common <- function(vec, type = c("CO2", "O2")) {
-  type = match.arg(type)
-  if (length(vec) == 2L) {
+```{r}
+lg <- str_length(d03$rates[1])
+
+
+bit_criteria <- function(vec, type = c("CO2", "O2")) {
+  type <- match.arg(type)
+  if (sum(vec) == (length(vec) / 2L)) {
     if (type == "CO2") {
       return(0L)
-    } else return(1L) # O2
-  }
-  mc <- as.integer(sum(vec) > length(vec) / 2L)
-  message(mc, length(vec))
-  mc
-}
-
-# interesting but not serial
-d03_test |> 
-  separate(rates, letters[1:lg], sep = 1:lg,
-           convert = TRUE) |> 
-  filter(if_all(everything(), ~ .x == most_common(.x, "O2"))) |> 
-  glue::glue_collapse() |> 
-  strtoi(base = 2L)
-```
-
-
-- Oxygen
-
-```{r}
-lg <- str_length(d03_test$rates[1])
-d03_test |> 
-  separate(rates, letters[1:lg], sep = 1:lg,
-           convert = TRUE) -> tt
-type <- "O2"
-for (i in seq_len(lg)) {
-  print(tt)
-  input <- tt[[i]]
-  if (length(input) == 2L) {
-    if (type == "CO2") {
-      tt <<- tt[input == 0L, ]
     } else {
-      tt <<- tt[input == 1L, ] # O2
+      # O2
+      return(1L)
     }
-    break
+  } else if (sum(vec) > (length(vec) / 2L) && type == "O2") {
+    return(1L)
+  } else if (sum(vec) > (length(vec) / 2L) && type == "CO2") {
+    return(0L)
+  } else if (sum(vec) < (length(vec) / 2L) && type == "O2") {
+    return(1L)
+  } else if (sum(vec) < (length(vec) / 2L) && type == "CO2") {
+    return(0L)
+  } else {
+    stop("should not happen!")
   }
-  mc <- as.integer(sum(input) > length(input) / 2L)
-  tt <<- tt[input == mc, ]
 }
-tt |> 
-  glue::glue_collapse() |> 
-  strtoi(base = 2L)
-```
 
 
-- CO2
-
-```{r}
-lg <- str_length(d03_test$rates[1])
-d03_test |> 
-  separate(rates, letters[1:lg], sep = 1:lg,
-           convert = TRUE) -> tt
-type <- "CO2"
-for (i in seq_len(lg)) {
-  print(tt)
-  input <- tt[[i]]
-  if (length(input) == 2L) {
-    if (type == "CO2") {
-      tt <<- tt[input == 0L, ]
-    } else {
-      tt <<- tt[input == 1L, ] # O2
-    }
-    break
+# using recursion
+life_support_rating <- function(dat, idx = 1L, type = c("CO2", "O2")) {
+  type <- match.arg(type)
+  cat("idx =", idx, " nrow =", nrow(dat), "\n")
+  if (nrow(dat) == 1L) {
+    return(dat)
   }
-  mc <- as.integer(sum(input) < length(input) / 2L)
-  tt <<- tt[input == mc, ]
+  if (idx > ncol(dat)) {
+    warning("Ran out of columns with ", nrow(dat), " rows remaining")
+    return(dat)
+  }
+  keep <- dat[[idx]] == bit_criteria(dat[[idx]], type = type)
+  # edge case for CO2 we could not filter anything
+  if (!any(keep)) {
+    filtered <- dat
+  } else {
+    filtered <- dat[keep, , drop = FALSE]
+  }
+  life_support_rating(filtered, idx + 1L, type = type)
 }
-tt |> 
-  glue::glue_collapse() |> 
-  strtoi(base = 2L)
+
+#life_support_rating(dat, type = "O2")
+#life_support_rating(dat, type = "CO2")
+
+d03 |>
+  separate(
+    rates,
+    letters[seq_len(lg)],
+    sep = seq_len(lg),
+    convert = TRUE
+  ) |>
+  # to be able to return a vector from column selection
+  as.data.frame() -> dat
+
+life_support_rating(dat, type = "O2") |>
+  glue::glue_collapse() |>
+  strtoi(base = 2L) *
+  life_support_rating(dat, type = "CO2") |>
+    glue::glue_collapse() |>
+    strtoi(base = 2L)
 ```
 
 
-```{r}
-787 * 3586
-```
 
+
+20470 too low
+
+
+intToBits(789) |> rev() |> as.integer() |> paste(collapse = '') 001100010101
+intToBits(3589) |> rev() |> as.integer() |> paste(collapse = '')
+# [1] "00000000000000000000000000001100"
