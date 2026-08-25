@@ -58,35 +58,103 @@ update_light <- function(d) {
 }
 
 
-cycles <- 1
+cycles <- 0
 
-res <- vector(mode = "list", length = 4L)
+res <- vector(mode = "list", length = 100L)
 
-while (cycles <= 5) {
-  message(paste(
-    "cycle",
-    cycles,
-    summarise(light_grid, s = sum(value)) |>
-      pull(s)
-  ))
-  res[[cycles]] <- light_grid
+while (cycles <= 100) {
+  if (cycles %% 10 == 0) {
+    message(paste(
+      "cycle",
+      cycles,
+      summarise(light_grid, s = sum(value)) |>
+        pull(s)
+    ))
+  }
+  res[[cycles + 1]] <- light_grid
   light_grid <- update_light(light_grid)
   cycles <- cycles + 1
-
 }
 ```
 
 
 2569 too high
-2330 too high
+2330 too high. Stupid me stuck at 4 cycles
+768 4.5 sec
+
+
+```{r}
+library(gganimate)
+
+list_rbind(res[1:10], names_to = "cycle") |>
+  ggplot(aes(y = -row, x = col, fill = factor(value))) +
+  geom_tile() +
+  #facet_wrap(~cycle, labeller = label_both) +
+  scale_fill_manual(values = c("0" = "grey95", "1" = "purple")) +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0), labels = \(x) abs(x)) +
+  transition_states(cycle, transition_length = 0.2, state_length = 0.5) +
+  theme_classic() +
+  theme(panel.grid.major = element_line(colour = "grey")) +
+  coord_equal() +
+  labs(fill = "light", y = "row", title = "cycle: {closest_state}") -> p
+anilight <- animate(p)
+anim_save("anilight.gif")
+#ggsave("d18.pdf", width = 8, height = 8)
+```
+
+
+## Part 2
+
+Corners always on
 
 
 
 ```{r}
-list_rbind(res, names_to = "cycle") |> 
+turn_on_corners <- function(d) {
+  d |>
+    mutate(
+      value = replace_when(
+        value,
+        row == 1 & col == 1 ~ 1,
+        row == 1 & col == max(col) ~ 1,
+        row == max(row) & col == 1 ~ 1,
+        row == max(row) & col == max(col) ~ 1,
+      )
+    )
+}
+
+cycles <- 0
+
+res2 <- vector(mode = "list", length = 100L)
+
+while (cycles <= 100) {
+  light_grid <- turn_on_corners(light_grid)
+  if (cycles %% 10 == 0) {
+    message(paste(
+      "cycle",
+      cycles,
+      summarise(light_grid, s = sum(value)) |>
+        pull(s)
+    ))
+  }
+  res2[[cycles + 1]] <- light_grid
+  light_grid <- update_light(light_grid)
+  cycles <- cycles + 1
+}
+
+
+```
+
+781 6.2 sec
+
+
+```{r}
+
+list_rbind(res2, names_to = "cycle") |>
   ggplot(aes(y = -row, x = col, fill = factor(value))) +
   geom_tile() +
-  facet_wrap(~ cycle, labeller = label_both) +
+  facet_wrap(~cycle, labeller = label_both) +
   scale_fill_manual(values = c("0" = "grey95", "1" = "purple")) +
   scale_x_continuous(expand = c(0, 0)) +
   scale_y_continuous(expand = c(0, 0), labels = \(x) abs(x)) +
@@ -94,5 +162,4 @@ list_rbind(res, names_to = "cycle") |>
   theme(panel.grid.major = element_line(colour = "grey")) +
   coord_equal() +
   labs(fill = "light", y = "row")
-ggsave("d18.pdf", width = 8, height = 8)
 ```
