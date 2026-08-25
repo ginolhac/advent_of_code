@@ -60,9 +60,9 @@ update_light <- function(d) {
 
 cycles <- 0
 
-res <- vector(mode = "list", length = 100L)
+res <- vector(mode = "list", length = 2000L)
 
-while (cycles <= 100) {
+while (cycles <= 2000) {
   if (cycles %% 10 == 0) {
     message(paste(
       "cycle",
@@ -89,7 +89,7 @@ library(gganimate)
 list_rbind(res[1:10], names_to = "cycle") |>
   ggplot(aes(y = -row, x = col, fill = factor(value))) +
   geom_tile() +
-  #facet_wrap(~cycle, labeller = label_both) +
+  facet_wrap(~cycle, labeller = label_both) +
   scale_fill_manual(values = c("0" = "grey95", "1" = "purple")) +
   scale_x_continuous(expand = c(0, 0)) +
   scale_y_continuous(expand = c(0, 0), labels = \(x) abs(x)) +
@@ -142,8 +142,6 @@ while (cycles <= 100) {
   light_grid <- update_light(light_grid)
   cycles <- cycles + 1
 }
-
-
 ```
 
 781 6.2 sec
@@ -162,4 +160,55 @@ list_rbind(res2, names_to = "cycle") |>
   theme(panel.grid.major = element_line(colour = "grey")) +
   coord_equal() +
   labs(fill = "light", y = "row")
+```
+
+
+Playing with more cycles
+
+
+
+```{r}
+tibble(x = str_replace_all(input, c('#' = '1', '\\.' = '0'))) |>
+  grid_tidy(var = x) -> light_grid
+
+cycles <- 0
+
+res2 <- vector(mode = "list", length = 2000L)
+
+while (cycles <= 2000) {
+  light_grid <- turn_on_corners(light_grid)
+  if (cycles %% 200 == 0) {
+    message(paste(
+      "cycle",
+      cycles,
+      summarise(light_grid, s = sum(value)) |>
+        pull(s)
+    ))
+  }
+  res2[[cycles + 1]] <- light_grid
+  light_grid <- update_light(light_grid)
+  cycles <- cycles + 1
+}
+```
+
+Animate both part
+
+```{r}
+bind_rows(
+  "part1" = list_rbind(res, names_to = "cycle"),
+  "part2" = list_rbind(res2, names_to = "cycle"),
+  .id = "part"
+) |>
+  filter(cycle < 1200) |> 
+  summarise(s = sum(value), .by = c(part, cycle)) |>
+  ggplot(aes(x = cycle, y = s, colour = part)) +
+  geom_line(aes(group = part)) +
+  transition_reveal(along = cycle) +
+  theme_bw(14) +
+  theme(legend.position = "inside",
+  legend.position.inside = c(0.6, 0.7)) +
+  scale_y_log10(guide = "axis_logticks") +
+  labs(y = "# lights on", colour = NULL) -> p2
+anilight2 <- animate(p2)
+anim_save("anilight2.gif")
 ```
