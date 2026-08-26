@@ -1,0 +1,67 @@
+---
+format: html
+---
+
+
+```{r}
+#| label: setup
+#| include: false
+
+library(tidyverse)
+library(fastmap)
+```
+
+
+## Part 1
+
+
+```{r}
+input <- read_lines(I(
+  "H => HO
+H => OH
+O => HH"
+))
+
+inp <- read_lines("input/19")
+input <- inp[seq_len(which(inp == "") - 1L)]
+medicine_molecule <- inp[length(inp)]
+
+fission_rep <- list()
+
+for (i in input) {
+  fission_rep[[str_extract(i, "^\\w+")]] <- append(
+    fission_rep[[str_extract(i, "^\\w+")]],
+    str_extract(i, "\\w+$")
+  )
+}
+
+#medicine_molecule <- "HOH"
+```
+
+
+
+```{r}
+reps <- fastmap()
+counter <- 0L
+
+
+for (p in names(fission_rep)) {
+  loc <- str_locate_all(medicine_molecule, p)[[1]]
+  for (i in seq_len(nrow(loc))) {
+    for (r in fission_rep[[p]]) {
+      new <- medicine_molecule
+      str_sub(new, loc[i, "start"], loc[i, "end"]) <- r
+      counter <- counter + 1L
+      #message(paste(p, i, r, new, medicine_molecule))
+      reps$set(new, 1L)
+    }
+  }
+}
+
+#reps$keys()
+reps$size()
+```
+
+
+207 too low
+535 229ms counter = 662
