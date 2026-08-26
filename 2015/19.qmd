@@ -65,3 +65,77 @@ reps$size()
 
 207 too low
 535 229ms counter = 662
+
+
+
+## Part 2
+
+```{r}
+inp <- read_lines(I(
+  "H => HO
+H => OH
+O => HH
+e => H
+e => O
+
+HOH"
+))
+
+inp <- read_lines("input/19")
+
+input <- inp[seq_len(which(inp == "") - 1L)]
+medicine_molecule <- inp[length(inp)]
+
+fission_rev <- list()
+
+for (i in input) {
+  fission_rev[[str_extract(i, "\\w+$")]] <- append(
+    fission_rev[[str_extract(i, "\\w+$")]],
+    str_extract(i, "^\\w+")
+  )
+}
+
+fission_rev
+```
+
+
+
+
+
+
+```{r}
+counter <- 0L
+
+
+replace_pattern <- function(s, c) {
+  if (s == 'e') {
+    message(paste("done", c))
+    return(c)
+  }
+  best <- NULL
+  for (r in names(fission_rev)) {
+    loc <- str_locate(s, r)
+    if (is.na(loc[1, "start"])) {
+      next
+    }
+    # work on a copy since modification in place
+    s2 <- s
+    str_sub(s2, loc[1, "start"], loc[1, "end"]) <- fission_rev[[r]]
+    #message(paste(c, r, s, "loc", loc[1, "start"], loc[1, "end"]))
+    res <- replace_pattern(s2, c + 1L)
+    if (!is.null(res) && (is.null(best) || res < best)) {
+      best <- res
+    }
+  }
+}
+
+replace_pattern(medicine_molecule, counter)
+#replace_pattern("HOHOHO", counter)
+```
+
+
+
+212
+
+
+but infinite loop
