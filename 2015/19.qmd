@@ -115,16 +115,15 @@ replace_pattern <- function(s, c) {
   best <- NULL
   for (r in names(fission_rev)) {
     loc <- str_locate(s, r)
-    if (is.na(loc[1, "start"])) {
-      next
-    }
-    # work on a copy since modification in place
-    s2 <- s
-    str_sub(s2, loc[1, "start"], loc[1, "end"]) <- fission_rev[[r]]
-    #message(paste(c, r, s, "loc", loc[1, "start"], loc[1, "end"]))
-    res <- replace_pattern(s2, c + 1L)
-    if (!is.null(res) && (is.null(best) || res < best)) {
-      best <- res
+    if (!is.na(loc[1, "start"])) {
+      # work on a copy since modification in place
+      s2 <- s
+      str_sub(s2, loc[1, "start"], loc[1, "end"]) <- fission_rev[[r]]
+      #message(paste(c, r, s, "loc", loc[1, "start"], loc[1, "end"]))
+      res <- replace_pattern(s2, c + 1L)
+      if (!is.null(res) && (is.null(best) || res < best)) {
+        best <- res
+      }
     }
   }
 }

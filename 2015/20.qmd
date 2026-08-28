@@ -1,0 +1,161 @@
+---
+format: html
+---
+
+
+```{r}
+#| label: setup
+#| include: false
+
+```
+
+## Part 1
+
+```{r}
+#msize = 10000L
+msize <- 50L
+hmat <- matrix(data = 0L, nrow = msize, ncol = msize)
+```
+
+Goal: 29000000
+
+```{r}
+for (j in seq_len(ncol(hmat))) {
+  for (i in seq_len(nrow(hmat))) {
+    if (i %% j == 0) {
+      hmat[i, j] <- 10L * j
+    }
+  }
+}
+
+which(rowSums(hmat) >= 29000000)
+```
+
+too big, too slow
+
+
+```{r}
+diffparts(10)
+```
+
+
+
+Testing SparseMatrix
+
+
+
+```{r}
+library(Matrix)
+msize <- 500L
+m <- Matrix(nrow = msize, ncol = msize, data = 0, sparse = TRUE)
+m <- as(as(m, "generalMatrix"), "CsparseMatrix")
+
+for (j in seq_len(ncol(m))) {
+  if (j %% 5000L == 0) {
+    message(paste(j, "Elf"))
+    message(paste("sum last house:", sum(m[nrow(m), ])))
+  }
+  m[seq_len(nrow(m)) %% j == 0, j] <- 10L * j
+}
+which(rowSums(m) >= 29000000)
+```
+
+tested up to 100,000L square matrix
+too slow but memory-wise it's great.
+
+
+Integer prime decomposition:
+
+  [1]    10    30    40    70    60   120    80   150   130   180   120   280   140   240   240   310   180
+ [18]   390   200   420   320   360   240   600   310   420   400   560   300   720   320   630   480   540
+ [35]   480   910   380   600   560   900   420   960   440   840   780   720   480  1240   570   930   720
+ [52]   980   540  1200   720  1200   800   900   600  1680   620   960  1040  1270   840  1440   680  1260
+ [69]   960  1440   720  1950   740  1140  1240  1400   960  1680   800  1860  1210  1260   840  2240  1080
+ [86]  1320  1200  1800   900  2340  1120  1680  1280  1440  1200  2520   980  1710  1560  2170  1020  2160
+[103]  1040  2100  1920  1620  1080  2800  1100  2160  1520  2480  1140  2400  1440  2100  1820  1800  1440
+[120]  3600  1330  1860  1680  2240  1560  3120  1280  2550  1760  2520  1320  3360  1600  2040  2400  2700
+[137]  1380  2880  1400  3360  1920  2160  1680  4030  1800  2220  2280  2660  1500  3720  1520  3000  2340
+[154]  2880  1920  3920  1580  2400  2160  3780  1920  3630  1640  2940  2880  2520  1680  4800  1830  3240
+[171]  2600  3080  1740  3600  2480  3720  2400  2700  1800  5460  1820  3360  2480  3600  2280  3840  2160
+[188]  3360  3200  3600  1920  5080  1940  2940  3360  3990  1980  4680  2000  4650  2720  3060  2400  5040
+[205]  2520  3120  3120  4340  2400  5760  2120  3780  2880  3240  2640  6000  2560  3300  2960  5040  2520
+[222]  4560  2240  5040  4030  3420  2280  5600  2300  4320  3840  4500  2340  5460  2880  4200  3200  4320
+[239]  2400  7440  2420  3990  3640  4340  3420  5040  2800  4800  3360  4680  2520  7280  2880  3840  4320
+[256]  5110  2580  5280  3040  5880  3900  3960  2640  7200  3240  4800  3600  4760  2700  7200  2720  5580
+[273]  4480  4140  3720  6720  2780  4200  4160  7200  2820  5760  2840  5040  4800  5040  3360  8190  3070
+[290]  5400  3920  5180  2940  6840  3600  5700  4800  4500  3360  8680  3520  4560  4080  6200  3720  7020
+[307]  3080  6720  4160  5760  3120  8400  3140  4740  6240  5600  3180  6480  3600  7620  4320  5760  3600
+[324]  8470  4340  4920  4400  6300  3840  8640  3320  5880  4940  5040  4080  9920  3380  5490  4560  7560
+[341]  3840  7800  4000  6600  5760  5220  3480  8400  3500  7440  5600  7560  3540  7200  4320  6300  5760
+[358]  5400  3600 11700  3810  5460  5320  7840  4440  7440  3680  7440  5460  6840  4320  8960  3740  6480
+[375]  6240  7200  4200  9600  3800  8400  5120  5760  3840 10200  5760  5820  5720  6860  3900 10080  4320
+[392]  8550  5280  5940  4800 10920  3980  6000  6400  9610  4020  8160  4480  7140  7260  7200  4560 10800
+
+
+```{r}
+
+number_presents <- function(i) {
+  elves <- c(DescTools::Divisors(i)[[1]], i)
+  sum(elves * 10)
+}
+
+house <- 0
+present <- 1
+
+# 29000000
+while (present < 29000000) {
+  house <- house + 1
+  present <- number_presents(house)
+  if (house %% 20000 == 0) message(paste(house, present))
+}
+house
+```
+
+345 too low
+665280 3m49
+
+## Part 2
+
+11 presents. Elves up to 50 houses
+
+
+```{r}
+options(scipen = 999)
+library(tictoc)
+tic()
+elves <- fastmap::fastmap(missing_default = 0)
+
+number_presents2 <- function(i, elves) {
+  elf <- c(DescTools::Divisors(i)[[1]], i)
+  # check how many house they visit
+  for (e in elf) {
+    elves$set(as.character(e), elves$get(as.character(e)) + 1)
+    if (elves$get(as.character(e)) > 50) {
+      #message(paste("rm", e, paste(elf, collapse = ' ')))
+      elf <- elf[-which(elf == e)]
+      #message(paste(elf, collapse = ' '))
+    }
+  }
+  sum(elf * 11)
+}
+
+house <- 0
+present <- 1
+
+# 29000000
+while (present < 29000000) {
+  house <- house + 1
+  present <- number_presents2(house, elves)
+  if (house %% 20000 == 0) message(paste(house, present))
+  #message(paste(house, present))
+}
+house
+toc()
+```
+
+660000 24095775
+680000 18490450
+7e+05 20499875
+718200 too high
+
+705600 316 sec (console, not positron)
