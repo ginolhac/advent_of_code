@@ -1,0 +1,148 @@
+---
+format: html
+---
+
+
+```{r}
+#| label: setup
+#| include: false
+library(tidyverse)
+```
+
+## Part 1
+
+
+
+```{r}
+boss <- list(PV = 109, Damage = 8, Armor = 2)
+
+player <- list(PV = 100, Damage = 0, Armor = 0)
+
+weapons <- tribble(
+  ~Name        , ~Cost , ~Damage , ~Armor ,
+  "Dagger"     ,     8 ,       4 ,      0 ,
+  "Shortsword" ,    10 ,       5 ,      0 ,
+  "Warhammer"  ,    25 ,       6 ,      0 ,
+  "Longsword"  ,    40 ,       7 ,      0 ,
+  "Greataxe"   ,    74 ,       8 ,      0
+)
+armors <- tribble(
+  ~Name        , ~Cost , ~Damage , ~Armor ,
+  "None"       ,     0 ,       0 ,      0 , # add since optional
+  "Leather"    ,    13 ,       0 ,      1 ,
+  "Chainmail"  ,    31 ,       0 ,      2 ,
+  "Splintmail" ,    53 ,       0 ,      3 ,
+  "Bandedmail" ,    75 ,       0 ,      4 ,
+  "Platemail"  ,   102 ,       0 ,      5
+)
+rings <- tribble(
+  ~Name        , ~Cost , ~Damage , ~Armor ,
+  "None"       ,     0 ,       0 ,      0 ,
+  "Damage +1"  ,    25 ,       1 ,      0 ,
+  "Damage +2"  ,    50 ,       2 ,      0 ,
+  "Damage +3"  ,   100 ,       3 ,      0 ,
+  "Defense +1" ,    20 ,       0 ,      1 ,
+  "Defense +2" ,    40 ,       0 ,      2 ,
+  "Defense +3" ,    80 ,       0 ,      3
+)
+```
+
+You must buy exactly one weapon; no dual-wielding. 
+Armor is optional, but you can't use more than one. 
+You can buy 0-2 rings.
+The shop only has one of each item, 
+
+Create combinations
+
+```{r}
+equip_player <- function(w, a, r1, r2) {
+  dam <- filter(weapons, Name == w) |>
+    pull(Damage) +
+    filter(rings, Name == r1) |> pull(Damage) +
+    filter(rings, Name == r2) |> pull(Damage)
+  arm <- filter(armors, Name == a) |>
+    pull(Armor) +
+    filter(rings, Name == r1) |> pull(Armor) +
+    filter(rings, Name == r2) |> pull(Armor)
+  cost <- filter(weapons, Name == w) |>
+    pull(Cost) +
+    filter(armors, Name == a) |>
+      pull(Cost) +
+    filter(rings, Name == r1) |>
+      pull(Cost) +
+    filter(rings, Name == r2) |> pull(Cost)
+  list(PV = 100, Damage = dam, Armor = arm, Cost = cost)
+}
+
+
+crossing(w = weapons$Name, a = armors$Name, r1 = rings$Name, r2 = rings$Name) |>
+  # shop has only one item of each
+  filter_out(
+    r1 == r2 & (str_detect(r1, '\\+') | str_detect(r2, '\\+'))
+  ) -> tib_player
+
+pmap(tib_player, equip_player) -> player_cross
+```
+
+```{r}
+mutate(tib_player, l = player_cross) |> unnest_wider(l)
+```
+
+
+```{r}
+
+simulate_combat <- function(boss, player) {
+  rounds <- 1L
+  while (boss$PV > 0 & player$PV > 0) {
+    #message(paste(rounds, "boss", boss$PV, "player", player$PV))
+    pdamage <- ifelse(
+      player$Damage - boss$Armor > 0,
+      player$Damage - boss$Armor,
+      1
+    )
+    boss$PV <- boss$PV - pdamage
+    if (boss$PV <= 0) {
+      return(list(win = "player", rounds = rounds, cost = player$Cost))
+    }
+    bdamage <- ifelse(
+      boss$Damage - player$Armor > 0,
+      boss$Damage - player$Armor,
+      1
+    )
+    player$PV <- player$PV - bdamage
+    if (player$PV <= 0) {
+      return(list(win = "boss", rounds = rounds, cost = player$Cost))
+    }
+    rounds <- rounds + 1L
+  }
+  invisibile(NULL)
+}
+
+# test, player wins barely
+simulate_combat(
+  list(PV = 12, Damage = 7, Armor = 2),
+  list(PV = 8, Damage = 5, Armor = 5)
+)
+
+
+map(player_cross, \(x) simulate_combat(boss, x)) |>
+  keep(\(x) x$win == "player") |>
+  map_int("cost") |>
+  min()
+```
+
+30 wrong
+
+111 gold 234ms
+
+
+## Part 2
+
+
+
+```{r}
+map(player_cross, \(x) simulate_combat(boss, x)) |>
+  keep(\(x) x$win == "boss") |>
+  map_int("cost") |>
+  max()
+```
