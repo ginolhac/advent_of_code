@@ -146,3 +146,6 @@ map(player_cross, \(x) simulate_combat(boss, x)) |>
   map_int("cost") |>
   max()
 ```
+
+
+188

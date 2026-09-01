@@ -1,0 +1,56 @@
+---
+format: html
+---
+
+
+```{r}
+#| label: setup
+#| include: false
+library(tidyverse)
+```
+
+## Part 1
+
+
+```{r}
+boss <- list(hits = 55, Damage = 8)
+
+player <- list(hits = 55, mana = 500, Armor = 0)
+
+spells <- tribble(
+  ~Name           , ~Cost , ~Damage , ~Armor , ~Duration ,
+  "Magic Missile" ,   -53 ,       4 ,      0 , NA        ,
+  "Drain"         ,   -73 ,       2 ,      0 , NA        , # +2 hits
+  "Shield"        ,  -113 ,       0 ,      7 ,         6 ,
+  "Poison"        ,  -173 ,       3 ,      0 ,         6 ,
+  "Recharge"      ,  -229 ,       0 ,      0 ,         5 # +101 mana
+) |>
+  mutate(ID = row_number(), .before = 1)
+spells
+```
+
+
+- Combinations
+
+On each of your turns, you must select one of your spells to cast. 
+If you cannot afford to cast any spell, you lose. 
+
+```{r}
+mana_cost <- function(v, mana = 500) {
+  tibble(ID = v) |>
+    left_join(spells, by = join_by(ID)) |>
+    pull(Cost) |>
+    unlist() -> mana_spent
+  c(mana, mana_spent) |>
+    cumsum()
+}
+# FIXME +101 for 6 rounds
+mana_cost(c(2, 1, 3, 5, 4))
+# FIXME delete casting a spell still active
+gtools::combinations(5, r = 5, repeats.allowed = TRUE) |>
+  t() |>
+  as.data.frame() |>
+  map(mana_cost) |>
+  map_lgl(\(x) any(x < 0)) |>
+  table()
+```
