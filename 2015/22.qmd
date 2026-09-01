@@ -36,21 +36,42 @@ On each of your turns, you must select one of your spells to cast.
 If you cannot afford to cast any spell, you lose. 
 
 ```{r}
+check_duration <- function(v) {
+  # check shield and poison don't overlap
+  s <- any(diff(which(v == 3)) < 6)
+  p <- any(diff(which(v == 4)) < 6)
+  # check Recharge
+  r <- any(diff(which(v == 5)) < 5)
+  !any(s, p, r)
+}
+check_duration(c(3, 1, 2, 1, 2, 3))
+check_duration(c(5, 1, 2, 1, 5, 1))
+
 mana_cost <- function(v, mana = 500) {
   tibble(ID = v) |>
     left_join(spells, by = join_by(ID)) |>
     pull(Cost) |>
     unlist() -> mana_spent
-  c(mana, mana_spent) |>
+  # Recharge
+  recharge <- which(v == 5)
+  for (r in recharge) {
+    # don't go over the end
+    s <- min(length(mana_spent), r + 5)
+    mana_spent[r:s] <- mana_spent[r:s] + 101
+  }
+  message(v)
+  message(mana_spent)
+  cost <- c(mana, mana_spent) |>
     cumsum()
+  any(cost < 0)
 }
+
 # FIXME +101 for 6 rounds
 mana_cost(c(2, 1, 3, 5, 4))
 # FIXME delete casting a spell still active
-gtools::combinations(5, r = 5, repeats.allowed = TRUE) |>
+gtools::combinations(5, r = 10, repeats.allowed = TRUE) |>
   t() |>
   as.data.frame() |>
-  map(mana_cost) |>
-  map_lgl(\(x) any(x < 0)) |>
-  table()
+  keep(check_duration) |> 
+  keep(mana_cost)
 ```
