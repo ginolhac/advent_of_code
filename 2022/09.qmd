@@ -1,0 +1,73 @@
+
+```{r}
+#| label: setup
+#| include: false
+
+library(tidyverse)
+library(fastmap)
+```
+
+
+## Part 1
+
+using a hashtable https://r-lib.github.io/fastmap/
+
+```{r}
+coord2str <- function(coord) paste(coord, collapse = '|')
+str2coord <- function(str) str_split_1(str, fixed('|')) |> as.numeric()
+
+head_travel <- function(h, instruc, prev) {
+  move <- str_extract(instruc, "^[A-Z]")
+  val <- str_extract(instruc, "\\d+$") |> as.integer()
+  new <- switch(
+    move,
+    'U' = c(0, val),
+    'L' = c(-val, 0),
+    'R' = c(val, 0),
+    'D' = c(0, -val),
+    stop("Unknown input")
+  )
+  for (i in prev[1]:new[1]) {
+    for (j in prev[2]:new[2]) {
+      new <- coord2str(c(i, j))
+      h$set(new, h$get(new) + 1)
+    }
+  }
+  
+  message(paste("move ", move, "new ", new, "h ", h$get(new)))
+  str2coord(new)
+}
+```
+
+```{r}
+head <- fastmap(missing_default = 0L)
+
+input <- read_lines(I("R 4
+U 4
+L 3
+D 1
+R 4
+D 1
+L 5
+R 2"))
+
+
+#input <- read_lines("input/09")
+
+start <- c(0, 0)
+
+head$set(coord2str(start), 1)
+
+for (m in input) {
+  start <- head_travel(head, m, start)
+}
+```
+
+
+```{r}
+#| eval: false
+for (k in head$keys()) {
+  message("key: ", k, ": ", head$get(k))
+}
+```
+
