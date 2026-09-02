@@ -36,6 +36,18 @@ On each of your turns, you must select one of your spells to cast.
 If you cannot afford to cast any spell, you lose. 
 
 ```{r}
+mingled_recharge <- function(v, r) {
+  duration <-  ifelse (r + 5 > length(v), length(v), r + 5)
+  message(paste(r, duration))
+  for (i in seq(r, duration, 2L)) {
+    v <- append(v, 101, after = i)
+      print(v)
+  }
+
+}
+mingled_recharge(c(1:10), r = 3)
+
+
 check_duration <- function(v) {
   # check shield and poison don't overlap
   s <- any(diff(which(v == 3)) < 6)
@@ -55,9 +67,7 @@ mana_cost <- function(v, mana = 500) {
   # Recharge
   recharge <- which(v == 5)
   for (r in recharge) {
-    # don't go over the end
-    s <- min(length(mana_spent), r + 5)
-    mana_spent[r:s] <- mana_spent[r:s] + 101
+    mana_spent <- mingled_recharge(mana_spent, r)
   }
   message(v)
   message(mana_spent)
@@ -66,12 +76,12 @@ mana_cost <- function(v, mana = 500) {
   any(cost < 0)
 }
 
-# FIXME +101 for 6 rounds
+
 mana_cost(c(2, 1, 3, 5, 4))
 # FIXME delete casting a spell still active
 gtools::combinations(5, r = 10, repeats.allowed = TRUE) |>
   t() |>
   as.data.frame() |>
-  keep(check_duration) |> 
+  keep(check_duration) |>
   keep(mana_cost)
 ```
