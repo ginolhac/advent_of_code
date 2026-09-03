@@ -1,0 +1,122 @@
+---
+format: html
+---
+
+
+```{r}
+#| label: setup
+#| include: false
+
+library(RcppAlgos)
+```
+
+
+## Part 1
+
+
+
+```{r}
+
+input <- c(1:5, 7:11)
+
+input <- readr::read_lines(I(
+  "1
+3
+5
+11
+13
+17
+19
+23
+29
+31
+37
+41
+43
+47
+53
+59
+67
+71
+73
+79
+83
+89
+97
+101
+103
+107
+109
+113"
+))
+```
+
+
+
+```{r}
+
+weight_goal <- sum(input) / 3
+
+possib <- permuteGeneral(as.integer(input))
+
+make_groups <- function(v, cs) {
+  idx <- which(cs)
+  list(v[1:idx[1]], v[(idx[1] + 1):idx[2]], v[(idx[2] + 1):length(v)])
+}
+
+groups <- vector(mode = "list", length = nrow(possib))
+
+for (i in seq_len(nrow(possib))) {
+  pkgs <- cumsum(possib[i, ]) %% weight_goal == 0
+  if (i %% 50000 == 0) {
+    message(paste("permutations", i, "/", nrow(possib)))
+  }
+  if (sum(pkgs) == 3) {
+    groups <- append(groups, make_groups(possib[i, ], pkgs))
+  }
+}
+```
+
+
+Too slow.
+
+Generate only the group 1 with the smallest possible integers
+
+```{r}
+
+comboGeneral(
+  as.integer(input),
+  6,
+  constraintFun = "sum",
+  comparisonFun = "==",
+  limitConstraints = sum(as.integer(input)) / 3
+) |>
+  t() |>
+  as.data.frame() |>
+  lapply(prod) |>
+  unlist() |>
+  min()
+```
+
+
+
+10439961859
+
+
+## Part 2
+
+
+```{r}
+comboGeneral(
+  as.integer(input),
+  5,
+  constraintFun = "sum",
+  comparisonFun = "==",
+  limitConstraints = sum(as.integer(input)) / 4
+) |>
+  t() |>
+  as.data.frame() |>
+  lapply(prod) |>
+  unlist() |>
+  min()
+```
