@@ -19,21 +19,31 @@ str2coord <- function(str) str_split_1(str, fixed('|')) |> as.numeric()
 head_travel <- function(h, instruc, prev) {
   move <- str_extract(instruc, "^[A-Z]")
   val <- str_extract(instruc, "\\d+$") |> as.integer()
-  new <- switch(
-    move,
-    'U' = c(0, val),
-    'L' = c(-val, 0),
-    'R' = c(val, 0),
-    'D' = c(0, -val),
-    stop("Unknown input")
-  )
-  for (i in prev[1]:new[1]) {
-    for (j in prev[2]:new[2]) {
-      new <- coord2str(c(i, j))
+  if (move == 'U') {
+    for (i in min(prev[2], val):max(prev[2], val)) {
+      new <- coord2str(c(i, prev[2]))
       h$set(new, h$get(new) + 1)
     }
+  } else if (move == 'L') {
+    for (i in min(prev[1], val):max(prev[1], val)) {
+      new <- coord2str(c(prev[1], i))
+      h$set(new, h$get(new) + 1)
+    }
+  } else if (move == 'R') {
+    for (i in min(prev[1], val):max(prev[1], val)) {
+      new <- coord2str(c(prev[1], i))
+      h$set(new, h$get(new) + 1)
+      message(paste("R new ", new, "h ", h$get(new)))
+    }
+  } else if (move == 'D') {
+    for (i in min(prev[2], val):max(prev[2], val)) {
+      new <- coord2str(c(i, prev[2]))
+      h$set(new, h$get(new) + 1)
+    }
+  } else {
+    stop("Unknown input")
   }
-  
+
   message(paste("move ", move, "new ", new, "h ", h$get(new)))
   str2coord(new)
 }
@@ -42,14 +52,16 @@ head_travel <- function(h, instruc, prev) {
 ```{r}
 head <- fastmap(missing_default = 0L)
 
-input <- read_lines(I("R 4
+input <- read_lines(I(
+  "R 4
 U 4
 L 3
 D 1
 R 4
 D 1
 L 5
-R 2"))
+R 2"
+))
 
 
 #input <- read_lines("input/09")
