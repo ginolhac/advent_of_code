@@ -19,17 +19,17 @@ goal: code in row 2981, column 3075.
 
 
 
- ```{r}
- calc_code <- function(i) {
-   (i * 252533) %% 33554393
- }
- calc_code(20151125)
+```{r}
+calc_code <- function(i) {
+  (i * 252533) %% 33554393
+}
+calc_code(20151125)
 
- s <- 20151125
- for (i in 1:10) {
-   s <- calc_code(s)
-   print(s)
- }
+s <- 20151125
+for (i in 1:10) {
+  s <- calc_code(s)
+  print(s)
+}
 ```
 
 
@@ -52,7 +52,7 @@ goal <- 6100
 m <- matrix(data = 0, nrow = goal, ncol = goal)
 s <- 20151125
 
-for (g in 1:goal) {
+for (g in seq_len(goal)) {
   iv <- g:1
   jv <- 1:g
   for (i in seq_along(iv)) {
